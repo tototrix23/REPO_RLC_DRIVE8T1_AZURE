@@ -15,14 +15,14 @@
   </generalSettings>
   <raBspConfiguration/>
   <raClockConfiguration>
-    <node id="board.clock.xtal.freq" mul="20000000" option="_edit"/>
+    <node id="board.clock.xtal.freq" mul="24000000" option="_edit"/>
     <node id="board.clock.hoco.freq" option="board.clock.hoco.freq.48m"/>
     <node id="board.clock.loco.freq" option="board.clock.loco.freq.32768"/>
     <node id="board.clock.moco.freq" option="board.clock.moco.freq.8m"/>
     <node id="board.clock.subclk.freq" option="board.clock.subclk.freq.32768"/>
     <node id="board.clock.pll.source" option="board.clock.pll.source.xtal"/>
     <node id="board.clock.pll.div" option="board.clock.pll.div.2"/>
-    <node id="board.clock.pll.mul" option="board.clock.pll.mul.96_00"/>
+    <node id="board.clock.pll.mul" option="board.clock.pll.mul.80_00"/>
     <node id="board.clock.pll.display" option="board.clock.pll.display.value"/>
     <node id="board.clock.pll1p.div" option="board.clock.pll1p.div.2"/>
     <node id="board.clock.pll1p.display" option="board.clock.pll1p.display.value"/>
@@ -93,10 +93,102 @@
   </raClockConfiguration>
   <raPinConfiguration>
     <pincfg active="true" name="" symbol="">
-      <configSetting altId="jtag_fslash_swd.tck.p211" configurationId="jtag_fslash_swd.tck"/>
-      <configSetting altId="jtag_fslash_swd.tdi.p208" configurationId="jtag_fslash_swd.tdi"/>
-      <configSetting altId="jtag_fslash_swd.tdo.p209" configurationId="jtag_fslash_swd.tdo"/>
-      <configSetting altId="jtag_fslash_swd.tms.p210" configurationId="jtag_fslash_swd.tms"/>
+      <configSetting altId="adc0.an000.p004" configurationId="adc0.an000"/>
+      <configSetting altId="adc0.an001.p005" configurationId="adc0.an001"/>
+      <configSetting altId="adc0.an002.p006" configurationId="adc0.an002"/>
+      <configSetting altId="adc0.an004.p007" configurationId="adc0.an004"/>
+      <configSetting altId="adc0.an005.p010" configurationId="adc0.an005"/>
+      <configSetting altId="adc0.an006.p009" configurationId="adc0.an006"/>
+      <configSetting altId="adc0.an008.p008" configurationId="adc0.an008"/>
+      <configSetting altId="adc0.an016.p513" configurationId="adc0.an016"/>
+      <configSetting altId="adc0.an017.p805" configurationId="adc0.an017"/>
+      <configSetting altId="adc0.an018.p806" configurationId="adc0.an018"/>
+      <configSetting altId="adc1.an100.p000" configurationId="adc1.an100"/>
+      <configSetting altId="adc1.an101.p001" configurationId="adc1.an101"/>
+      <configSetting altId="adc1.an102.p002" configurationId="adc1.an102"/>
+      <configSetting altId="adc1.an104.p003" configurationId="adc1.an104"/>
+      <configSetting altId="adc1.an105.p015" configurationId="adc1.an105"/>
+      <configSetting altId="adc1.an119.p502" configurationId="adc1.an119"/>
+      <configSetting altId="adc1.an120.p501" configurationId="adc1.an120"/>
+      <configSetting altId="adc1.an121.p500" configurationId="adc1.an121"/>
+      <configSetting altId="adc1.an122.p812" configurationId="adc1.an122"/>
+      <configSetting altId="cgc.extal.p212" configurationId="cgc.extal"/>
+      <configSetting altId="dac120.da0.p014" configurationId="dac120.da0"/>
+      <configSetting altId="gpt12.gtioc12a.p802" configurationId="gpt12.gtioc12a"/>
+      <configSetting altId="gpt12.gtioc12b.p803" configurationId="gpt12.gtioc12b"/>
+      <configSetting altId="gpt4.gtioc4a.p610" configurationId="gpt4.gtioc4a"/>
+      <configSetting altId="gpt4.gtioc4b.p611" configurationId="gpt4.gtioc4b"/>
+      <configSetting altId="gpt5.gtioc5a.p115" configurationId="gpt5.gtioc5a"/>
+      <configSetting altId="gpt5.gtioc5b.p609" configurationId="gpt5.gtioc5b"/>
+      <configSetting altId="gpt6.gtioc6a.p601" configurationId="gpt6.gtioc6a"/>
+      <configSetting altId="gpt6.gtioc6b.p600" configurationId="gpt6.gtioc6b"/>
+      <configSetting altId="gpt7.gtioc7a.p603" configurationId="gpt7.gtioc7a"/>
+      <configSetting altId="gpt7.gtioc7b.p602" configurationId="gpt7.gtioc7b"/>
+      <configSetting altId="gpt8.gtioc8a.p605" configurationId="gpt8.gtioc8a"/>
+      <configSetting altId="gpt8.gtioc8b.p604" configurationId="gpt8.gtioc8b"/>
+      <configSetting altId="gpt_poegc.gtetrgc.p213" configurationId="gpt_poegc.gtetrgc"/>
+      <configSetting altId="irq0.irq0.p105" configurationId="irq0.irq0"/>
+      <configSetting altId="irq1.irq1.p104" configurationId="irq1.irq1"/>
+      <configSetting altId="irq11.irq11.p800" configurationId="irq11.irq11"/>
+      <configSetting altId="irq4.irq4.p300" configurationId="irq4.irq4"/>
+      <configSetting altId="irq5.irq5.p302" configurationId="irq5.irq5"/>
+      <configSetting altId="irq6.irq6.p301" configurationId="irq6.irq6"/>
+      <configSetting altId="irq8.irq8.p905" configurationId="irq8.irq8"/>
+      <configSetting altId="jtag_fslash_swd.swclk.p211" configurationId="jtag_fslash_swd.swclk"/>
+      <configSetting altId="jtag_fslash_swd.swdio.p210" configurationId="jtag_fslash_swd.swdio"/>
+      <configSetting altId="p103.output.low" configurationId="p103"/>
+      <configSetting altId="p106.output.low" configurationId="p106"/>
+      <configSetting altId="p107.output.low" configurationId="p107"/>
+      <configSetting altId="p303.output.low" configurationId="p303"/>
+      <configSetting altId="p304.output.low" configurationId="p304"/>
+      <configSetting altId="p305.output.low" configurationId="p305"/>
+      <configSetting altId="p306.output.low" configurationId="p306"/>
+      <configSetting altId="p307.output.low" configurationId="p307"/>
+      <configSetting altId="p308.output.low" configurationId="p308"/>
+      <configSetting altId="p311.output.low" configurationId="p311"/>
+      <configSetting altId="p312.input" configurationId="p312"/>
+      <configSetting altId="p409.input" configurationId="p409"/>
+      <configSetting altId="p410.output.low" configurationId="p410"/>
+      <configSetting altId="p411.input" configurationId="p411"/>
+      <configSetting altId="p412.input" configurationId="p412"/>
+      <configSetting altId="p413.input" configurationId="p413"/>
+      <configSetting altId="p414.input" configurationId="p414"/>
+      <configSetting altId="p415.output.low" configurationId="p415"/>
+      <configSetting altId="p607.output.low" configurationId="p607"/>
+      <configSetting altId="p613.output.high" configurationId="p613"/>
+      <configSetting altId="p614.output.high" configurationId="p614"/>
+      <configSetting altId="p615.input" configurationId="p615"/>
+      <configSetting altId="p704.input" configurationId="p704"/>
+      <configSetting altId="p705.input" configurationId="p705"/>
+      <configSetting altId="p708.input" configurationId="p708"/>
+      <configSetting altId="p709.output.low" configurationId="p709"/>
+      <configSetting altId="p801.output.high" configurationId="p801"/>
+      <configSetting altId="p804.output.low" configurationId="p804"/>
+      <configSetting altId="p808.output.low" configurationId="p808"/>
+      <configSetting altId="p809.input" configurationId="p809"/>
+      <configSetting altId="p815.output.low" configurationId="p815"/>
+      <configSetting altId="p906.input" configurationId="p906"/>
+      <configSetting altId="p907.output.low" configurationId="p907"/>
+      <configSetting altId="p908.output.low" configurationId="p908"/>
+      <configSetting altId="p909.output.low" configurationId="p909"/>
+      <configSetting altId="pa00.input" configurationId="pa00"/>
+      <configSetting altId="pa01.input" configurationId="pa01"/>
+      <configSetting altId="pa08.input" configurationId="pa08"/>
+      <configSetting altId="pa09.input" configurationId="pa09"/>
+      <configSetting altId="sci0.de0.p114" configurationId="sci0.de0"/>
+      <configSetting altId="sci0.rxd0.p113" configurationId="sci0.rxd0"/>
+      <configSetting altId="sci0.txd0.p112" configurationId="sci0.txd0"/>
+      <configSetting altId="sci1.rxd1.p401" configurationId="sci1.rxd1"/>
+      <configSetting altId="sci1.txd1.p400" configurationId="sci1.txd1"/>
+      <configSetting altId="sci2.rxd2.p700" configurationId="sci2.rxd2"/>
+      <configSetting altId="sci2.txd2.p406" configurationId="sci2.txd2"/>
+      <configSetting altId="sci3.rxd3.p309" configurationId="sci3.rxd3"/>
+      <configSetting altId="sci3.txd3.p310" configurationId="sci3.txd3"/>
+      <configSetting altId="sci4.rxd4.p206" configurationId="sci4.rxd4"/>
+      <configSetting altId="sci4.txd4.p205" configurationId="sci4.txd4"/>
+      <configSetting altId="sci9.rxd9.p101" configurationId="sci9.rxd9"/>
+      <configSetting altId="sci9.sck9.p100" configurationId="sci9.sck9"/>
+      <configSetting altId="sci9.txd9.p102" configurationId="sci9.txd9"/>
     </pincfg>
   </raPinConfiguration>
 </raConfiguration>
