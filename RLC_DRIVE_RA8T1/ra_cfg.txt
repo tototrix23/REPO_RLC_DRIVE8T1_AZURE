@@ -83,8 +83,8 @@ FSP Configuration
     
   RA8T1 event data
   RA Common
-    Main stack size (bytes): 0x400
-    Heap size (bytes): 0
+    Main stack size (bytes): 0x1000
+    Heap size (bytes): 0x2000
     MCU Vcc (mV): 3300
     Parameter checking: Disabled
     Assert Failures: Return FSP_ERR_ASSERTION
@@ -94,8 +94,8 @@ FSP Configuration
     PFS Protect: Enabled
     C Runtime Initialization : Enabled
     Early BSP Initialization : Disabled
-    Main Oscillator Clock Source: Crystal or Resonator
-    Subclock Populated: Populated
+    Main Oscillator Clock Source: External Oscillator
+    Subclock Populated: Not Populated
     Subclock Drive (Drive capacitance availability varies by MCU): Standard/Normal mode
     Subclock Stabilization Time (ms): 1000
     
@@ -116,7 +116,7 @@ FSP Configuration
     PLL2R Div /2
     Clock Src: PLL1P
     CLKOUT Disabled
-    SCICLK Disabled
+    SCICLK Src: PLL1P
     SPICLK Disabled
     CANFDCLK Disabled
     LCDCLK Disabled
@@ -165,9 +165,9 @@ FSP Configuration
       P010 159 ADC0_AN005 - - - "Analog mode" - - "ACMPHS0: IVCMP0_0; ADC0: AN005; IRQ14: IRQ14" - I - - 
       P014 152 DAC120_DA0 - - - "Analog mode" - - "ADC0: AN007; DAC120: DA0" - O - - 
       P015 151 ADC1_AN105 - - - "Analog mode" - - "ADC1: AN105; DAC121: DA1; IRQ13: IRQ13" - I - - 
-      P100 132 SCI9_SCK9 - L None "Peripheral mode" - - "AGT0: AGTIO0; GPT8: GTIOC8B; GPT_POEGA: GTETRGA; IRQ2: IRQ2; SCI9: DE9; SCI9: SCK9; SPI1: MISO1" - IO - - 
+      P100 132 SCI9_SCK9 - M None "Peripheral mode" - - "AGT0: AGTIO0; GPT8: GTIOC8B; GPT_POEGA: GTETRGA; IRQ2: IRQ2; SCI9: DE9; SCI9: SCK9; SPI1: MISO1" - IO - - 
       P101 129 SCI9_RXD9 - L None "Peripheral mode" - - "AGT0: AGTEE0; GPT8: GTIOC8A; GPT_POEGB: GTETRGB; IRQ1: IRQ1; SCI9: RXD9; SPI1: MOSI1" - I - - 
-      P102 128 SCI9_TXD9 - L - "Peripheral mode" - - "ADC(Digital): ADTRG0; AGT0: AGTO0; CANFD0: CRX0; GPT2: GTIOC2B; GPT_OPS: GTOWLO; SCI9: TXD9; SPI1: RSPCK1" - O - - 
+      P102 128 SCI9_TXD9 - M - "Peripheral mode" - - "ADC(Digital): ADTRG0; AGT0: AGTO0; CANFD0: CRX0; GPT2: GTIOC2B; GPT_OPS: GTOWLO; SCI9: TXD9; SPI1: RSPCK1" - O - - 
       P103 127 GPIO IO_MOT2_ENABLE L - "Output mode (Initial Low)" - - "CANFD0: CTX0; GPT2: GTIOC2A; GPT_OPS: GTOWUP; SCI9: CTS_RTS9; SCI9: DE9; SPI1: SSLB0" - IO - - 
       P104 126 IRQ1_IRQ1 IO_MOT2_HALL_V - IRQ1 "IRQ mode" - - "GPT1: GTIOC1B; GPT_POEGB: GTETRGB; IRQ1: IRQ1; SCI9: CTS9; SPI1: SSLB1" - IO - - 
       P105 125 IRQ0_IRQ0 IO_MOT2_HALL_W - IRQ0 "IRQ mode" - - "GPT1: GTIOC1A; IRQ0: IRQ0; SPI1: SSLB2; ULPT1: ULPTO1_A-DS" - IO - - 
@@ -239,7 +239,7 @@ FSP Configuration
       P609 93 GPT5_GTIOC5B - L - "Peripheral mode" - - "BUS: D8; CANFD1: CTX1; ETHER_MII: ET0_RX_DV; GPT5: GTIOC5B; SCI0: TXD0; SDRAM: DQ8; SPI0: MISO0; ULPT1: ULPTOA1_A-DS" - IO - - 
       P610 96 GPT4_GTIOC4A - L - "Peripheral mode" - - "BUS: D9; CANFD1: CRX1; ETHER_MII: ET0_COL; GPT4: GTIOC4A; SCI0: RXD0; SDRAM: DQ9; SPI0: RSPCK0; ULPT1: ULPTOB1_A-DS" - IO - - 
       P611 97 GPT4_GTIOC4B - L - "Peripheral mode" - - "BUS: D10; CAC: CACREF; CLKOUT: CLKOUT; ETHER_MII: ET0_ERXD2; GPT4: GTIOC4B; SCI0: DE0; SCI0: SCK0; SDRAM: DQ10; SPI0: MOSI0" - IO - - 
-      P612 98 - - - - Disabled - - "BUS: D11; ETHER_MII: ET0_ERXD3; SCI0: CTS_RTS0; SCI0: DE0; SDRAM: DQ11; SPI0: SSLA0" - None - - 
+      P612 98 GPIO IO_MOT1_ENABLE L - "Output mode (Initial Low)" - - "BUS: D11; ETHER_MII: ET0_ERXD3; SCI0: CTS_RTS0; SCI0: DE0; SDRAM: DQ11; SPI0: SSLA0" - IO - - 
       P613 99 GPIO IO_MOT1_CS L - "Output mode (Initial High)" - - "AGT1: AGTO1; BUS: D12; GPT_POEGA: GTETRGA; SCI0: CTS0; SDRAM: DQ12" - IO - - 
       P614 100 GPIO IO_FLASH_CS L - "Output mode (Initial High)" - - "AGT0: AGTO0; BUS: D13; GPT_POEGB: GTETRGB; SDRAM: DQ13" - IO - - 
       P615 101 GPIO IO_MOT_SIG6 - None "Input mode" - - "BUS: D14; GPT_POEGC: GTETRGC; IRQ7: IRQ7; SDRAM: DQ14; USB FS: USB_VBUSEN" - IO - - 
@@ -258,7 +258,7 @@ FSP Configuration
       P801 134 GPIO IO_MOT2_CS L None "Output mode (Initial High)" - - "AGT0: AGTOB0; GPT11: GTIOC11B; GPT_OPS: GTIV; IRQ12: IRQ12; SCI2: TXD2" - IO - - 
       P802 135 GPT12_GTIOC12A - L - "Peripheral mode" - - "GPT12: GTIOC12A; GPT_OPS: GTIW; SCI2: RXD2" - IO - - 
       P803 136 GPT12_GTIOC12B - L - "Peripheral mode" - - "GPT12: GTIOC12B; GPT_POEGC: GTETRGC; SCI2: DE2; SCI2: SCK2" - IO - - 
-      P804 137 GPIO IO_VM_SWITCH_CMD L None "Output mode (Initial Low)" - - "GPT13: GTIOC13A; GPT_POEGD: GTETRGD; IRQ14: IRQ14; SCI2: CTS_RTS2; SCI2: DE2" - IO - - 
+      P804 137 GPIO IO_VM_SWITCH_CMD L None "Output mode (Initial High)" - - "GPT13: GTIOC13A; GPT_POEGD: GTETRGD; IRQ14: IRQ14; SCI2: CTS_RTS2; SCI2: DE2" - IO - - 
       P805 173 ADC0_AN017 - - - "Analog mode" - - "ADC0: AN017; ADC1: AN117" - I - - 
       P806 172 ADC0_AN018 - - - "Analog mode" - - "ADC0: AN018; ADC1: AN118; IRQ0: IRQ0" - I - - 
       P808 138 GPIO IO_VM_BALLAST_CMD L None "Output mode (Initial Low)" - - "GPT13: GTIOC13B; IRQ15: IRQ15" - IO - - 
@@ -332,6 +332,23 @@ FSP Configuration
     Parameter Checking: Default (BSP)
     
   Module "Azure RTOS ThreadX Port (rm_threadx_port)"
+  Module "UART (r_sci_b_uart)"
+    Parameter Checking: Default (BSP)
+    FIFO Support: Disable
+    DTC Support: Disable
+    Flow Control Support: Disable
+    
+  Module "Port Output Enable for GPT (r_poeg)"
+    Parameter Checking: Default (BSP)
+    
+  Module "SPI (r_sci_b_spi)"
+    Parameter Checking: Default (BSP)
+    DTC Support: Enabled
+    
+  Module "Transfer (r_dtc)"
+    Parameter Checking: Default (BSP)
+    Linker section to keep DTC vector table: .fsp_dtc_vector_table
+    
   Azure RTOS ThreadX
     General: Custom tx_user.h: 
     General: Error Checking: Enabled
@@ -378,3 +395,168 @@ FSP Configuration
       Pin Configuration Name: g_bsp_pin_cfg
       
     Instance "Azure RTOS ThreadX Port (rm_threadx_port)"
+    Instance "g_uart_log UART (r_sci_b_uart)"
+      General: Name: g_uart_log
+      General: Channel: 2
+      General: Data Bits: 8bits
+      General: Parity: None
+      General: Stop Bits: 1bit
+      Baud: Baud Rate: 921600
+      Baud: Baud Rate Modulation: Disabled
+      Baud: Max Error (%): 5
+      Flow Control: CTS/RTS Selection: Hardware RTS
+      Flow Control: Software RTS Port: Disabled
+      Flow Control: Software RTS Pin: Disabled
+      Extra: Clock Source: Internal Clock
+      Extra: Start bit detection: Falling Edge
+      Extra: Noise Filter: Disable
+      Extra: Receive FIFO Trigger Level: Max
+      Extra: RS-485: DE Pin: Disable
+      Extra: RS-485: DE Pin Polarity: Active High
+      Extra: RS-485: DE Pin Assertion Time: 1
+      Extra: RS-485: DE Pin Negation Time: 1
+      Interrupts: Callback: uart_log_callback
+      Interrupts: Receive Interrupt Priority: Priority 12
+      Interrupts: Transmit Data Empty Interrupt Priority: Priority 12
+      Interrupts: Transmit End Interrupt Priority: Priority 12
+      Interrupts: Error Interrupt Priority: Priority 12
+      
+    Instance "g_poeg0 Port Output Enable for GPT (r_poeg)"
+      General: Name: g_poeg0
+      General: Channel: 3
+      General: Trigger: GTETRG Pin
+      Input: GTETRG Polarity: Active High
+      Input: GTETRG Noise Filter: PCLKB/8
+      Interrupts: Callback: g_poe_overcurrent
+      Interrupts: Interrupt Priority: Priority 0 (highest)
+      
+    Instance "g_sci_spi_lfs SPI (r_sci_b_spi)"
+      Name: g_sci_spi_lfs
+      Channel: 9
+      Operating Mode: Master
+      Clock Phase: Data sampling on odd edge, data variation on even edge
+      Clock Polarity: Low when idle
+      Mode Fault Error: Disable
+      Bit Order: MSB First
+      Clock Source: SCISPICLK
+      Callback: sci_b_spi_lfs_callback
+      Receive Interrupt Priority: Priority 12
+      Transmit Interrupt Priority: Priority 12
+      Transmit End Interrupt Priority: Priority 12
+      Error Interrupt Priority: Priority 12
+      Bitrate: 10000000
+      
+      Instance "g_transfer0 Transfer (r_dtc) SCI9 TXI (Transmit data empty)"
+        Name: g_transfer0
+        Mode: Normal
+        Transfer Size: 1 Byte
+        Destination Address Mode: Fixed
+        Source Address Mode: Incremented
+        Repeat Area (Unused in Normal Mode): Source
+        Interrupt Frequency: After all transfers have completed
+        Number of Transfers: 0
+        Number of Blocks (Valid only in Block Mode): 0
+        Number of Transfer Descriptors: 1
+        Activation Source: SCI9 TXI (Transmit data empty)
+        
+      Instance "g_transfer1 Transfer (r_dtc) SCI9 RXI (Receive data full)"
+        Name: g_transfer1
+        Mode: Normal
+        Transfer Size: 1 Byte
+        Destination Address Mode: Incremented
+        Source Address Mode: Fixed
+        Repeat Area (Unused in Normal Mode): Destination
+        Interrupt Frequency: After all transfers have completed
+        Number of Transfers: 0
+        Number of Blocks (Valid only in Block Mode): 0
+        Number of Transfer Descriptors: 1
+        Activation Source: SCI9 RXI (Receive data full)
+        
+    Instance "g_sci_spi_drivers SPI (r_sci_b_spi)"
+      Name: g_sci_spi_drivers
+      Channel: 9
+      Operating Mode: Master
+      Clock Phase: Data sampling on even edge, data variation on odd edge
+      Clock Polarity: Low when idle
+      Mode Fault Error: Disable
+      Bit Order: MSB First
+      Clock Source: PCLK
+      Callback: sci_b_spi_callback_drivers
+      Receive Interrupt Priority: Priority 12
+      Transmit Interrupt Priority: Priority 12
+      Transmit End Interrupt Priority: Priority 12
+      Error Interrupt Priority: Priority 12
+      Bitrate: 1000000
+      
+      Instance "g_transfer2 Transfer (r_dtc) SCI9 TXI (Transmit data empty)"
+        Name: g_transfer2
+        Mode: Normal
+        Transfer Size: 1 Byte
+        Destination Address Mode: Fixed
+        Source Address Mode: Incremented
+        Repeat Area (Unused in Normal Mode): Source
+        Interrupt Frequency: After all transfers have completed
+        Number of Transfers: 0
+        Number of Blocks (Valid only in Block Mode): 0
+        Number of Transfer Descriptors: 1
+        Activation Source: SCI9 TXI (Transmit data empty)
+        
+      Instance "g_transfer3 Transfer (r_dtc) SCI9 RXI (Receive data full)"
+        Name: g_transfer3
+        Mode: Normal
+        Transfer Size: 1 Byte
+        Destination Address Mode: Incremented
+        Source Address Mode: Fixed
+        Repeat Area (Unused in Normal Mode): Destination
+        Interrupt Frequency: After all transfers have completed
+        Number of Transfers: 0
+        Number of Blocks (Valid only in Block Mode): 0
+        Number of Transfer Descriptors: 1
+        Activation Source: SCI9 RXI (Receive data full)
+        
+  Thread "Main Thread"
+    Symbol: main_thread
+    Name: Main Thread
+    Stack size (bytes): 4096
+    Priority: 2
+    Auto start: Enabled
+    Time slicing interval (ticks): 1
+    
+  Thread "Log Thread"
+    Symbol: log_thread
+    Name: Log Thread
+    Stack size (bytes): 4096
+    Priority: 3
+    Auto start: Disabled
+    Time slicing interval (ticks): 1
+    
+  Thread "Motors Thread"
+    Symbol: motors_thread
+    Name: Motors Thread
+    Stack size (bytes): 2048
+    Priority: 1
+    Auto start: Disabled
+    Time slicing interval (ticks): 1
+    
+  Object "g_queue_log Queue"
+    Name: Log Queue
+    Symbol: g_queue_log
+    Message Size (Words): 1
+    Queue Size (Bytes): 320
+    
+  Object "g_mutex_rtc Mutex"
+    Name: Rtc Mutex
+    Symbol: g_mutex_rtc
+    Priority inheritance: Enabled
+    
+  Object "g_queue_json Queue"
+    Name: JSON Queue
+    Symbol: g_queue_json
+    Message Size (Words): 1
+    Queue Size (Bytes): 20
+    
+  Object "g_mutex_spi Mutex"
+    Name: SPI Mutex
+    Symbol: g_mutex_spi
+    Priority inheritance: Enabled
+    

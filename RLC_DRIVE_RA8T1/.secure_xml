@@ -42,7 +42,7 @@
     <node id="board.clock.pll2r.display" option="board.clock.pll2r.display.value"/>
     <node id="board.clock.clock.source" option="board.clock.clock.source.pll1p"/>
     <node id="board.clock.clkout.source" option="board.clock.clkout.source.disabled"/>
-    <node id="board.clock.sciclk.source" option="board.clock.sciclk.source.disabled"/>
+    <node id="board.clock.sciclk.source" option="board.clock.sciclk.source.pll1p"/>
     <node id="board.clock.spiclk.source" option="board.clock.spiclk.source.disabled"/>
     <node id="board.clock.canfdclk.source" option="board.clock.canfdclk.source.disabled"/>
     <node id="board.clock.lcdclk.source" option="board.clock.lcdclk.source.disabled"/>
@@ -155,6 +155,7 @@
       <configSetting altId="p414.input" configurationId="p414"/>
       <configSetting altId="p415.output.low" configurationId="p415"/>
       <configSetting altId="p607.output.low" configurationId="p607"/>
+      <configSetting altId="p612.output.low" configurationId="p612"/>
       <configSetting altId="p613.output.high" configurationId="p613"/>
       <configSetting altId="p614.output.high" configurationId="p614"/>
       <configSetting altId="p615.input" configurationId="p615"/>
@@ -163,7 +164,7 @@
       <configSetting altId="p708.input" configurationId="p708"/>
       <configSetting altId="p709.output.low" configurationId="p709"/>
       <configSetting altId="p801.output.high" configurationId="p801"/>
-      <configSetting altId="p804.output.low" configurationId="p804"/>
+      <configSetting altId="p804.output.high" configurationId="p804"/>
       <configSetting altId="p808.output.low" configurationId="p808"/>
       <configSetting altId="p809.input" configurationId="p809"/>
       <configSetting altId="p815.output.low" configurationId="p815"/>
@@ -180,15 +181,15 @@
       <configSetting altId="sci0.txd0.p112" configurationId="sci0.txd0"/>
       <configSetting altId="sci1.rxd1.p401" configurationId="sci1.rxd1"/>
       <configSetting altId="sci1.txd1.p400" configurationId="sci1.txd1"/>
-      <configSetting altId="sci2.rxd2.p700" configurationId="sci2.rxd2"/>
-      <configSetting altId="sci2.txd2.p406" configurationId="sci2.txd2"/>
+      <configSetting altId="sci2.rxd2.p700" configurationId="sci2.rxd2" isUsedByDriver="true"/>
+      <configSetting altId="sci2.txd2.p406" configurationId="sci2.txd2" isUsedByDriver="true"/>
       <configSetting altId="sci3.rxd3.p309" configurationId="sci3.rxd3"/>
       <configSetting altId="sci3.txd3.p310" configurationId="sci3.txd3"/>
       <configSetting altId="sci4.rxd4.p206" configurationId="sci4.rxd4"/>
       <configSetting altId="sci4.txd4.p205" configurationId="sci4.txd4"/>
-      <configSetting altId="sci9.rxd9.p101" configurationId="sci9.rxd9"/>
-      <configSetting altId="sci9.sck9.p100" configurationId="sci9.sck9"/>
-      <configSetting altId="sci9.txd9.p102" configurationId="sci9.txd9"/>
+      <configSetting altId="sci9.rxd9.p101" configurationId="sci9.rxd9" isUsedByDriver="true"/>
+      <configSetting altId="sci9.sck9.p100" configurationId="sci9.sck9" isUsedByDriver="true"/>
+      <configSetting altId="sci9.txd9.p102" configurationId="sci9.txd9" isUsedByDriver="true"/>
     </pincfg>
   </raPinConfiguration>
 </raConfiguration>
