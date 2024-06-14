@@ -117,7 +117,7 @@ FSP Configuration
     Clock Src: PLL1P
     CLKOUT Disabled
     SCICLK Src: PLL1P
-    SPICLK Disabled
+    SPICLK Src: PLL1P
     CANFDCLK Disabled
     LCDCLK Disabled
     I3CCLK Disabled
@@ -349,6 +349,40 @@ FSP Configuration
     Parameter Checking: Default (BSP)
     Linker section to keep DTC vector table: .fsp_dtc_vector_table
     
+  Module "Motor 120 degree control (rm_motor_120_degree)"
+    Parameter Checking: Default (BSP)
+    
+  Module "120-degree conduction control with Hall sensors (rm_motor_120_control_hall)"
+    Parameter Checking: Default (BSP)
+    
+  Module "External IRQ (r_icu)"
+    Parameter Checking: Default (BSP)
+    
+  Module "ADC and PWM modulation  (rm_motor_120_driver)"
+    Parameter Checking: Default (BSP)
+    ADC_B Support: Disabled
+    Shared ADC support: Disabled
+    Support Motor Number: 1
+    
+  Module "Three-Phase PWM (r_gpt_three_phase)"
+    Parameter Checking: Default (BSP)
+    
+  Module "Timer, General PWM (r_gpt)"
+    Parameter Checking: Default (BSP)
+    Pin Output Support: Enabled with Extra Features
+    Write Protect Enable: Disabled
+    
+  Module "Timer, Low-Power (r_agt)"
+    Parameter Checking: Default (BSP)
+    Pin Output Support: Disabled
+    Pin Input Support: Disabled
+    
+  Module "ADC (r_adc)"
+    Parameter Checking: Default (BSP)
+    
+  Module "Event Link Controller (r_elc)"
+    Parameter Checking: Default (BSP)
+    
   Azure RTOS ThreadX
     General: Custom tx_user.h: 
     General: Error Checking: Enabled
@@ -538,6 +572,389 @@ FSP Configuration
     Auto start: Disabled
     Time slicing interval (ticks): 1
     
+    Instance "Motor 120 degree control (rm_motor_120_degree)"
+      General: Name: g_motor_120_degree0
+      General: Limit of over current (A): 12.0
+      General: Limit of over voltage (V): 60.0
+      General: Limit of over speed (rpm): 3500.0
+      General: Limit of low voltage (V): 6.0
+      Interrupts: Callback: mtr0_callback_120_degree
+      
+      Instance "120-degree conduction control with Hall sensors (rm_motor_120_control_hall)"
+        General: Name: g_motor_120_control_hall0
+        General: Conduction type: First 60 degree PWM
+        Hall sensor port U: BSP_IO_PORT_03_PIN_01
+        Hall sensor port V: BSP_IO_PORT_03_PIN_00
+        Hall sensor port W: BSP_IO_PORT_03_PIN_02
+        General: Timeout counts (msec): 800
+        General: Maximum voltage (V): 23.0
+        General: Minimum voltage (V): 3.0
+        General: Speed PI decimation: 0
+        General: Freerun timer frequency (MHz): 120
+        General: Speed LPF: 1.0
+        General: Step of speed reference change: 1.0
+        General: Start reference voltage (V): 10.0
+        General: Hall wait counts: 12
+        General: Stop judge time: 1000
+        General: Minimum limit speed (rpm): 150
+        General: PI control KP: 0.01
+        General: PI control KI: 0.0005
+        General: PI control limit: 24.0
+        General: Hall interrupt mask value: 15
+        Motor Parameter: Pole pairs: 4
+        Motor Parameter: Resistance (ohm): 6.447
+        Motor Parameter: Inductance of d-axis (H): 0.0045
+        Motor Parameter: Inductance of q-axis (H): 0.0045
+        Motor Parameter: Permanent magnetic flux (Wb): 0.02159
+        Motor Parameter: Rotor inertia (kgm^2): 1.8
+        Interrupts: Callback: rm_motor_120_degree_120_control_callback
+        
+        Instance "g_timer3 Timer, Low-Power (r_agt)"
+          General: Name: g_timer3
+          General: Counter Bit Width: AGT 16-bit
+          General: Channel: 0
+          General: Mode: Periodic
+          General: Period: 1
+          General: Period Unit: Milliseconds
+          Output: Duty Cycle Percent (only applicable in PWM mode): 50
+          General: Count Source: PCLKB
+          Output: AGTOA Output: Disabled
+          Output: AGTOB Output: Disabled
+          Output: AGTO Output: Disabled
+          Input: Measurement Mode: Measure Disabled
+          Input: Input Filter: No Filter
+          Input: Enable Pin: Enable Pin Not Used
+          Input: Trigger Edge: Trigger Edge Rising
+          Interrupts: Callback: rm_motor_120_control_hall_speed_cyclic
+          Interrupts: Underflow Interrupt Priority: Priority 10
+          
+        Instance "g_timer4 Timer, General PWM (r_gpt)"
+          General: Name: g_timer4
+          General: Channel: 0
+          General: Mode: Periodic
+          General: Period: 0x100000000
+          General: Compare Match: Compare Match A: Status: Disabled
+          General: Compare Match: Compare Match A: Compare match value: 0
+          General: Compare Match: Compare Match B: Status: Disabled
+          General: Compare Match: Compare Match B: Compare match value: 0
+          General: Period Unit: Raw Counts
+          Output: Custom Waveform: GTIOA: Initial Output Level: Pin Level Low
+          Output: Custom Waveform: GTIOA: Cycle End Output Level: Pin Level Retain
+          Output: Custom Waveform: GTIOA: Compare Match Output Level: Pin Level Retain
+          Output: Custom Waveform: GTIOA: Retain Output Level at Count Stop: Disabled
+          Output: Custom Waveform: GTIOB: Initial Output Level: Pin Level Low
+          Output: Custom Waveform: GTIOB: Cycle End Output Level: Pin Level Retain
+          Output: Custom Waveform: GTIOB: Compare Match Output Level: Pin Level Retain
+          Output: Custom Waveform: GTIOB: Retain Output Level at Count Stop: Disabled
+          Output: Custom Waveform: Custom Waveform Enable: Disabled
+          Output: Duty Cycle Percent (only applicable in PWM mode): 50
+          Output: GTIOCA Output Enabled: False
+          Output: GTIOCA Stop Level: Pin Level Low
+          Output: GTIOCB Output Enabled: False
+          Output: GTIOCB Stop Level: Pin Level Low
+          Input: Count Up Source: 
+          Input: Count Down Source: 
+          Input: Start Source: 
+          Input: Stop Source: 
+          Input: Clear Source: 
+          Input: Capture A Source: 
+          Input: Capture B Source: 
+          Input: Noise Filter A Sampling Clock Select: No Filter
+          Input: Noise Filter B Sampling Clock Select: No Filter
+          Interrupts: Callback: NULL
+          Interrupts: Overflow/Crest Interrupt Priority: Disabled
+          Interrupts: Capture/Compare match A Interrupt Priority: Disabled
+          Interrupts: Capture/Compare match B Interrupt Priority: Disabled
+          Interrupts: Underflow/Trough Interrupt Priority: Disabled
+          Extra Features: Extra Features: Disabled
+          Extra Features: Output Disable: POEG Link: POEG Channel 0
+          Extra Features: Output Disable: Output Disable POEG Trigger: 
+          Extra Features: ADC Trigger: Start Event Trigger (Channels with GTINTAD only): 
+          Extra Features: ADC Trigger: ADC A Compare Match (Raw Counts): 0
+          Extra Features: ADC Trigger: ADC B Compare Match (Raw Counts): 0
+          Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 0
+          Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 0
+          Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt to Count: None
+          Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt Skip Count: 0
+          Extra Features: Interrupt Skipping (Channels with GTITC only): Skip ADC Events: None
+          Extra Features: Output Disable: GTIOCA Disable Setting: Disable Prohibited
+          Extra Features: Output Disable: GTIOCB Disable Setting: Disable Prohibited
+          
+        Instance "g_external_irq0 External IRQ (r_icu)"
+          Name: g_external_irq0
+          Channel: 6
+          Trigger: Both Edges
+          Digital Filtering: Disabled
+          Digital Filtering Sample Clock (Only valid when Digital Filtering is Enabled): PCLK / 64
+          Callback: rm_motor_120_control_hall_interrupt
+          Pin Interrupt Priority: Priority 3
+          
+        Instance "g_external_irq1 External IRQ (r_icu)"
+          Name: g_external_irq1
+          Channel: 4
+          Trigger: Both Edges
+          Digital Filtering: Disabled
+          Digital Filtering Sample Clock (Only valid when Digital Filtering is Enabled): PCLK / 64
+          Callback: rm_motor_120_control_hall_interrupt
+          Pin Interrupt Priority: Priority 3
+          
+        Instance "g_external_irq2 External IRQ (r_icu)"
+          Name: g_external_irq2
+          Channel: 5
+          Trigger: Both Edges
+          Digital Filtering: Disabled
+          Digital Filtering Sample Clock (Only valid when Digital Filtering is Enabled): PCLK / 64
+          Callback: rm_motor_120_control_hall_interrupt
+          Pin Interrupt Priority: Priority 3
+          
+        Instance "ADC and PWM modulation  (rm_motor_120_driver)"
+          General: Name: g_motor_120_driver0
+          General: 120 degree control type: Hall
+          General: PWM output port UP: BSP_IO_PORT_06_PIN_05
+          General: PWM output port UN: BSP_IO_PORT_06_PIN_04
+          General: PWM output port VP: BSP_IO_PORT_06_PIN_10
+          General: PWM output port VN: BSP_IO_PORT_06_PIN_11
+          General: PWM output port WP: BSP_IO_PORT_01_PIN_15
+          General: PWM output port WN: BSP_IO_PORT_06_PIN_09
+          General: PWM timer frequency (MHz): 120.0
+          General: PWM carrier period (Microseconds): 50.0
+          General: Dead time (Raw counts): 0
+          General: Current range (A): 13.2
+          General: Voltage range (V): 33.33
+          General: Resolution of A/D conversion: 0xFFF
+          General: Offset of A/D conversion for current: 0x7FF
+          General: Conversion level of A/D conversion for voltage: 1.0
+          General: Counts for current offset measurement: 500
+          General: Input voltage: 24.0
+          General: A/D conversion channel for U phase current: 2
+          General: A/D conversion channel for W phase current: 1
+          General: A/D conversion channel for main line voltage: 0
+          General: A/D conversion channel for U phase voltage: 20
+          General: A/D conversion channel for V phase voltage: 21
+          General: A/D conversion channel for W phase voltage: 22
+          General: A/D conversion unit for U phase current: 0
+          General: A/D conversion unit for W phase current: 0
+          General: A/D conversion unit for main line voltage: 0
+          General: A/D conversion unit for U phase voltage: 1
+          General: A/D conversion unit for V phase voltage: 1
+          General: A/D conversion unit for W phase voltage: 1
+          General: GTIOCA stop level: Pin Level Low
+          General: GTIOCB stop level: Pin Level High
+          General: ADC interrupt module: 1st
+          Modulation: Maximum duty: 0.96
+          Interrupts: Callback: rm_motor_120_control_hall_driver_callback
+          
+          Instance "g_adc0 ADC (r_adc)"
+            General: Name: g_adc0
+            General: Unit: 0
+            General: Resolution: 12-Bit
+            General: Alignment: Right
+            General: Clear after read: Off
+            General: Mode: Single Scan
+            General: Double-trigger: Disabled
+            Input: Channel Scan Mask (channel availability varies by MCU): Channel 0, Channel 1, Channel 2, Channel 20, Channel 21, Channel 22
+            Input: Group B Scan Mask (channel availability varies by MCU): 
+            Interrupts: Normal/Group A Trigger: GPT8 COUNTER UNDERFLOW (Underflow)
+            Interrupts: Group B Trigger: Disabled
+            Interrupts: Group Priority (Valid only in Group Scan Mode): Group A cannot interrupt Group B
+            Input: Add/Average Count: Disabled
+            Input: Reference Voltage control: VREFH0/VREFH
+            Input: Addition/Averaging Mask (channel availability varies by MCU and unit): 
+            Input: Sample and Hold: Sample and Hold Channels (Available only on selected MCUs): 
+            Input: Sample and Hold: Sample Hold States (Applies only to channels 0, 1, 2): 24
+            Input: Window Compare: Window Mode: Disabled
+            Input: Window Compare: Event Output: OR
+            Input: Window Compare: Window A: Enable: Disabled
+            Input: Window Compare: Window A: Channels to compare (channel availability varies by MCU and unit): 
+            Input: Window Compare: Window A: Channel comparison mode (channel availability varies by MCU and unit): 
+            Input: Window Compare: Window A: Lower Reference: 0
+            Input: Window Compare: Window A: Upper Reference: 0
+            Input: Window Compare: Window B: Enable: Disabled
+            Input: Window Compare: Window B: Channel to compare (channel availability varies by MCU and unit): Channel 0
+            Input: Window Compare: Window B: Comparison mode: Less Than or Outside Window
+            Input: Window Compare: Window B: Lower Reference: 0
+            Input: Window Compare: Window B: Upper Reference: 0
+            Interrupts: Callback: rm_motor_120_driver_cyclic
+            Interrupts: Scan End Interrupt Priority: Priority 5
+            Interrupts: Scan End Group B Interrupt Priority: Disabled
+            Interrupts: Window Compare A Interrupt Priority: Disabled
+            Interrupts: Window Compare B Interrupt Priority: Disabled
+            Extra: ADC Ring Buffer: Disabled
+            
+          Instance "Three-Phase PWM (r_gpt_three_phase)"
+            General: Name: g_three_phase0
+            General: Mode: Triangle-Wave Symmetric PWM
+            General: Period: 50.0
+            General: Period Unit: Microseconds
+            General: GPT U-Channel: 8
+            General: GPT V-Channel: 4
+            General: GPT W-Channel: 5
+            General: Callback Channel: U-Channel
+            General: Buffer Mode: Single Buffer
+            General: GTIOCA Stop Level: Pin Level Low
+            General: GTIOCB Stop Level: Pin Level High
+            Extra Features: Dead Time: Dead Time Count Up (Raw Counts): 0
+            Extra Features: Dead Time: Dead Time Count Down (Raw Counts) (GPTE/GPTEH only): 0
+            
+            Instance "g_timer0 Timer, General PWM (r_gpt)"
+              General: Name: g_timer0
+              General: Channel: 8
+              General: Mode: Triangle-wave PWM (symmetric, Mode 1)
+              General: Period: 50.0
+              General: Compare Match: Compare Match A: Status: Disabled
+              General: Compare Match: Compare Match A: Compare match value: 0
+              General: Compare Match: Compare Match B: Status: Disabled
+              General: Compare Match: Compare Match B: Compare match value: 0
+              General: Period Unit: Microseconds
+              Output: Custom Waveform: GTIOA: Initial Output Level: Pin Level Low
+              Output: Custom Waveform: GTIOA: Cycle End Output Level: Pin Level Retain
+              Output: Custom Waveform: GTIOA: Compare Match Output Level: Pin Level Retain
+              Output: Custom Waveform: GTIOA: Retain Output Level at Count Stop: Disabled
+              Output: Custom Waveform: GTIOB: Initial Output Level: Pin Level Low
+              Output: Custom Waveform: GTIOB: Cycle End Output Level: Pin Level Retain
+              Output: Custom Waveform: GTIOB: Compare Match Output Level: Pin Level Retain
+              Output: Custom Waveform: GTIOB: Retain Output Level at Count Stop: Disabled
+              Output: Custom Waveform: Custom Waveform Enable: Disabled
+              Output: Duty Cycle Percent (only applicable in PWM mode): 50
+              Output: GTIOCA Output Enabled: True
+              Output: GTIOCA Stop Level: Pin Level Low
+              Output: GTIOCB Output Enabled: True
+              Output: GTIOCB Stop Level: Pin Level High
+              Input: Count Up Source: 
+              Input: Count Down Source: 
+              Input: Start Source: 
+              Input: Stop Source: 
+              Input: Clear Source: 
+              Input: Capture A Source: 
+              Input: Capture B Source: 
+              Input: Noise Filter A Sampling Clock Select: No Filter
+              Input: Noise Filter B Sampling Clock Select: No Filter
+              Interrupts: Callback: NULL
+              Interrupts: Overflow/Crest Interrupt Priority: Disabled
+              Interrupts: Capture/Compare match A Interrupt Priority: Disabled
+              Interrupts: Capture/Compare match B Interrupt Priority: Disabled
+              Interrupts: Underflow/Trough Interrupt Priority: Disabled
+              Extra Features: Extra Features: Enabled
+              Extra Features: Output Disable: POEG Link: POEG Channel 3
+              Extra Features: Output Disable: Output Disable POEG Trigger: 
+              Extra Features: ADC Trigger: Start Event Trigger (Channels with GTINTAD only): 
+              Extra Features: ADC Trigger: ADC A Compare Match (Raw Counts): 0
+              Extra Features: ADC Trigger: ADC B Compare Match (Raw Counts): 0
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 0
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 0
+              Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt to Count: None
+              Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt Skip Count: 0
+              Extra Features: Interrupt Skipping (Channels with GTITC only): Skip ADC Events: None
+              Extra Features: Output Disable: GTIOCA Disable Setting: Set Hi Z
+              Extra Features: Output Disable: GTIOCB Disable Setting: Set Hi Z
+              
+            Instance "g_timer1 Timer, General PWM (r_gpt)"
+              General: Name: g_timer1
+              General: Channel: 4
+              General: Mode: Triangle-wave PWM (symmetric, Mode 1)
+              General: Period: 50.0
+              General: Compare Match: Compare Match A: Status: Disabled
+              General: Compare Match: Compare Match A: Compare match value: 0
+              General: Compare Match: Compare Match B: Status: Disabled
+              General: Compare Match: Compare Match B: Compare match value: 0
+              General: Period Unit: Microseconds
+              Output: Custom Waveform: GTIOA: Initial Output Level: Pin Level Low
+              Output: Custom Waveform: GTIOA: Cycle End Output Level: Pin Level Retain
+              Output: Custom Waveform: GTIOA: Compare Match Output Level: Pin Level Retain
+              Output: Custom Waveform: GTIOA: Retain Output Level at Count Stop: Disabled
+              Output: Custom Waveform: GTIOB: Initial Output Level: Pin Level Low
+              Output: Custom Waveform: GTIOB: Cycle End Output Level: Pin Level Retain
+              Output: Custom Waveform: GTIOB: Compare Match Output Level: Pin Level Retain
+              Output: Custom Waveform: GTIOB: Retain Output Level at Count Stop: Disabled
+              Output: Custom Waveform: Custom Waveform Enable: Disabled
+              Output: Duty Cycle Percent (only applicable in PWM mode): 50
+              Output: GTIOCA Output Enabled: True
+              Output: GTIOCA Stop Level: Pin Level Low
+              Output: GTIOCB Output Enabled: True
+              Output: GTIOCB Stop Level: Pin Level High
+              Input: Count Up Source: 
+              Input: Count Down Source: 
+              Input: Start Source: 
+              Input: Stop Source: 
+              Input: Clear Source: 
+              Input: Capture A Source: 
+              Input: Capture B Source: 
+              Input: Noise Filter A Sampling Clock Select: No Filter
+              Input: Noise Filter B Sampling Clock Select: No Filter
+              Interrupts: Callback: NULL
+              Interrupts: Overflow/Crest Interrupt Priority: Disabled
+              Interrupts: Capture/Compare match A Interrupt Priority: Disabled
+              Interrupts: Capture/Compare match B Interrupt Priority: Disabled
+              Interrupts: Underflow/Trough Interrupt Priority: Disabled
+              Extra Features: Extra Features: Enabled
+              Extra Features: Output Disable: POEG Link: POEG Channel 3
+              Extra Features: Output Disable: Output Disable POEG Trigger: 
+              Extra Features: ADC Trigger: Start Event Trigger (Channels with GTINTAD only): 
+              Extra Features: ADC Trigger: ADC A Compare Match (Raw Counts): 0
+              Extra Features: ADC Trigger: ADC B Compare Match (Raw Counts): 0
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 0
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 0
+              Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt to Count: None
+              Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt Skip Count: 0
+              Extra Features: Interrupt Skipping (Channels with GTITC only): Skip ADC Events: None
+              Extra Features: Output Disable: GTIOCA Disable Setting: Set Hi Z
+              Extra Features: Output Disable: GTIOCB Disable Setting: Set Hi Z
+              
+            Instance "g_timer2 Timer, General PWM (r_gpt)"
+              General: Name: g_timer2
+              General: Channel: 5
+              General: Mode: Triangle-wave PWM (symmetric, Mode 1)
+              General: Period: 50.0
+              General: Compare Match: Compare Match A: Status: Disabled
+              General: Compare Match: Compare Match A: Compare match value: 0
+              General: Compare Match: Compare Match B: Status: Disabled
+              General: Compare Match: Compare Match B: Compare match value: 0
+              General: Period Unit: Microseconds
+              Output: Custom Waveform: GTIOA: Initial Output Level: Pin Level Low
+              Output: Custom Waveform: GTIOA: Cycle End Output Level: Pin Level Retain
+              Output: Custom Waveform: GTIOA: Compare Match Output Level: Pin Level Retain
+              Output: Custom Waveform: GTIOA: Retain Output Level at Count Stop: Disabled
+              Output: Custom Waveform: GTIOB: Initial Output Level: Pin Level Low
+              Output: Custom Waveform: GTIOB: Cycle End Output Level: Pin Level Retain
+              Output: Custom Waveform: GTIOB: Compare Match Output Level: Pin Level Retain
+              Output: Custom Waveform: GTIOB: Retain Output Level at Count Stop: Disabled
+              Output: Custom Waveform: Custom Waveform Enable: Disabled
+              Output: Duty Cycle Percent (only applicable in PWM mode): 50
+              Output: GTIOCA Output Enabled: True
+              Output: GTIOCA Stop Level: Pin Level Low
+              Output: GTIOCB Output Enabled: True
+              Output: GTIOCB Stop Level: Pin Level High
+              Input: Count Up Source: 
+              Input: Count Down Source: 
+              Input: Start Source: 
+              Input: Stop Source: 
+              Input: Clear Source: 
+              Input: Capture A Source: 
+              Input: Capture B Source: 
+              Input: Noise Filter A Sampling Clock Select: No Filter
+              Input: Noise Filter B Sampling Clock Select: No Filter
+              Interrupts: Callback: NULL
+              Interrupts: Overflow/Crest Interrupt Priority: Disabled
+              Interrupts: Capture/Compare match A Interrupt Priority: Disabled
+              Interrupts: Capture/Compare match B Interrupt Priority: Disabled
+              Interrupts: Underflow/Trough Interrupt Priority: Disabled
+              Extra Features: Extra Features: Enabled
+              Extra Features: Output Disable: POEG Link: POEG Channel 3
+              Extra Features: Output Disable: Output Disable POEG Trigger: 
+              Extra Features: ADC Trigger: Start Event Trigger (Channels with GTINTAD only): 
+              Extra Features: ADC Trigger: ADC A Compare Match (Raw Counts): 0
+              Extra Features: ADC Trigger: ADC B Compare Match (Raw Counts): 0
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 0
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 0
+              Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt to Count: None
+              Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt Skip Count: 0
+              Extra Features: Interrupt Skipping (Channels with GTITC only): Skip ADC Events: None
+              Extra Features: Output Disable: GTIOCA Disable Setting: Set Hi Z
+              Extra Features: Output Disable: GTIOCB Disable Setting: Set Hi Z
+              
+    Instance "g_elc Event Link Controller (r_elc)"
+      Name: g_elc
+      
   Object "g_queue_log Queue"
     Name: Log Queue
     Symbol: g_queue_log

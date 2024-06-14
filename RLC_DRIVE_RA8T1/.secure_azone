@@ -121,6 +121,17 @@
             <slot name="PA09" secure="true"/>
         </peripheral>
         <peripheral name="GPT_POEG3" group="GPT_POEG" security=""/>
+        <peripheral name="AGT0" group="AGT" security=""/>
+        <peripheral name="GPT0" group="GPT" security=""/>
+        <peripheral name="ICU_EXT_IRQ">
+            <slot name="ICU_EXT_IRQ6" secure="true"/>
+            <slot name="ICU_EXT_IRQ4" secure="true"/>
+            <slot name="ICU_EXT_IRQ5" secure="true"/>
+        </peripheral>
+        <peripheral name="ADC0" group="ADC" security=""/>
+        <peripheral name="GPT8" group="GPT" security=""/>
+        <peripheral name="GPT4" group="GPT" security=""/>
+        <peripheral name="GPT5" group="GPT" security=""/>
         <peripheral name="ICU">
             <slot name="IRQ0" secure="true"/>
             <slot name="IRQ1" secure="true"/>
@@ -131,6 +142,11 @@
             <slot name="IRQ6" secure="true"/>
             <slot name="IRQ7" secure="true"/>
             <slot name="IRQ8" secure="true"/>
+            <slot name="IRQ9" secure="true"/>
+            <slot name="IRQ10" secure="true"/>
+            <slot name="IRQ11" secure="true"/>
+            <slot name="IRQ12" secure="true"/>
+            <slot name="IRQ13" secure="true"/>
         </peripheral>
     </partition>
 </azone>

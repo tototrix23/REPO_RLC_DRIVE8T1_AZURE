@@ -25,6 +25,7 @@
 #define LOG_MODULE    "main thread"
 
 extern TX_THREAD log_thread;
+extern TX_THREAD motors_thread;
 i_time_t i_time_interface_t;
 
 
@@ -47,7 +48,7 @@ void main_thread_entry(void)
     i_time_init(&i_time_interface_t,impl_time_init, impl_time_update);
     h_time_init(&i_time_interface_t);
 
-
+    LOG_I(LOG_STD,"Main thread start");
 
 
     rtc_init();
@@ -70,13 +71,23 @@ void main_thread_entry(void)
     volatile return_t ret_mot2 =  h_drv8323s_init(&drv_mot2,&interface_mot2,TRUE);
 
     drv_mot1.registers.csa_control.bits.GAIN = 0x00;
+    drv_mot1.registers.gate_drive_hs.bits.IDRIVEN_HS = 0xF;
+    drv_mot1.registers.gate_drive_hs.bits.IDRIVEP_HS = 0xF;
+    drv_mot1.registers.gate_drive_ls.bits.IDRIVEN_LS = 0xF;
+    drv_mot1.registers.gate_drive_ls.bits.IDRIVEP_LS = 0xF;
     ret_mot1 =  h_drv8323s_write_all_registers(&drv_mot1);
+
+    R_IOPORT_PinWrite (&g_ioport_ctrl, IO_12V_EN, BSP_IO_LEVEL_HIGH);
+    R_IOPORT_PinWrite (&g_ioport_ctrl, IO_EN_12V_HALL1, BSP_IO_LEVEL_HIGH);
+    R_IOPORT_PinWrite (&g_ioport_ctrl, IO_EN_12V_HALL2, BSP_IO_LEVEL_HIGH);
+
+
 
     // Demarrage du Thread dédié aux LOGs
     tx_thread_resume(&log_thread);
+    tx_thread_resume(&motors_thread);
 
 
-    LOG_I(LOG_STD,"Main thread start");
 
 
 
