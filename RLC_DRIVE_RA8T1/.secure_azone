@@ -127,11 +127,20 @@
             <slot name="ICU_EXT_IRQ6" secure="true"/>
             <slot name="ICU_EXT_IRQ4" secure="true"/>
             <slot name="ICU_EXT_IRQ5" secure="true"/>
+            <slot name="ICU_EXT_IRQ11" secure="true"/>
+            <slot name="ICU_EXT_IRQ1" secure="true"/>
+            <slot name="ICU_EXT_IRQ0" secure="true"/>
         </peripheral>
         <peripheral name="ADC0" group="ADC" security=""/>
         <peripheral name="GPT8" group="GPT" security=""/>
         <peripheral name="GPT4" group="GPT" security=""/>
         <peripheral name="GPT5" group="GPT" security=""/>
+        <peripheral name="AGT1" group="AGT" security=""/>
+        <peripheral name="GPT1" group="GPT" security=""/>
+        <peripheral name="ADC1" group="ADC" security=""/>
+        <peripheral name="GPT12" group="GPT" security=""/>
+        <peripheral name="GPT6" group="GPT" security=""/>
+        <peripheral name="GPT7" group="GPT" security=""/>
         <peripheral name="ICU">
             <slot name="IRQ0" secure="true"/>
             <slot name="IRQ1" secure="true"/>
@@ -147,6 +156,11 @@
             <slot name="IRQ11" secure="true"/>
             <slot name="IRQ12" secure="true"/>
             <slot name="IRQ13" secure="true"/>
+            <slot name="IRQ14" secure="true"/>
+            <slot name="IRQ15" secure="true"/>
+            <slot name="IRQ16" secure="true"/>
+            <slot name="IRQ17" secure="true"/>
+            <slot name="IRQ18" secure="true"/>
         </peripheral>
     </partition>
 </azone>

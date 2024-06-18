@@ -1,5 +1,15 @@
 #include "motors_thread.h"
 #include <remotectrl/remotectrl.h>
+#include <_core/c_common.h>
+#include <_core/c_timespan/c_timespan.h>
+#include <_hal/h_time/h_time.h>
+#include <_hal/h_log/h_log.h>
+
+#undef  LOG_LEVEL
+#define LOG_LEVEL     LOG_LVL_DEBUG
+#undef  LOG_MODULE
+#define LOG_MODULE    "main thread"
+
 
 float       g_f4_speed_ref = 0.0F;
 uint8_t     g_u1_motor_status;            /* Motor status */
@@ -28,8 +38,23 @@ motor_120_control_cfg_t g_user_motor_120_control_cfg;
 motor_120_control_hall_extended_cfg_t g_user_motor_120_control_extended_cfg;
 motor_120_driver_cfg_t g_user_motor_120_driver_cfg;
 motor_120_driver_extended_cfg_t g_user_motor_120_driver_extended_cfg;
+
+uint8_t     g_u1_motor1_status;
+uint16_t    g_u2_chk_error1;
+uint8_t     g_u1_reset_req1;
+
+volatile motor_120_control_cfg_t *ptr;
+motor_cfg_t g_user_motor1_cfg;
+motor_120_degree_extended_cfg_t g_user_motor1_120_degree_extended_cfg;
+motor_120_control_cfg_t g_user_motor1_120_control_cfg;
+motor_120_control_hall_extended_cfg_t g_user_motor1_120_control_extended_cfg;
+motor_120_driver_cfg_t g_user_motor1_120_driver_cfg;
+motor_120_driver_extended_cfg_t g_user_motor1_120_driver_extended_cfg;
+
 motor_wait_stop_flag_t g_wait_flag;
 
+static void gpt_periodset (timer_ctrl_t * const p_ctrl, uint32_t const period_counts, uint32_t const value);
+static void mtr_adc_remove_spike(void);
 
 void g_poe_overcurrent(poeg_callback_args_t *p_args)
 {
@@ -61,7 +86,7 @@ void mtr0_callback_120_degree(motor_callback_args_t * p_args)
             {
                 if (MOTOR_120_DEGREE_CTRL_STATUS_ERROR != g_u1_motor_status)
                 {
-                    //mtr_adc_remove_spike();
+                    mtr_adc_remove_spike();
                     g_motor_120_degree0.p_api->errorCheck(g_motor_120_degree0.p_ctrl, &g_u2_chk_error);
                 }
 
@@ -89,6 +114,50 @@ void mtr0_callback_120_degree(motor_callback_args_t * p_args)
         }
 } /* End of function mtr_callback_120_degree */
 
+
+void mtr1_callback_120_degree(motor_callback_args_t * p_args)
+{
+    /*switch (p_args->event)
+        {
+            case MOTOR_CALLBACK_EVENT_ADC_FORWARD:
+            {
+
+            }
+            break;
+
+            case MOTOR_CALLBACK_EVENT_ADC_BACKWARD:
+            {
+                if (MOTOR_120_DEGREE_CTRL_STATUS_ERROR != g_u1_motor1_status)
+                {
+                    //mtr_adc_remove_spike();
+                    g_motor_120_degree0.p_api->errorCheck(g_motor_120_degree1.p_ctrl, &g_u2_chk_error1);
+                }
+
+            }
+            break;
+
+            case MOTOR_CALLBACK_EVENT_CYCLE_FORWARD:
+            {
+
+                //g_u2_vr1_ad = get_vr1();
+            }
+            break;
+
+            case MOTOR_CALLBACK_EVENT_CYCLE_BACKWARD:
+            {
+
+            }
+            break;
+
+            default:
+            {
+                /
+            }
+            break;
+        }*/
+}
+
+
 static void software_init(void)
 {
     g_u1_motor_status            = MOTOR_120_DEGREE_CTRL_STATUS_STOP;
@@ -100,15 +169,36 @@ static void software_init(void)
 
 static void motor_fsp_init(void)
 {
+
+
+
     /* Motor application (120_degree) */
     g_motor_120_degree0.p_api->open(g_motor_120_degree0.p_ctrl, g_motor_120_degree0.p_cfg);
+    g_motor_120_degree1.p_api->open(g_motor_120_degree1.p_ctrl, g_motor_120_degree1.p_cfg);
 
+    //tx_thread_sleep(10);
     /* POEG */
     R_POEG_Open(g_poeg0.p_ctrl, g_poeg0.p_cfg);
+
+    R_GPT_THREE_PHASE_Stop(g_three_phase0.p_ctrl);
+    R_GPT_THREE_PHASE_Stop(g_three_phase1.p_ctrl);
+    R_GPT_THREE_PHASE_Reset(g_three_phase0.p_ctrl);
+    R_GPT_THREE_PHASE_Reset(g_three_phase1.p_ctrl);
+    gpt_periodset(g_timer0.p_ctrl,g_timer0.p_cfg->period_counts,(uint32_t)(g_timer0.p_cfg->period_counts));
+    gpt_periodset(g_timer1.p_ctrl,g_timer1.p_cfg->period_counts,(uint32_t)(g_timer1.p_cfg->period_counts));
+    gpt_periodset(g_timer2.p_ctrl,g_timer2.p_cfg->period_counts,(uint32_t)(g_timer2.p_cfg->period_counts));
+    gpt_periodset(g_timer5.p_ctrl,g_timer5.p_cfg->period_counts,(uint32_t)((float)g_timer5.p_cfg->period_counts*1.5f));
+    gpt_periodset(g_timer6.p_ctrl,g_timer6.p_cfg->period_counts,(uint32_t)((float)g_timer6.p_cfg->period_counts*1.5f));
+    gpt_periodset(g_timer7.p_ctrl,g_timer7.p_cfg->period_counts,(uint32_t)((float)g_timer7.p_cfg->period_counts*1.5f));
+    R_GPT_THREE_PHASE_Start(g_three_phase0.p_ctrl);
+    R_GPT_THREE_PHASE_Start(g_three_phase1.p_ctrl);
 
     /* ELC */
     g_elc.p_api->open(g_elc.p_ctrl, g_elc.p_cfg);
     g_elc.p_api->enable(g_elc.p_ctrl);
+
+
+
 
     /* RMW */
     g_user_motor_cfg = *(g_motor_120_degree0_ctrl.p_cfg);
@@ -125,10 +215,31 @@ static void motor_fsp_init(void)
     g_user_motor_120_driver_extended_cfg = *(motor_120_driver_extended_cfg_t *)g_user_motor_120_driver_cfg.p_extend;
     g_user_motor_120_driver_cfg.p_extend = &g_user_motor_120_driver_extended_cfg;
 
+
+
+
+    g_user_motor1_cfg = *(g_motor_120_degree1_ctrl.p_cfg);
+    g_user_motor1_120_degree_extended_cfg = *(motor_120_degree_extended_cfg_t *)g_user_motor1_cfg.p_extend;
+    g_user_motor1_cfg.p_extend = &g_user_motor1_120_degree_extended_cfg;
+    g_motor_120_degree1_ctrl.p_cfg = &g_user_motor1_cfg;
+
+    g_user_motor1_120_control_cfg = *(g_motor_120_control_hall1_ctrl.p_cfg);
+    g_user_motor1_120_control_extended_cfg =
+        *(motor_120_control_hall_extended_cfg_t *)g_user_motor1_120_control_cfg.p_extend;
+    g_user_motor1_120_control_cfg.p_extend = &g_user_motor1_120_control_extended_cfg;
+
+    g_user_motor1_120_driver_cfg = *(g_motor_120_driver1_ctrl.p_cfg);
+    g_user_motor1_120_driver_extended_cfg = *(motor_120_driver_extended_cfg_t *)g_user_motor1_120_driver_cfg.p_extend;
+    g_user_motor1_120_driver_cfg.p_extend = &g_user_motor1_120_driver_extended_cfg;
+
+
+    g_motor_120_degree0.p_api->reset(g_motor_120_degree0.p_ctrl);
+    g_motor_120_degree1.p_api->reset(g_motor_120_degree1.p_ctrl);
+
 } /* End of function motor_fsp_init */
 
 
-static void board_ui(void)
+static void board_ui0(void)
 {
     uint8_t u1_temp_sw_signal;
 
@@ -190,11 +301,81 @@ static void board_ui(void)
     /*      Set speed reference    */
     /*=============================*/
 
-    g_motor_120_degree0.p_api->speedSet(g_motor_120_degree0.p_ctrl, 2000.0f);
+    g_motor_120_degree0.p_api->speedSet(g_motor_120_degree0.p_ctrl, -500.0f);
 
 
 
 } /* End of function board_ui */
+
+
+static void board_ui1(void)
+{
+    uint8_t u1_temp_sw_signal;
+
+    motor_wait_stop_flag_t u1_temp_flg_wait_stop = MOTOR_WAIT_STOP_FLAG_SET;
+
+    /* Get status of motor control system */
+    g_motor_120_degree1.p_api->statusGet(g_motor_120_degree1.p_ctrl, &g_u1_motor1_status);
+    switch (g_u1_motor_status)
+    {
+        case MOTOR_120_DEGREE_CTRL_STATUS_STOP:
+
+
+            /* Check SW1 */
+            if (m12_auto == 0)
+            {
+                while (MOTOR_WAIT_STOP_FLAG_SET == u1_temp_flg_wait_stop)
+                {
+                    /* waiting for motor stop */
+                    g_motor_120_degree1.p_api->waitStopFlagGet(g_motor_120_degree1.p_ctrl, &u1_temp_flg_wait_stop);
+                }
+                g_motor_120_degree1.p_api->run(g_motor_120_degree1.p_ctrl);
+            }
+        break;
+
+        case MOTOR_120_DEGREE_CTRL_STATUS_RUN:
+
+
+            /* Check SW1 */
+            if (m12_auto == 0)
+            {
+                g_motor_120_degree1.p_api->stop(g_motor_120_degree1.p_ctrl);
+            }
+        break;
+
+        case MOTOR_120_DEGREE_CTRL_STATUS_ERROR:
+            /* check SW2 & reset request flag */
+
+            if (m12_enrh == 1 && g_u1_reset_req == 0)
+            {
+                g_u1_reset_req1 = 1;
+            }
+            else if (m12_enrh == 0 && g_u1_reset_req1 == 1)
+            {
+                g_u1_reset_req1 = 0;
+                g_motor_120_degree1.p_api->reset(g_motor_120_degree1.p_ctrl);
+            }
+            else
+            {
+                /* Do nothing */
+            }
+        break;
+
+        default:
+            /* Do nothing */
+        break;
+    }
+
+    /*=============================*/
+    /*      Set speed reference    */
+    /*=============================*/
+
+    g_motor_120_degree1.p_api->speedSet(g_motor_120_degree1.p_ctrl, 500.0f);
+
+
+
+} /* End of function board_ui */
+
 
 /* Motors Thread entry function */
 void motors_thread_entry(void)
@@ -206,27 +387,79 @@ void motors_thread_entry(void)
     /* Execute reset event */
     g_motor_120_degree0.p_api->reset(g_motor_120_degree0.p_ctrl);
 
+    c_timespan_t ts;
+    c_timespan_init(&ts);
+    h_time_update(&ts);
 
-   /* while(1)
-    {
-        g_motor_120_degree0.p_api->statusGet(g_motor_120_degree0.p_ctrl, &g_u1_motor_status);
-        g_motor_120_degree0.p_api->stop(g_motor_120_degree0.p_ctrl);
-        g_motor_120_degree0.p_api->reset(g_motor_120_degree0.p_ctrl);
-        TEMPO_S(1);
-        //g_motor_120_degree0.p_api->speedSet(g_motor_120_degree0.p_ctrl, 500.0f);
-        TEMPO_MS(100);
-        g_motor_120_degree0.p_api->run(g_motor_120_degree0.p_ctrl);
-        TEMPO_MS(100);
-        g_motor_120_degree0.p_api->speedSet(g_motor_120_degree0.p_ctrl, 500.0f);
-        TEMPO_S(1);
-
-    }
-*/
 
     /* TODO: add your own code here */
     while (1)
     {
-        board_ui();
+        board_ui0();
+
+        /*bool_t elasped;
+        h_time_is_elapsed_ms(&ts, 200, &elasped);
+        if(elasped)
+        {
+            FSP_CRITICAL_SECTION_DEFINE;
+                FSP_CRITICAL_SECTION_ENTER;
+            float f4_temp_iu = g_motor_120_driver0_ctrl.f_iu_ad - g_motor_120_driver0_ctrl.f_offset_iu;
+            float f4_temp_iw = g_motor_120_driver0_ctrl.f_iw_ad - g_motor_120_driver0_ctrl.f_offset_iw;
+            FSP_CRITICAL_SECTION_EXIT;
+
+            LOG_D(LOG_STD,"%f  %f",f4_temp_iu,f4_temp_iw);
+
+            h_time_update(&ts);
+
+        }*/
+
+
+        board_ui1();
         tx_thread_sleep (1);
+    }
+}
+
+static void gpt_periodset (timer_ctrl_t * const p_ctrl, uint32_t const period_counts, uint32_t const value)
+{
+    gpt_instance_ctrl_t * p_instance_ctrl = (gpt_instance_ctrl_t *) p_ctrl;
+
+    p_instance_ctrl->p_reg->GTPBR = period_counts;          /* Set period to buffer register */
+    p_instance_ctrl->p_reg->GTPR = (uint32_t)(value);
+}
+
+
+static void mtr_adc_remove_spike(void)
+{
+    float f4_temp_iu = g_motor_120_driver0_ctrl.f_iu_ad - g_motor_120_driver0_ctrl.f_offset_iu;
+    float f4_temp_iw = g_motor_120_driver0_ctrl.f_iw_ad - g_motor_120_driver0_ctrl.f_offset_iw;
+    float f4_temp_oc_limit = g_user_motor_120_degree_extended_cfg.f_overcurrent_limit * 0.9F;
+    if(g_motor_120_driver0_ctrl.u1_flag_offset_calc != 0)
+    {
+
+        if ((f4_temp_iu > f4_temp_oc_limit) || (f4_temp_iu < -f4_temp_oc_limit))
+        {
+            g_u1_oc_u_cnt++;
+            if (g_u1_oc_u_cnt < 128)
+            {
+                g_motor_120_driver0_ctrl.f_iu_ad = 0.0F;
+            }
+        }
+        else
+        {
+            g_u1_oc_u_cnt = 0;
+        }
+        if ((f4_temp_iw > f4_temp_oc_limit) || (f4_temp_iw < -f4_temp_oc_limit))
+        {
+            g_u1_oc_w_cnt++;
+            if (g_u1_oc_w_cnt < 128)
+            {
+                g_motor_120_driver0_ctrl.f_iw_ad = 0.0F;
+            }
+        }
+        else
+        {
+            g_u1_oc_w_cnt = 0;
+        }
+
     }
 }
