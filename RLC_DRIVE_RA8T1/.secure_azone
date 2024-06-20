@@ -141,6 +141,8 @@
         <peripheral name="GPT12" group="GPT" security=""/>
         <peripheral name="GPT6" group="GPT" security=""/>
         <peripheral name="GPT7" group="GPT" security=""/>
+        <peripheral name="DAC0" group="DAC" security=""/>
+        <peripheral name="DAC120" group="DAC12" security=""/>
         <peripheral name="ICU">
             <slot name="IRQ0" secure="true"/>
             <slot name="IRQ1" secure="true"/>

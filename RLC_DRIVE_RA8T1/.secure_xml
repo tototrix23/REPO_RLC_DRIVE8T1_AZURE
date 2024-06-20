@@ -113,7 +113,7 @@
       <configSetting altId="adc1.an121.p500" configurationId="adc1.an121" isUsedByDriver="true"/>
       <configSetting altId="adc1.an122.p812" configurationId="adc1.an122" isUsedByDriver="true"/>
       <configSetting altId="cgc.extal.p212" configurationId="cgc.extal"/>
-      <configSetting altId="dac120.da0.p014" configurationId="dac120.da0"/>
+      <configSetting altId="dac120.da0.p014" configurationId="dac120.da0" isUsedByDriver="true"/>
       <configSetting altId="gpt12.gtioc12a.p802" configurationId="gpt12.gtioc12a" isUsedByDriver="true"/>
       <configSetting altId="gpt12.gtioc12b.p803" configurationId="gpt12.gtioc12b" isUsedByDriver="true"/>
       <configSetting altId="gpt4.gtioc4a.p610" configurationId="gpt4.gtioc4a" isUsedByDriver="true"/>

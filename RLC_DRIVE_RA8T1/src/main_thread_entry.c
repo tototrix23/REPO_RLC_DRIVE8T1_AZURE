@@ -71,11 +71,11 @@ void main_thread_entry(void)
     volatile return_t ret_mot2 =  h_drv8323s_init(&drv_mot2,&interface_mot2,TRUE);
 
     drv_mot1.registers.csa_control.bits.GAIN = 0x00;
-    drv_mot1.registers.gate_drive_hs.bits.IDRIVEN_HS = 0x8;
-    drv_mot1.registers.gate_drive_hs.bits.IDRIVEP_HS = 0x8;
-    drv_mot1.registers.gate_drive_ls.bits.IDRIVEN_LS = 0x8;
-    drv_mot1.registers.gate_drive_ls.bits.IDRIVEP_LS = 0x8;
-    drv_mot1.registers.gate_drive_ls.bits.TDRIVE = 0x03;
+    drv_mot1.registers.gate_drive_hs.bits.IDRIVEN_HS = 0x0;
+    drv_mot1.registers.gate_drive_hs.bits.IDRIVEP_HS = 0x0;
+    drv_mot1.registers.gate_drive_ls.bits.IDRIVEN_LS = 0x0;
+    drv_mot1.registers.gate_drive_ls.bits.IDRIVEP_LS = 0x0;
+    drv_mot1.registers.gate_drive_ls.bits.TDRIVE = 0x00;
     ret_mot1 =  h_drv8323s_write_all_registers(&drv_mot1);
 
     drv_mot2.registers.csa_control.bits.GAIN = 0x00;

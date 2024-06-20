@@ -53,6 +53,14 @@ motor_120_driver_extended_cfg_t g_user_motor1_120_driver_extended_cfg;
 
 motor_wait_stop_flag_t g_wait_flag;
 
+
+float i_mot0 = 0.0f;
+float i_mot0_max = 0.0f;
+float i_mot0_accu = 0.0f;
+uint16_t i_cnt = 0;
+
+
+
 static void gpt_periodset (timer_ctrl_t * const p_ctrl, uint32_t const period_counts, uint32_t const value);
 static void mtr_adc_remove_spike(void);
 
@@ -74,11 +82,71 @@ void g_poe_overcurrent(poeg_callback_args_t *p_args)
 
 void mtr0_callback_120_degree(motor_callback_args_t * p_args)
 {
+    static uint8_t detect = 0;
+
+
     switch (p_args->event)
         {
             case MOTOR_CALLBACK_EVENT_ADC_FORWARD:
             {
+                float f4_temp_iu = g_motor_120_driver0_ctrl.f_iu_ad - g_motor_120_driver0_ctrl.f_offset_iu;
+                float f4_temp_iw = g_motor_120_driver0_ctrl.f_iw_ad - g_motor_120_driver0_ctrl.f_offset_iw;
+                float i_mot = 0.577350269f*(f4_temp_iu-f4_temp_iw);
+                //i_mot = (float)fabs(f4_temp_iu);
+
+
+
+
+                //MOTOR_120_DRIVER_PHASE_PATTERN_UP_PWM_VN_ON
+                //MOTOR_120_DRIVER_PHASE_PATTERN_VP_ON_UN_PWM
+                //MOTOR_120_DRIVER_PHASE_PATTERN_VP_PWM_WN_ON
+                //MOTOR_120_DRIVER_PHASE_PATTERN_WP_ON_VN_PWM
+                //MOTOR_120_DRIVER_PHASE_PATTERN_WP_PWM_UN_ON
+                //MOTOR_120_DRIVER_PHASE_PATTERN_UP_ON_WN_PWM
+                //MOTOR_120_DRIVER_PHASE_PATTERN_VP_ON_W_PWM
+                //MOTOR_120_DRIVER_PHASE_PATTERN_W_PWM_VN_ON
+                //MOTOR_120_DRIVER_PHASE_PATTERN_WP_ON_U_PWM
+                //MOTOR_120_DRIVER_PHASE_PATTERN_U_PWM_WN_ON
+                //MOTOR_120_DRIVER_PHASE_PATTERN_UP_ON_V_PWM
+                //MOTOR_120_DRIVER_PHASE_PATTERN_V_PWM_UN_ON
+                //MOTOR_120_DRIVER_PHASE_PATTERN_U_PWM_VN_ON
+
+                //MOTOR_120_DRIVER_PHASE_PATTERN_W_PWM_UN_ON
+                if(g_motor_120_driver0_ctrl.pattern == MOTOR_120_DRIVER_PHASE_PATTERN_VP_ON_U_PWM)//MOTOR_120_DRIVER_PHASE_PATTERN_W_PWM_UN_ON)//MOTOR_120_DRIVER_PHASE_PATTERN_VP_ON_U_PWM
+                {
+                    detect = 1;
+                    R_IOPORT_PinWrite (&g_ioport_ctrl, IO_LED_ERROR, 1);
+
+                    i_mot0_accu += f4_temp_iu;
+                    i_cnt++;
+
+                    if(i_mot > i_mot0_max)
+                        i_mot0_max = i_mot;
+
+                }
+                else
+                {
+                    if(detect == 1)
+                    {
+                        detect = 0;
+                        //i_mot0 = i_mot0_accu/i_cnt;
+                        i_mot0 = i_mot0_max;
+                        i_cnt = 0;
+                        i_mot0_accu = 0.0f;
+                        i_mot0_max = 0.0f;
+                    }
+                    R_IOPORT_PinWrite (&g_ioport_ctrl, IO_LED_ERROR, 0);
+                }
+
+
+
+
                 /* Do nothing */
+
+
+
+
+
             }
             break;
 
@@ -117,7 +185,7 @@ void mtr0_callback_120_degree(motor_callback_args_t * p_args)
 
 void mtr1_callback_120_degree(motor_callback_args_t * p_args)
 {
-    /*switch (p_args->event)
+    switch (p_args->event)
         {
             case MOTOR_CALLBACK_EVENT_ADC_FORWARD:
             {
@@ -130,7 +198,7 @@ void mtr1_callback_120_degree(motor_callback_args_t * p_args)
                 if (MOTOR_120_DEGREE_CTRL_STATUS_ERROR != g_u1_motor1_status)
                 {
                     //mtr_adc_remove_spike();
-                    g_motor_120_degree0.p_api->errorCheck(g_motor_120_degree1.p_ctrl, &g_u2_chk_error1);
+                    g_motor_120_degree1.p_api->errorCheck(g_motor_120_degree1.p_ctrl, &g_u2_chk_error1);
                 }
 
             }
@@ -151,10 +219,10 @@ void mtr1_callback_120_degree(motor_callback_args_t * p_args)
 
             default:
             {
-                /
+
             }
             break;
-        }*/
+        }
 }
 
 
@@ -253,7 +321,7 @@ static void board_ui0(void)
 
 
             /* Check SW1 */
-            if (m12_auto == 0)
+            if (m12_auto == 1)
             {
                 while (MOTOR_WAIT_STOP_FLAG_SET == u1_temp_flg_wait_stop)
                 {
@@ -301,7 +369,7 @@ static void board_ui0(void)
     /*      Set speed reference    */
     /*=============================*/
 
-    g_motor_120_degree0.p_api->speedSet(g_motor_120_degree0.p_ctrl, -500.0f);
+    g_motor_120_degree0.p_api->speedSet(g_motor_120_degree0.p_ctrl, 2000.0f);
 
 
 
@@ -316,13 +384,13 @@ static void board_ui1(void)
 
     /* Get status of motor control system */
     g_motor_120_degree1.p_api->statusGet(g_motor_120_degree1.p_ctrl, &g_u1_motor1_status);
-    switch (g_u1_motor_status)
+    switch (g_u1_motor1_status)
     {
         case MOTOR_120_DEGREE_CTRL_STATUS_STOP:
 
 
             /* Check SW1 */
-            if (m12_auto == 0)
+            if (m12_auto == 1)
             {
                 while (MOTOR_WAIT_STOP_FLAG_SET == u1_temp_flg_wait_stop)
                 {
@@ -377,15 +445,32 @@ static void board_ui1(void)
 } /* End of function board_ui */
 
 
+void dac_example (void)
+{
+    fsp_err_t err;
+    uint16_t  value;
+    /* Pin configuration: Output enable DA0 as Analog. */
+    /* Initialize the DAC channel */
+    err = R_DAC_Open(&g_dac_ctrl, &g_dac_cfg);
+    /* Handle any errors. This function should be defined by the user. */
+    assert(FSP_SUCCESS == err);
+    value = (uint16_t) 2048;
+    err = R_DAC_Write(&g_dac_ctrl, value);
+    assert(FSP_SUCCESS == err);
+    err = R_DAC_Start(&g_dac_ctrl);
+    assert(FSP_SUCCESS == err);
+}
+
 /* Motors Thread entry function */
 void motors_thread_entry(void)
 {
+    dac_example();
 
     motor_fsp_init();
     software_init();                              /* Initialize private global variables */
 
     /* Execute reset event */
-    g_motor_120_degree0.p_api->reset(g_motor_120_degree0.p_ctrl);
+    //g_motor_120_degree0.p_api->reset(g_motor_120_degree0.p_ctrl);
 
     c_timespan_t ts;
     c_timespan_init(&ts);
@@ -397,7 +482,7 @@ void motors_thread_entry(void)
     {
         board_ui0();
 
-        /*bool_t elasped;
+        bool_t elasped;
         h_time_is_elapsed_ms(&ts, 200, &elasped);
         if(elasped)
         {
@@ -407,11 +492,11 @@ void motors_thread_entry(void)
             float f4_temp_iw = g_motor_120_driver0_ctrl.f_iw_ad - g_motor_120_driver0_ctrl.f_offset_iw;
             FSP_CRITICAL_SECTION_EXIT;
 
-            LOG_D(LOG_STD,"%f  %f",f4_temp_iu,f4_temp_iw);
+            LOG_D(LOG_STD,"%f",i_mot0);
 
             h_time_update(&ts);
 
-        }*/
+        }
 
 
         board_ui1();
