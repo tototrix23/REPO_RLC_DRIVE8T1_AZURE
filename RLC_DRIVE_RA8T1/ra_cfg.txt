@@ -756,8 +756,8 @@ FSP Configuration
             General: Mode: Single Scan
             General: Double-trigger: Disabled
             Input: Channel Scan Mask (channel availability varies by MCU): Channel 0, Channel 1, Channel 2, Channel 20, Channel 21, Channel 22
-            Input: Group B Scan Mask (channel availability varies by MCU): 
-            Interrupts: Normal/Group A Trigger: GPT5 COUNTER UNDERFLOW (Underflow)
+            Input: Group B Scan Mask (channel availability varies by MCU): Channel 5
+            Interrupts: Normal/Group A Trigger: GPT8 COUNTER UNDERFLOW (Underflow)
             Interrupts: Group B Trigger: Disabled
             Interrupts: Group Priority (Valid only in Group Scan Mode): Group A cannot interrupt Group B
             Input: Add/Average Count: Disabled
@@ -1104,7 +1104,7 @@ FSP Configuration
           General: PWM output port WN: BSP_IO_PORT_06_PIN_02
           General: PWM timer frequency (MHz): 120.0
           General: PWM carrier period (Microseconds): 50.0
-          General: Dead time (Raw counts): 100
+          General: Dead time (Raw counts): 0
           General: Current range (A): 6.6
           General: Voltage range (V): 33.33
           General: Resolution of A/D conversion: 0xFFF
@@ -1139,7 +1139,7 @@ FSP Configuration
             General: Mode: Single Scan
             General: Double-trigger: Disabled
             Input: Channel Scan Mask (channel availability varies by MCU): Channel 0, Channel 1, Channel 2, Channel 5, Channel 19
-            Input: Group B Scan Mask (channel availability varies by MCU): 
+            Input: Group B Scan Mask (channel availability varies by MCU): Channel 20, Channel 21, Channel 22
             Interrupts: Normal/Group A Trigger: GPT6 COUNTER UNDERFLOW (Underflow)
             Interrupts: Group B Trigger: Disabled
             Interrupts: Group Priority (Valid only in Group Scan Mode): Group A cannot interrupt Group B
@@ -1179,8 +1179,8 @@ FSP Configuration
             General: Buffer Mode: Single Buffer
             General: GTIOCA Stop Level: Pin Level Low
             General: GTIOCB Stop Level: Pin Level High
-            Extra Features: Dead Time: Dead Time Count Up (Raw Counts): 100
-            Extra Features: Dead Time: Dead Time Count Down (Raw Counts) (GPTE/GPTEH only): 100
+            Extra Features: Dead Time: Dead Time Count Up (Raw Counts): 0
+            Extra Features: Dead Time: Dead Time Count Down (Raw Counts) (GPTE/GPTEH only): 0
             
             Instance "g_timer5 Timer, General PWM (r_gpt)"
               General: Name: g_timer5
@@ -1226,8 +1226,8 @@ FSP Configuration
               Extra Features: ADC Trigger: Start Event Trigger (Channels with GTINTAD only): 
               Extra Features: ADC Trigger: ADC A Compare Match (Raw Counts): 0
               Extra Features: ADC Trigger: ADC B Compare Match (Raw Counts): 0
-              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 100
-              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 100
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 0
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 0
               Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt to Count: None
               Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt Skip Count: 0
               Extra Features: Interrupt Skipping (Channels with GTITC only): Skip ADC Events: None
@@ -1278,8 +1278,8 @@ FSP Configuration
               Extra Features: ADC Trigger: Start Event Trigger (Channels with GTINTAD only): 
               Extra Features: ADC Trigger: ADC A Compare Match (Raw Counts): 0
               Extra Features: ADC Trigger: ADC B Compare Match (Raw Counts): 0
-              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 100
-              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 100
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 0
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 0
               Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt to Count: None
               Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt Skip Count: 0
               Extra Features: Interrupt Skipping (Channels with GTITC only): Skip ADC Events: None
@@ -1330,8 +1330,8 @@ FSP Configuration
               Extra Features: ADC Trigger: Start Event Trigger (Channels with GTINTAD only): 
               Extra Features: ADC Trigger: ADC A Compare Match (Raw Counts): 0
               Extra Features: ADC Trigger: ADC B Compare Match (Raw Counts): 0
-              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 100
-              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 100
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 0
+              Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 0
               Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt to Count: None
               Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt Skip Count: 0
               Extra Features: Interrupt Skipping (Channels with GTITC only): Skip ADC Events: None
