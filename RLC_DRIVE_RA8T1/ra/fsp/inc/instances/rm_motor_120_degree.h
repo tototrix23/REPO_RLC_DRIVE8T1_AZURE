@@ -18,7 +18,7 @@
 #include "rm_motor_120_degree_cfg.h"
 #include "rm_motor_api.h"
 #include "rm_motor_120_control_api.h"
-
+#include "rm_motor_extension.h"
 /* Common macro for FSP header files. There is also a corresponding FSP_FOOTER macro at the end of this file. */
 FSP_HEADER
 
@@ -36,6 +36,7 @@ typedef enum  e_motor_120_degree_ctrl_status
     MOTOR_120_DEGREE_CTRL_STATUS_STOP  = 0, ///< Stop mode
     MOTOR_120_DEGREE_CTRL_STATUS_RUN   = 1, ///< Run mode
     MOTOR_120_DEGREE_CTRL_STATUS_ERROR = 2, ///< Error mode
+    MOTOR_120_DEGREE_CTRL_STATUS_BRAKE = 3,
 } motor_120_degree_ctrl_status_t;
 
 /** Control event */
@@ -44,7 +45,8 @@ typedef enum  e_motor_120_degree_ctrl_event
     MOTOR_120_DEGREE_CTRL_EVENT_STOP  = 0, ///< Stop event
     MOTOR_120_DEGREE_CTRL_EVENT_RUN   = 1, ///< Run event
     MOTOR_120_DEGREE_CTRL_EVENT_ERROR = 2, ///< Error event
-    MOTOR_120_DEGREE_CTRL_EVENT_RESET = 3  ///< Reset event
+    MOTOR_120_DEGREE_CTRL_EVENT_RESET = 3, ///< Reset event
+    MOTOR_120_DEGREE_CTRL_EVENT_BRAKE = 4
 } motor_120_degree_ctrl_event_t;
 
 /** Statemachine structure for motor 120 degree */
@@ -79,6 +81,14 @@ typedef struct st_motor_120_degree_instance_ctrl
     motor_120_degree_statemachine_t st_statem; ///< Statemachine structure
 
     motor_cfg_t const * p_cfg;                 ///< Pointer of configuration structure
+
+    /* Extensions RAYLEC */
+    int8_t previous_mode;
+    motor_ext_cfg_t extCfg;
+    motor_ext_settings_api_t extSettings;
+    uint8_t brake_mode;
+    uint16_t brake_mask;
+    motor_ext_pulses_t extPulses;
 } motor_120_degree_instance_ctrl_t;
 
 /**********************************************************************************************************************
@@ -129,6 +139,14 @@ fsp_err_t RM_MOTOR_120_DEGREE_AngleGet(motor_ctrl_t * const p_ctrl, float * cons
 fsp_err_t RM_MOTOR_120_DEGREE_FunctionSelect(motor_ctrl_t * const p_ctrl, motor_function_select_t const function);
 
 extern void rm_motor_120_degree_120_control_callback(motor_120_control_callback_args_t * p_args);
+
+/** Extensions RAYLEC */
+fsp_err_t RM_MOTOR_120_DEGREE_ExtCfgSet (motor_ctrl_t * const p_ctrl, motor_ext_cfg_t const p_cfg);
+fsp_err_t RM_MOTOR_120_DEGREE_ExtSettingsSet(motor_ctrl_t * const p_ctrl, motor_ext_settings_t const settings);
+fsp_err_t RM_MOTOR_120_DEGREE_ExtPulsesSet(motor_ctrl_t * const p_ctrl, int32_t const value);
+fsp_err_t RM_MOTOR_120_DEGREE_ExtPulsesGet(motor_ctrl_t * const p_ctrl, int32_t * const value);
+fsp_err_t RM_MOTOR_120_DEGREE_ExtBrake(motor_ctrl_t * const p_ctrl,uint16_t mask);
+
 
 /*******************************************************************************************************************//**
  * @} (end addtogroup MOTOR_120_DEGREE)

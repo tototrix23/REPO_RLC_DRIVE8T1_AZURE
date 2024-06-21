@@ -27,7 +27,7 @@
 #include "bsp_api.h"
 #include "rm_motor_speed_api.h"
 #include "rm_motor_current_api.h"
-
+#include "rm_motor_extension.h"
 /* Common macro for FSP header files. There is also a corresponding FSP_FOOTER macro at the end of this file. */
 FSP_HEADER
 
@@ -203,6 +203,21 @@ typedef struct st_motor_api
      * @param[in]  function            Selected function
      */
     fsp_err_t (* functionSelect)(motor_ctrl_t * const p_ctrl, motor_function_select_t const function);
+
+    /********************************************************/
+    /** Extensions RAYLEC                                   */
+    /********************************************************/
+
+    /** Fonction permettant de renseigner l'API sur les paramètres statiques du moteur  */
+    fsp_err_t (* configSet)(motor_ctrl_t * const p_ctrl, motor_ext_cfg_t const p_cfg);
+    /** Fonction permettant de renseigner l'API sur la consigne de fonctionnement en mode non régulé  */
+    fsp_err_t (* settingsSet)(motor_ctrl_t * const p_ctrl, motor_ext_settings_t const settings);
+    /** Fonction permettant de configurer le compteur de points  */
+    fsp_err_t (* pulsesSet)(motor_ctrl_t * const p_ctrl, int32_t const value);
+    /** Fonction permettant de lire le compteur de points  */
+    fsp_err_t (* pulsesGet)(motor_ctrl_t * const p_ctrl, int32_t *const value);
+    /** Fonction permettant de lire le compteur de points  */
+    fsp_err_t (* brake)(motor_ctrl_t * const p_ctrl,uint16_t mask);
 } motor_api_t;
 
 /** This structure encompasses everything that is needed to use an instance of this interface. */

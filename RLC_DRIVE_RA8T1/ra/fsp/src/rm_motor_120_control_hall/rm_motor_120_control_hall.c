@@ -74,6 +74,9 @@ static float rm_motor_120_control_hall_limitf_h(float f4_value, float f4_max);
 static float rm_motor_120_control_hall_limitf_l(float f4_value, float f4_min);
 static float rm_motor_120_control_hall_limitf_abs(float f4_value, float f4_limit_value);
 
+/** Extension RAYLEC */
+static void rm_motor_120_control_reset_hall_timeout(motor_120_control_hall_instance_ctrl_t * p_ctrl);
+static void rm_motor_120_control_hall_pulses_counting(motor_120_control_hall_instance_ctrl_t * p_ctrl);
 /***********************************************************************************************************************
  * Private global variables
  **********************************************************************************************************************/
@@ -96,6 +99,14 @@ const motor_120_control_api_t g_motor_120_control_on_motor_120_control_hall =
     .patternErrorFlagGet = RM_MOTOR_120_CONTROL_HALL_PatternErrorFlagGet,
     .voltageRefGet       = RM_MOTOR_120_CONTROL_HALL_VoltageRefGet,
     .parameterUpdate     = RM_MOTOR_120_CONTROL_HALL_ParameterUpdate,
+
+    /** Extension RAYLEC */
+    .brakeSet            = RM_MOTOR_120_CONTROL_HALL_ExtBrakeSet,
+    .configSet           = RM_MOTOR_120_CONTROL_HALL_ExtCfgSet,
+    .settingsSet         = RM_MOTOR_120_CONTROL_HALL_ExtFreeSettingsSet,
+    .pulsesSet           = RM_MOTOR_120_CONTROL_HALL_ExtPulsesSetPtr,
+    .brake               = RM_MOTOR_120_CONTROL_HALL_ExtBrake,
+
 };
 
 /*******************************************************************************************************************//**
@@ -383,6 +394,11 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_SpeedSet (motor_120_control_ctrl_t * const p
     MOTOR_120_CONTROL_HALL_ERROR_RETURN(MOTOR_120_CONTROL_HALL_OPEN == p_instance_ctrl->open, FSP_ERR_NOT_OPEN);
 #endif
 
+    // On s'assure que les settings relatifes au mode "non régulé" ne sont pas actifs.
+    p_instance_ctrl->extSettings->active = 0;
+    // RAZ du compteur de temps pour le timeout du mode "régulé".
+    rm_motor_120_control_reset_hall_timeout(p_instance_ctrl);
+
     if (speed_rpm >= 0)
     {
         p_instance_ctrl->direction        = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
@@ -609,6 +625,119 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_ParameterUpdate (motor_120_control_ctrl_t * 
     return FSP_SUCCESS;
 }
 
+fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtBrakeSet (motor_120_control_ctrl_t * const p_ctrl, uint8_t * const p_brake,uint16_t *p_brake_mask)
+{
+    fsp_err_t err = FSP_SUCCESS;
+    motor_120_control_hall_instance_ctrl_t *p_instance_ctrl = (motor_120_control_hall_instance_ctrl_t*) p_ctrl;
+    p_instance_ctrl->brake_mode = p_brake;
+    p_instance_ctrl->brake_mask = p_brake_mask;
+
+    motor_120_control_hall_extended_cfg_t * p_extended_cfg =
+            (motor_120_control_hall_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend;
+
+    if (p_extended_cfg->p_motor_120_driver_instance != NULL)
+    {
+        p_extended_cfg->p_motor_120_driver_instance->p_api->brakeSet(
+            p_extended_cfg->p_motor_120_driver_instance->p_ctrl,
+            p_brake,p_brake_mask);
+    }
+    return err;
+}
+
+fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtCfgSet(motor_120_control_ctrl_t *const p_ctrl, motor_ext_cfg_t *const p_cfg)
+{
+    fsp_err_t err = FSP_SUCCESS;
+    motor_120_control_hall_instance_ctrl_t *p_instance_ctrl = (motor_120_control_hall_instance_ctrl_t*) p_ctrl;
+    p_instance_ctrl->extCfg = p_cfg;
+
+    motor_120_control_hall_extended_cfg_t * p_extended_cfg =
+            (motor_120_control_hall_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend;
+
+    if (p_extended_cfg->p_motor_120_driver_instance != NULL)
+    {
+        p_extended_cfg->p_motor_120_driver_instance->p_api->configSet(
+            p_extended_cfg->p_motor_120_driver_instance->p_ctrl,
+            p_cfg);
+    }
+    return err;
+}
+
+fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtFreeSettingsSet(motor_120_control_ctrl_t *const p_ctrl,
+        motor_ext_settings_api_t *const settings)
+{
+    fsp_err_t err = FSP_SUCCESS;
+    motor_120_control_hall_instance_ctrl_t *p_instance_ctrl = (motor_120_control_hall_instance_ctrl_t*) p_ctrl;
+    p_instance_ctrl->extSettings = settings;
+
+
+    int16_t percent = p_instance_ctrl->extSettings->settings.percent;
+    rm_motor_120_control_reset_hall_timeout(p_instance_ctrl);
+
+    if (percent >= 0)
+    {
+        p_instance_ctrl->direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+        percent = p_instance_ctrl->extSettings->settings.percent;
+        p_instance_ctrl->extSettings->voltage = ((float) percent * p_instance_ctrl->p_cfg->f4_max_drive_v)
+                / (float) 100.0;
+    }
+    else
+    {
+        p_instance_ctrl->direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
+        percent = -percent;
+        p_instance_ctrl->extSettings->voltage = ((float) percent * p_instance_ctrl->p_cfg->f4_max_drive_v)
+                / (float) 100.0;
+    }
+
+
+
+
+    motor_120_control_hall_extended_cfg_t * p_extended_cfg =
+                (motor_120_control_hall_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend;
+
+    if (p_extended_cfg->p_motor_120_driver_instance != NULL)
+    {
+        p_extended_cfg->p_motor_120_driver_instance->p_api->settingsSet(
+            p_extended_cfg->p_motor_120_driver_instance->p_ctrl,
+            settings);
+    }
+
+
+
+
+    return err;
+}
+
+fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtPulsesSetPtr(motor_120_control_ctrl_t * const p_ctrl, motor_ext_pulses_t * const ptr)
+{
+    fsp_err_t err = FSP_SUCCESS;
+    motor_120_control_hall_instance_ctrl_t *p_instance_ctrl = (motor_120_control_hall_instance_ctrl_t*) p_ctrl;
+    p_instance_ctrl->extPulses = ptr;
+    return err;
+}
+
+fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtBrake(motor_120_control_ctrl_t * const p_ctrl)
+{
+    fsp_err_t err = FSP_SUCCESS;
+    motor_120_control_hall_instance_ctrl_t *p_instance_ctrl = (motor_120_control_hall_instance_ctrl_t*) p_ctrl;
+
+    motor_120_control_hall_extended_cfg_t * p_extended_cfg =
+            (motor_120_control_hall_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend;
+
+    rm_motor_120_control_hall_reset(p_instance_ctrl);
+
+    p_instance_ctrl->extSettings->active = 0;
+
+    if (p_extended_cfg->p_motor_120_driver_instance != NULL)
+    {
+        p_extended_cfg->p_motor_120_driver_instance->p_api->stop(
+                    p_extended_cfg->p_motor_120_driver_instance->p_ctrl);
+
+        p_extended_cfg->p_motor_120_driver_instance->p_api->brake(
+            p_extended_cfg->p_motor_120_driver_instance->p_ctrl);
+    }
+    return err;
+}
+
 /*******************************************************************************************************************//**
  * @} (end addtogroup MOTOR_120_CONTROL_HALL)
  **********************************************************************************************************************/
@@ -616,6 +745,130 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_ParameterUpdate (motor_120_control_ctrl_t * 
 /***********************************************************************************************************************
  * Private Functions
  **********************************************************************************************************************/
+
+static void rm_motor_120_control_reset_hall_timeout(motor_120_control_hall_instance_ctrl_t * p_ctrl)
+{
+
+
+    if(p_ctrl->u4_cnt_timeout>500)
+    {
+        volatile uint8_t stop=0;
+        stop=1;
+    }
+
+    do{
+        p_ctrl->u4_cnt_timeout = 0;
+        p_ctrl->timeout_error_flag = MOTOR_120_CONTROL_TIMEOUT_ERROR_FLAG_CLEAR;
+    }while(p_ctrl->u4_cnt_timeout != 0);
+}
+
+static void rm_motor_120_control_hall_pulses_counting(motor_120_control_hall_instance_ctrl_t * p_ctrl)
+{
+    motor_120_control_hall_extended_cfg_t *p_extended_cfg =
+            (motor_120_control_hall_extended_cfg_t*) p_ctrl->p_cfg->p_extend;
+
+
+
+    uint32_t u4_temp_level;
+    uint8_t u1_signal = 0x00;
+    /* Get/save the current state of interrupts */
+    FSP_CRITICAL_SECTION_DEFINE;
+    FSP_CRITICAL_SECTION_ENTER;
+
+    /* get hall signal */
+    u4_temp_level = R_BSP_PinRead (p_extended_cfg->port_hall_sensor_u);
+    u1_signal = (uint8_t) (u4_temp_level << 2);
+    u4_temp_level = R_BSP_PinRead (p_extended_cfg->port_hall_sensor_v);
+    u1_signal |= (uint8_t) (u4_temp_level << 1);
+    u4_temp_level = R_BSP_PinRead (p_extended_cfg->port_hall_sensor_w);
+    u1_signal |= (uint8_t) (u4_temp_level);
+    FSP_CRITICAL_SECTION_EXIT;
+
+    uint8_t count_direction = 0xFF;;
+
+    if(p_ctrl->previous_u1_signal == 0)
+    {
+        count_direction = p_ctrl->direction;
+
+    }
+    else
+    {
+        //  5  4  6  2  3  1
+       switch(u1_signal)
+       {
+           case 2:
+               if(p_ctrl->previous_u1_signal == 3)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+               else if(p_ctrl->previous_u1_signal == 6)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
+               break;
+
+           case 3:
+               if(p_ctrl->previous_u1_signal == 1)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+               else if(p_ctrl->previous_u1_signal == 2)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
+               break;
+
+           case 1:
+               if(p_ctrl->previous_u1_signal == 5)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+               else if(p_ctrl->previous_u1_signal == 3)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
+               break;
+
+           case 5:
+               if(p_ctrl->previous_u1_signal == 4)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+               else if(p_ctrl->previous_u1_signal == 1)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
+               break;
+
+           case 4:
+               if(p_ctrl->previous_u1_signal == 6)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+               else if(p_ctrl->previous_u1_signal == 5)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
+               break;
+
+           case 6:
+               if(p_ctrl->previous_u1_signal == 2)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+               else if(p_ctrl->previous_u1_signal == 4)
+                   count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
+               break;
+       }
+    }
+
+    /*if(p_ctrl->extCfg->pulses_counting_reverse == 1)
+    {
+        if(count_direction == MOTOR_120_CONTROL_ROTATION_DIRECTION_CW)
+            count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW;
+        else if(count_direction == MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW)
+            count_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+    }*/
+
+    p_ctrl->real_direction = count_direction;
+
+    if (count_direction == MOTOR_120_CONTROL_ROTATION_DIRECTION_CW)
+    {
+        if(p_ctrl->extCfg->pulses_counting_reverse == 0)
+            p_ctrl->extPulses->pulses++;
+        else
+            p_ctrl->extPulses->pulses--;
+    }
+
+    else if (count_direction == MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW)
+    {
+        if(p_ctrl->extCfg->pulses_counting_reverse == 0)
+            p_ctrl->extPulses->pulses--;
+        else
+            p_ctrl->extPulses->pulses++;
+    }
+
+    p_ctrl->previous_u1_signal = u1_signal;
+
+}
 
 /******************************************************************************
  * Function Name : rm_motor_120_control_hall_interrupt
@@ -712,7 +965,10 @@ void rm_motor_120_control_hall_speed_cyclic (timer_callback_args_t * p_args)
 
                     rm_motor_120_control_hall_pattern_set(p_instance_ctrl); /* Set voltage pattern */
 
-                    p_instance_ctrl->run_mode = MOTOR_120_CONTROL_RUN_MODE_BOOT;
+                    if (p_instance_ctrl->extSettings->active == 1)
+                       p_instance_ctrl->run_mode = MOTOR_120_CONTROL_RUN_MODE_DRIVE;
+                    else
+                       p_instance_ctrl->run_mode = MOTOR_120_CONTROL_RUN_MODE_BOOT;
                 }
 
                 break;
@@ -765,10 +1021,15 @@ void rm_motor_120_control_hall_speed_cyclic (timer_callback_args_t * p_args)
         /* check run mode */
         if (MOTOR_120_CONTROL_RUN_MODE_INIT != p_instance_ctrl->run_mode)
         {
-            if (p_instance_ctrl->u4_cnt_timeout <= p_instance->p_cfg->u4_timeout_cnt)
+            if((p_instance_ctrl->extSettings->active == 1 && p_instance_ctrl->extSettings->settings.timeout_hall_ms != 0) ||
+               (p_instance_ctrl->extSettings->active == 0))
             {
-                p_instance_ctrl->u4_cnt_timeout++;
+                if (p_instance_ctrl->u4_cnt_timeout <= p_instance->p_cfg->u4_timeout_cnt)
+                {
+                    p_instance_ctrl->u4_cnt_timeout++;
+                }
             }
+            else p_instance_ctrl->u4_cnt_timeout = 0;
         }
         else
         {
@@ -894,6 +1155,10 @@ static void rm_motor_120_control_hall_reset (motor_120_control_hall_instance_ctr
     p_ctrl->u4_hall_intr_cnt = 0U;
 
     p_ctrl->u4_adc_interrupt_cnt = 0U;
+
+    p_ctrl->real_direction = MOTOR_120_CONTROL_ROTATION_DIRECTION_CW;
+    p_ctrl->extSettings->active = 0;
+    p_ctrl->extSettings->voltage = 0.0;
 }                                      /* End of function rm_motor_120_control_hall_reset() */
 
 /***********************************************************************************************************************
@@ -1082,104 +1347,122 @@ static void rm_motor_120_control_hall_pattern_set (motor_120_control_hall_instan
 static void rm_motor_120_control_hall_pattern_first60 (motor_120_control_hall_instance_ctrl_t * p_ctrl,
                                                        uint8_t                                  u1_signal)
 {
-    /* set voltage pattern */
-    if (MOTOR_120_CONTROL_ROTATION_DIRECTION_CW == p_ctrl->direction) /* check rotational direction */
+    if(p_ctrl->extCfg->motor_technology == MOTOR_TECH_BLDC)
     {
-        switch (u1_signal)
+        /* set voltage pattern */
+        if (MOTOR_120_CONTROL_ROTATION_DIRECTION_CW == p_ctrl->direction) /* check rotational direction */
         {
-            case MOTOR_120_CONTROL_HALL_PATTERN_CW_W_V:               /* from W phase to V phase */
+            switch (u1_signal)
             {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_WP_ON_VN_PWM;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CW_W_V:               /* from W phase to V phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_WP_ON_VN_PWM;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CW_U_V: /* from U phase to V phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_UP_PWM_VN_ON;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CW_U_V: /* from U phase to V phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_UP_PWM_VN_ON;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CW_U_W: /* from U phase to W phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_UP_ON_WN_PWM;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CW_U_W: /* from U phase to W phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_UP_ON_WN_PWM;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CW_V_W: /* from V phase to W phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_VP_PWM_WN_ON;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CW_V_W: /* from V phase to W phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_VP_PWM_WN_ON;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CW_V_U: /* from V phase to U phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_VP_ON_UN_PWM;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CW_V_U: /* from V phase to U phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_VP_ON_UN_PWM;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CW_W_U: /* from W phase to U phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_WP_PWM_UN_ON;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CW_W_U: /* from W phase to U phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_WP_PWM_UN_ON;
+                    break;
+                }
 
-            default:                   /* hall signal pattern error */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_ERROR;
-                break;
+                default:                   /* hall signal pattern error */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_ERROR;
+                    break;
+                }
             }
         }
-    }
-    else if (MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW == p_ctrl->direction) /* check rotational direction */
-    {
-        switch (u1_signal)
+        else if (MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW == p_ctrl->direction) /* check rotational direction */
         {
-            case MOTOR_120_CONTROL_HALL_PATTERN_CCW_W_V:                    /* from W phase to V phase */
+            switch (u1_signal)
             {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_WP_PWM_VN_ON;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CCW_W_V:                    /* from W phase to V phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_WP_PWM_VN_ON;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CCW_W_U: /* from W phase to U phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_WP_ON_UN_PWM;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CCW_W_U: /* from W phase to U phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_WP_ON_UN_PWM;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CCW_V_U: /* from V phase to U phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_VP_PWM_UN_ON;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CCW_V_U: /* from V phase to U phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_VP_PWM_UN_ON;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CCW_V_W: /* from V phase to W phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_VP_ON_WN_PWM;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CCW_V_W: /* from V phase to W phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_VP_ON_WN_PWM;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CCW_U_W: /* from U phase to W phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_UP_PWM_WN_ON;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CCW_U_W: /* from U phase to W phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_UP_PWM_WN_ON;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CCW_U_V: /* from U phase to V phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_UP_ON_VN_PWM;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CCW_U_V: /* from U phase to V phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_UP_ON_VN_PWM;
+                    break;
+                }
 
-            default:                   /* hall signal pattern error */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_ERROR;
-                break;
+                default:                   /* hall signal pattern error */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_ERROR;
+                    break;
+                }
             }
         }
+        else
+        {
+            /* Do nothing */
+        }
     }
-    else
+    else if(p_ctrl->extCfg->motor_technology == MOTOR_TECH_DC)
     {
-        /* Do nothing */
+        if (MOTOR_120_CONTROL_ROTATION_DIRECTION_CW == p_ctrl->direction)
+        {
+
+        }
+        else if(MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW == p_ctrl->direction)
+        {
+
+        }
+        else
+        {
+
+        }
     }
 }
 
@@ -1193,104 +1476,122 @@ static void rm_motor_120_control_hall_pattern_first60 (motor_120_control_hall_in
 static void rm_motor_120_control_hall_pattern_first60_comp (motor_120_control_hall_instance_ctrl_t * p_ctrl,
                                                             uint8_t                                  u1_signal)
 {
-    /* set voltage pattern */
-    if (MOTOR_120_CONTROL_ROTATION_DIRECTION_CW == p_ctrl->direction) /* check rotational direction */
+    if(p_ctrl->extCfg->motor_technology == MOTOR_TECH_BLDC)
     {
-        switch (u1_signal)
+        /* set voltage pattern */
+        if (MOTOR_120_CONTROL_ROTATION_DIRECTION_CW == p_ctrl->direction) /* check rotational direction */
         {
-            case MOTOR_120_CONTROL_HALL_PATTERN_CW_W_V:               /* from W phase to V phase */
+            switch (u1_signal)
             {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_WP_ON_V_PWM;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CW_W_V:               /* from W phase to V phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_WP_ON_V_PWM;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CW_U_V: /* from U phase to V phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_U_PWM_VN_ON;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CW_U_V: /* from U phase to V phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_U_PWM_VN_ON;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CW_U_W: /* from U phase to W phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_UP_ON_W_PWM;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CW_U_W: /* from U phase to W phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_UP_ON_W_PWM;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CW_V_W: /* from V phase to W phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_V_PWM_WN_ON;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CW_V_W: /* from V phase to W phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_V_PWM_WN_ON;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CW_V_U: /* from V phase to U phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_VP_ON_U_PWM;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CW_V_U: /* from V phase to U phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_VP_ON_U_PWM;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CW_W_U: /* from W phase to U phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_W_PWM_UN_ON;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CW_W_U: /* from W phase to U phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_W_PWM_UN_ON;
+                    break;
+                }
 
-            default:                   /* hall signal pattern error */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_ERROR;
-                break;
+                default:                   /* hall signal pattern error */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_ERROR;
+                    break;
+                }
             }
         }
-    }
-    else if (MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW == p_ctrl->direction) /* check rotational direction */
-    {
-        switch (u1_signal)
+        else if (MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW == p_ctrl->direction) /* check rotational direction */
         {
-            case MOTOR_120_CONTROL_HALL_PATTERN_CCW_W_V:                    /* from W phase to V phase */
+            switch (u1_signal)
             {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_W_PWM_VN_ON;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CCW_W_V:                    /* from W phase to V phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_W_PWM_VN_ON;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CCW_W_U: /* from W phase to U phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_WP_ON_U_PWM;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CCW_W_U: /* from W phase to U phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_WP_ON_U_PWM;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CCW_V_U: /* from V phase to U phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_V_PWM_UN_ON;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CCW_V_U: /* from V phase to U phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_V_PWM_UN_ON;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CCW_V_W: /* from V phase to W phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_VP_ON_W_PWM;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CCW_V_W: /* from V phase to W phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_VP_ON_W_PWM;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CCW_U_W: /* from U phase to W phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_U_PWM_WN_ON;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CCW_U_W: /* from U phase to W phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_U_PWM_WN_ON;
+                    break;
+                }
 
-            case MOTOR_120_CONTROL_HALL_PATTERN_CCW_U_V: /* from U phase to V phase */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_UP_ON_V_PWM;
-                break;
-            }
+                case MOTOR_120_CONTROL_HALL_PATTERN_CCW_U_V: /* from U phase to V phase */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_UP_ON_V_PWM;
+                    break;
+                }
 
-            default:                   /* hall signal pattern error */
-            {
-                p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_ERROR;
-                break;
+                default:                   /* hall signal pattern error */
+                {
+                    p_ctrl->v_pattern = MOTOR_120_DRIVER_PHASE_PATTERN_ERROR;
+                    break;
+                }
             }
         }
+        else
+        {
+            /* Do nothing */
+        }
     }
-    else
+    else if(p_ctrl->extCfg->motor_technology == MOTOR_TECH_DC)
     {
-        /* Do nothing */
+        if (MOTOR_120_CONTROL_ROTATION_DIRECTION_CW == p_ctrl->direction)
+        {
+
+        }
+        else if(MOTOR_120_CONTROL_ROTATION_DIRECTION_CCW == p_ctrl->direction)
+        {
+
+        }
+        else
+        {
+
+        }
     }
 }
 
@@ -1364,7 +1665,7 @@ static void rm_motor_120_control_hall_speed_ref_set (motor_120_control_hall_inst
 static void rm_motor_120_control_hall_voltage_ref_set (motor_120_control_hall_instance_ctrl_t * const p_ctrl)
 {
     motor_120_control_hall_extended_cfg_t * p_extended_cfg =
-        (motor_120_control_hall_extended_cfg_t *) p_ctrl->p_cfg->p_extend;
+            (motor_120_control_hall_extended_cfg_t *) p_ctrl->p_cfg->p_extend;
 
     float f4_temp;
 
@@ -1372,34 +1673,114 @@ static void rm_motor_120_control_hall_voltage_ref_set (motor_120_control_hall_in
     {
         case MOTOR_120_CONTROL_VOLTAGE_REF_CONST:
         {
-            /* Set start reference voltage(constant) */
-            p_ctrl->f4_v_ref = p_extended_cfg->f4_start_refv;
-            if (MOTOR_120_CONTROL_RUN_MODE_DRIVE == p_ctrl->run_mode)
+            if (p_ctrl->extSettings->active == 1)
             {
-                /* Set PI control parameter for start */
-                p_ctrl->f4_pi_ctrl_refi  = p_ctrl->f4_v_ref;
-                p_ctrl->flag_voltage_ref = MOTOR_120_CONTROL_VOLTAGE_REF_PI_OUTPUT;
-            }
+                if(p_ctrl->extSettings->settings.slope == 1)
+                {
+                    p_ctrl->f4_v_ref = p_extended_cfg->f4_start_refv;//p_ctrl->extSettings->voltage;//p_extended_cfg->f4_start_refv;
+                    if (MOTOR_120_CONTROL_RUN_MODE_DRIVE == p_ctrl->run_mode)
+                    {
+                        /* Set PI control parameter for start */
+                        p_ctrl->f4_pi_ctrl_refi  = p_extended_cfg->f4_start_refv;//p_ctrl->extSettings->voltage;//p_ctrl->f4_v_ref;
+                        p_ctrl->flag_voltage_ref = MOTOR_120_CONTROL_VOLTAGE_REF_PI_OUTPUT;
+                    }
+                }
+                else
+                {
+                    p_ctrl->f4_v_ref = p_ctrl->extSettings->voltage;//p_ctrl->extSettings->voltage;//p_extended_cfg->f4_start_refv;
+                    if (MOTOR_120_CONTROL_RUN_MODE_DRIVE == p_ctrl->run_mode)
+                    {
+                        /* Set PI control parameter for start */
+                        p_ctrl->f4_pi_ctrl_refi  = p_ctrl->extSettings->voltage;//p_ctrl->extSettings->voltage;//p_ctrl->f4_v_ref;
+                        p_ctrl->flag_voltage_ref = MOTOR_120_CONTROL_VOLTAGE_REF_PI_OUTPUT;
+                    }
+                }
 
+            }
+            else
+            {
+                /* Set start reference voltage(constant) */
+                p_ctrl->f4_v_ref = p_extended_cfg->f4_start_refv;
+
+
+                if (MOTOR_120_CONTROL_RUN_MODE_DRIVE == p_ctrl->run_mode)
+                {
+                    /* Set PI control parameter for start */
+                    p_ctrl->f4_pi_ctrl_refi  = p_ctrl->f4_v_ref;
+                    p_ctrl->flag_voltage_ref = MOTOR_120_CONTROL_VOLTAGE_REF_PI_OUTPUT;
+                }
+            }
             break;
         }
 
         case MOTOR_120_CONTROL_VOLTAGE_REF_PI_OUTPUT:
         {
-            /* PI control */
-            p_ctrl->u4_cnt_speed_pi++;
-            if (p_ctrl->p_cfg->u4_speed_pi_decimation < p_ctrl->u4_cnt_speed_pi)
-            /* check PI period  */
+            if (p_ctrl->extSettings->active == 1)
             {
-                p_ctrl->u4_cnt_speed_pi = 0;
+                if(p_ctrl->extSettings->settings.slope == 1)
+                {
+                    float delta = 0.0f;
+                    if (p_ctrl->f4_v_ref > p_ctrl->extSettings->voltage)
+                    {
+                        delta = ((p_ctrl->f4_v_ref - p_ctrl->extSettings->voltage)>= 0.01f)?0.01f:0.01f;
 
-                p_ctrl->f4_pi_ctrl_err = p_ctrl->f4_ref_speed_rad_ctrl - p_ctrl->f4_speed_rad;
-                f4_temp                = rm_motor_120_control_hall_pi_ctrl(p_ctrl);
+                        p_ctrl->f4_v_ref = p_ctrl->f4_v_ref - (float)delta;
+                    }
+                    else if (p_ctrl->f4_v_ref < p_ctrl->extSettings->voltage)
+                    {
+                        delta = ((p_ctrl->extSettings->voltage - p_ctrl->f4_v_ref)>= 0.01f)?0.01f:0.01f;
 
-                /* limit voltage */
-                p_ctrl->f4_v_ref = rm_motor_120_control_hall_limitf(f4_temp,
-                                                                    p_ctrl->p_cfg->f4_max_drive_v,
-                                                                    p_ctrl->p_cfg->f4_min_drive_v);
+                        p_ctrl->f4_v_ref = p_ctrl->f4_v_ref + (float) delta;
+                    }
+                }
+                else
+                {
+                    volatile float *ptr = &p_ctrl->f4_v_ref;
+                    *ptr = 0.0f;
+                    p_ctrl->f4_v_ref = p_ctrl->extSettings->voltage;
+                }
+
+
+
+
+                f4_temp = p_ctrl->f4_v_ref;
+                p_ctrl->f4_v_ref = rm_motor_120_control_hall_limitf (f4_temp, p_ctrl->p_cfg->f4_max_drive_v,
+                                                                     0);
+
+                p_ctrl->u4_cnt_speed_pi++;
+                if (p_ctrl->p_cfg->u4_speed_pi_decimation < p_ctrl->u4_cnt_speed_pi)
+                /* check PI period  */
+                {
+                    p_ctrl->u4_cnt_speed_pi = 0;
+
+                    p_ctrl->f4_pi_ctrl_err = p_ctrl->f4_ref_speed_rad_ctrl - p_ctrl->f4_speed_rad;
+                    f4_temp = rm_motor_120_control_hall_pi_ctrl (p_ctrl);
+
+                    /* limit voltage */
+                    /*p_ctrl->f4_v_ref = rm_motor_120_control_hall_limitf (f4_temp, p_ctrl->p_cfg->f4_max_drive_v,
+                                                                         p_ctrl->p_cfg->f4_min_drive_v);*/
+                }
+
+                p_ctrl->f4_ref_speed_rad_ctrl = p_ctrl->f4_speed_rad;
+                p_ctrl->f4_pi_ctrl_refi = p_ctrl->f4_v_ref;
+
+            }
+            else
+            {
+                /* PI control */
+                p_ctrl->u4_cnt_speed_pi++;
+                if (p_ctrl->p_cfg->u4_speed_pi_decimation < p_ctrl->u4_cnt_speed_pi)
+                /* check PI period  */
+                {
+                    p_ctrl->u4_cnt_speed_pi = 0;
+
+                    p_ctrl->f4_pi_ctrl_err = p_ctrl->f4_ref_speed_rad_ctrl - p_ctrl->f4_speed_rad;
+                    f4_temp = rm_motor_120_control_hall_pi_ctrl (p_ctrl);
+
+                    /* limit voltage */
+                    p_ctrl->f4_v_ref = rm_motor_120_control_hall_limitf (f4_temp, p_ctrl->p_cfg->f4_max_drive_v,
+                                                                         p_ctrl->p_cfg->f4_min_drive_v);
+                }
             }
 
             break;
@@ -1457,13 +1838,29 @@ static float rm_motor_120_control_hall_pi_ctrl (motor_120_control_hall_instance_
 static void rm_motor_120_control_hall_check_timeout_error (motor_120_control_hall_instance_ctrl_t * p_ctrl,
                                                            uint32_t                                 u4_timeout_limit)
 {
-    if (p_ctrl->u4_cnt_timeout > u4_timeout_limit)
+    if (p_ctrl->extSettings->active == 1)
     {
-        p_ctrl->timeout_error_flag = MOTOR_120_CONTROL_TIMEOUT_ERROR_FLAG_SET; /* hall timeout error */
+        if (p_ctrl->extSettings->settings.timeout_hall_ms != 0x00)
+        {
+            if (p_ctrl->u4_cnt_timeout > p_ctrl->extSettings->settings.timeout_hall_ms)
+                p_ctrl->timeout_error_flag = MOTOR_120_CONTROL_TIMEOUT_ERROR_FLAG_SET;
+            else
+                p_ctrl->timeout_error_flag = MOTOR_120_CONTROL_TIMEOUT_ERROR_FLAG_CLEAR;
+        }
+        else
+            p_ctrl->timeout_error_flag = MOTOR_120_CONTROL_TIMEOUT_ERROR_FLAG_CLEAR;
+
     }
     else
     {
-        p_ctrl->timeout_error_flag = MOTOR_120_CONTROL_TIMEOUT_ERROR_FLAG_CLEAR;
+        if (p_ctrl->u4_cnt_timeout > u4_timeout_limit)
+        {
+            p_ctrl->timeout_error_flag = MOTOR_120_CONTROL_TIMEOUT_ERROR_FLAG_SET; /* hall timeout error */
+        }
+        else
+        {
+            p_ctrl->timeout_error_flag = MOTOR_120_CONTROL_TIMEOUT_ERROR_FLAG_CLEAR;
+        }
     }
 }
 
