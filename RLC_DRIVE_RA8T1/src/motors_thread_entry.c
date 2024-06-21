@@ -53,6 +53,9 @@ motor_120_driver_extended_cfg_t g_user_motor1_120_driver_extended_cfg;
 
 motor_wait_stop_flag_t g_wait_flag;
 
+motor_ext_cfg_t motot0_ext_cfg;
+motor_ext_cfg_t motot1_ext_cfg;
+
 
 float i_mot0 = 0.0f;
 float i_mot0_avr = 0.0f;
@@ -320,6 +323,11 @@ static void motor_fsp_init(void)
     g_motor_120_degree0.p_api->reset(g_motor_120_degree0.p_ctrl);
     g_motor_120_degree1.p_api->reset(g_motor_120_degree1.p_ctrl);
 
+    motot0_ext_cfg.motor_technology = MOTOR_TECH_BLDC;
+    motot1_ext_cfg.motor_technology = MOTOR_TECH_BLDC;
+    g_motor_120_degree0.p_api->configSet(g_motor_120_degree0.p_ctrl,motot0_ext_cfg);
+    g_motor_120_degree1.p_api->configSet(g_motor_120_degree0.p_ctrl,motot1_ext_cfg);
+
 } /* End of function motor_fsp_init */
 
 
@@ -567,3 +575,6 @@ static void mtr_adc_remove_spike(void)
 
     }
 }
+
+
+
