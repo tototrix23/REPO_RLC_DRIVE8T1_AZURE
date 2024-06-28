@@ -86,6 +86,7 @@ const adc_cfg_t g_adc1_custom_cfg =
 return_t adc_init(void)
 {
     return_t ret = X_RET_OK;
+    return ret;
     ptr_adc_instance[0] = (adc_instance_t*)&g_adc0;
     ptr_adc_instance[1] = (adc_instance_t*)&g_adc1;
 

@@ -59,7 +59,11 @@ return_t motor_check(bool_t long_vm_cuttof)
     motors_instance.motorH->motor_ctrl_instance->p_api->configSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorH);
     //motors_instance.motorL->motor_ctrl_instance->p_api->configSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorL);
 
-
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_12V_EN,BSP_IO_LEVEL_HIGH);
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_EN_12V_HALL1,BSP_IO_LEVEL_HIGH);
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_EN_12V_HALL2,BSP_IO_LEVEL_HIGH);
+    delay_ms(50);
+/*
     delay_ms(50);
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_12V_EN,BSP_IO_LEVEL_HIGH);
     delay_ms(10);
@@ -92,7 +96,7 @@ return_t motor_check(bool_t long_vm_cuttof)
     }
     else
         sys_mot.error_lvl1.bits.vcc_hall_l = FALSE;
-
+*/
     // Configuration du drivers haut
     ret = motor_config_spi_init();
     ret = motor_config_spi(&drv_mot1);
