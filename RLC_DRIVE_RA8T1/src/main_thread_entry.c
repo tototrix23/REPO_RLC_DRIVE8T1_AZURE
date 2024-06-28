@@ -18,6 +18,7 @@
 #include <files/lfs_impl.h>
 #include <files/json_file.h>
 #include <remotectrl/remotectrl.h>
+#include <motor/motor.h>
 
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
@@ -29,10 +30,10 @@ extern TX_THREAD motors_thread;
 i_time_t i_time_interface_t;
 
 
-h_drv8323s_t drv_mot1;
+/*h_drv8323s_t drv_mot1;
 i_spi_t interface_mot1;
 h_drv8323s_t drv_mot2;
-i_spi_t interface_mot2;
+i_spi_t interface_mot2;*/
 
 /* Main Thread entry function */
 void main_thread_entry(void)
@@ -62,7 +63,7 @@ void main_thread_entry(void)
     json_file_add_to_queue(FILE_TYPE_PAYLOAD,ptr_test);*/
 
 
-    i_spi_init(&interface_mot1,&g_mutex_spi, spi_motor_open, spi_motor_close, spi_motor_read, spi_motor_write, spi_motor_mot1_cs_inactive, spi_motor_mot1_cs_active);
+    /*i_spi_init(&interface_mot1,&g_mutex_spi, spi_motor_open, spi_motor_close, spi_motor_read, spi_motor_write, spi_motor_mot1_cs_inactive, spi_motor_mot1_cs_active);
     i_spi_init(&interface_mot2,&g_mutex_spi, spi_motor_open, spi_motor_close, spi_motor_read, spi_motor_write, spi_motor_mot2_cs_inactive, spi_motor_mot2_cs_active);
     R_IOPORT_PinWrite (&g_ioport_ctrl, IO_MOT1_ENABLE, BSP_IO_LEVEL_HIGH);
     R_IOPORT_PinWrite (&g_ioport_ctrl, IO_MOT2_ENABLE, BSP_IO_LEVEL_HIGH);
@@ -90,25 +91,38 @@ void main_thread_entry(void)
     R_IOPORT_PinWrite (&g_ioport_ctrl, IO_12V_EN, BSP_IO_LEVEL_HIGH);
     R_IOPORT_PinWrite (&g_ioport_ctrl, IO_EN_12V_HALL1, BSP_IO_LEVEL_HIGH);
     R_IOPORT_PinWrite (&g_ioport_ctrl, IO_EN_12V_HALL2, BSP_IO_LEVEL_HIGH);
-    tx_thread_sleep(10);
-
+    tx_thread_sleep(10);*/
 
     // Demarrage du Thread dédié aux LOGs
     tx_thread_resume(&log_thread);
+
+    // Initialisation de la partie moteurs (partie logicielle)
+    motor_structures_init();
+    motor_init_type(MOTOR_TYPE_RM_ITOH_BRAKE);
+
+    // Initialisation de la partie ADC
+    ret = adc_init();
+    if(ret != X_RET_OK){
+        LOG_E(LOG_STD,"INIT ADC ERROR");}
+    else{
+        LOG_I(LOG_STD,"INIT ADC SUCCESS");}
+
+    // Initialisation de la table d'échange
+    exchanged_data_init();
+
+    // Initialisation de la VEE (EEPROM virtuelle)
+    vee_init();
+
     tx_thread_resume(&motors_thread);
 
 
-
+    set_drive_mode(MOTOR_INIT_MODE);
 
 
 
     /* TODO: add your own code here */
     while (1)
     {
-        /*delay_ms(1000);
-        R_IOPORT_PinWrite(&g_ioport_ctrl, IO_LED1,1 );
-        delay_ms(1000);;
-        R_IOPORT_PinWrite(&g_ioport_ctrl, IO_LED1,0 );*/
         remotectrl_process();
         tx_thread_sleep (10);
     }

@@ -308,8 +308,12 @@
       <description>Motor 120 degree driver</description>
       <originalPack>Renesas.RA.5.3.0.pack</originalPack>
     </component>
-    <component apiversion="" class="HAL Drivers" condition="" group="all" subgroup="r_dac" variant="" vendor="Renesas" version="5.3.0">
-      <description>12-bit D/A Converter</description>
+    <component apiversion="" class="HAL Drivers" condition="" group="all" subgroup="r_flash_hp" variant="" vendor="Renesas" version="5.3.0">
+      <description>Flash Memory High Performance</description>
+      <originalPack>Renesas.RA.5.3.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="Middleware" condition="" group="all" subgroup="rm_vee_flash" variant="" vendor="Renesas" version="5.3.0">
+      <description>Virtual EEPROM</description>
       <originalPack>Renesas.RA.5.3.0.pack</originalPack>
     </component>
   </raComponentSelection>
@@ -1141,7 +1145,7 @@
       <property id="module.driver.adc.clearing" value="module.driver.adc.clearing.clear_after_read_on"/>
       <property id="module.driver.adc.mode" value="module.driver.adc.mode.mode_single_scan"/>
       <property id="module.driver.adc.mode.dt" value="module.driver.adc.mode.dt.disabled"/>
-      <property id="module.driver.adc.scan_mask" value="module.driver.adc.scan_mask.channel_0,module.driver.adc.scan_mask.channel_1,module.driver.adc.scan_mask.channel_2,module.driver.adc.scan_mask.channel_5,module.driver.adc.scan_mask.channel_19"/>
+      <property id="module.driver.adc.scan_mask" value="module.driver.adc.scan_mask.channel_0,module.driver.adc.scan_mask.channel_1,module.driver.adc.scan_mask.channel_2,module.driver.adc.scan_mask.channel_5,module.driver.adc.scan_mask.channel_16,module.driver.adc.scan_mask.channel_17,module.driver.adc.scan_mask.channel_18,module.driver.adc.scan_mask.channel_19"/>
       <property id="module.driver.adc.scan_mask_group_b" value="module.driver.adc.scan_mask_group_b.channel_20,module.driver.adc.scan_mask_group_b.channel_21,module.driver.adc.scan_mask_group_b.channel_22"/>
       <property id="module.driver.adc.trigger" value="_signal.event.gpt6.counter.underflow"/>
       <property id="module.driver.adc.trigger_group_b" value="_disabled"/>
@@ -1178,7 +1182,7 @@
       <property id="module.driver.adc.clearing" value="module.driver.adc.clearing.clear_after_read_on"/>
       <property id="module.driver.adc.mode" value="module.driver.adc.mode.mode_single_scan"/>
       <property id="module.driver.adc.mode.dt" value="module.driver.adc.mode.dt.disabled"/>
-      <property id="module.driver.adc.scan_mask" value="module.driver.adc.scan_mask.channel_0,module.driver.adc.scan_mask.channel_1,module.driver.adc.scan_mask.channel_2,module.driver.adc.scan_mask.channel_20,module.driver.adc.scan_mask.channel_21,module.driver.adc.scan_mask.channel_22"/>
+      <property id="module.driver.adc.scan_mask" value="module.driver.adc.scan_mask.channel_0,module.driver.adc.scan_mask.channel_1,module.driver.adc.scan_mask.channel_2,module.driver.adc.scan_mask.channel_4,module.driver.adc.scan_mask.channel_8,module.driver.adc.scan_mask.channel_20,module.driver.adc.scan_mask.channel_21,module.driver.adc.scan_mask.channel_22"/>
       <property id="module.driver.adc.scan_mask_group_b" value="module.driver.adc.scan_mask_group_b.channel_5"/>
       <property id="module.driver.adc.trigger" value="_signal.event.gpt8.counter.underflow"/>
       <property id="module.driver.adc.trigger_group_b" value="_disabled"/>
@@ -1207,16 +1211,21 @@
       <property id="module.driver.adc.window_b_ipl" value="_disabled"/>
       <property id="module.driver.adc.adbuf" value="module.driver.adc.adbuf.disabled"/>
     </module>
-    <module id="module.driver.dac_on_dac.302151789">
-      <property id="module.driver.dac.name" value="g_dac"/>
-      <property id="module.driver.dac.channel_id" value="0"/>
-      <property id="module.driver.dac.ad_da_synchronized" value="module.driver.dac.ad_da_synchronized.enabled"/>
-      <property id="module.driver.dac.data_format" value="module.driver.dac.data_format.data_format_flush_right"/>
-      <property id="module.driver.dac.output_amplifier_enabled" value="module.driver.dac.output_amplifier.disabled"/>
-      <property id="module.driver.dac.charge_pump_enabled" value="enum.mcu.dac.charge_pump.disabled"/>
-      <property id="module.driver.dac.internal_output" value="enum.mcu.dac.internal_output.disabled"/>
-      <property id="module.driver.dac.elc_trigger" value="_disabled"/>
-      <property id="module.driver.dac.ref_volt_sel" value="module.driver.dac.ref_volt_sel.disable"/>
+    <module id="module.middleware.rm_vee_flash.1590955227">
+      <property id="module.middleware.rm_vee_flash.name" value="g_vee"/>
+      <property id="module.middleware.rm_vee_flash.record_max_id" value="16"/>
+      <property id="module.middleware.rm_vee_flash.num_segments" value="2"/>
+      <property id="module.middleware.rm_vee_flash.start_addr" value="BSP_FEATURE_FLASH_DATA_FLASH_START"/>
+      <property id="module.middleware.rm_vee_flash.total_size" value="BSP_DATA_FLASH_SIZE_BYTES"/>
+      <property id="module.middleware.rm_vee_flash.ref_data_size" value="0"/>
+      <property id="module.middleware.rm_vee_flash.p_callback" value="vee_callback"/>
+    </module>
+    <module id="module.driver.flash_on_flash_hp.255943238">
+      <property id="module.driver.flash.name" value="g_flash0"/>
+      <property id="module.driver.flash.data_flash_bgo" value="module.driver.flash.data_flash_bgo.enabled"/>
+      <property id="module.driver.flash.p_callback" value="NULL"/>
+      <property id="module.driver.flash.ipl" value="board.icu.common.irq.priority9"/>
+      <property id="module.driver.flash.err_ipl" value="board.icu.common.irq.priority9"/>
     </module>
     <object id="rtos.threadx.object.queue.146954789">
       <property id="rtos.threadx.object.queue.name" value="Log Queue"/>
@@ -1240,6 +1249,21 @@
       <property id="rtos.threadx.object.mutex.symbol" value="g_mutex_spi"/>
       <property id="rtos.threadx.object.mutex.inherit" value="rtos.threadx.object.mutex.inherit.enabled"/>
     </object>
+    <object id="rtos.threadx.object.mutex.1807112528">
+      <property id="rtos.threadx.object.mutex.name" value="System Status Mutex"/>
+      <property id="rtos.threadx.object.mutex.symbol" value="g_mutex_system_status"/>
+      <property id="rtos.threadx.object.mutex.inherit" value="rtos.threadx.object.mutex.inherit.enabled"/>
+    </object>
+    <object id="rtos.threadx.object.mutex.582799050">
+      <property id="rtos.threadx.object.mutex.name" value="Vee Mutex"/>
+      <property id="rtos.threadx.object.mutex.symbol" value="g_mutex_vee"/>
+      <property id="rtos.threadx.object.mutex.inherit" value="rtos.threadx.object.mutex.inherit.enabled"/>
+    </object>
+    <object id="rtos.threadx.object.mutex.2138142461">
+      <property id="rtos.threadx.object.mutex.name" value="Exchanged Data Mutex"/>
+      <property id="rtos.threadx.object.mutex.symbol" value="g_exchanged_data_mutex"/>
+      <property id="rtos.threadx.object.mutex.inherit" value="rtos.threadx.object.mutex.inherit.enabled"/>
+    </object>
     <context id="_hal.0">
       <stack module="module.driver.ioport_on_ioport.0"/>
       <stack module="module.middleware.rm_threadx_port.0"/>
@@ -1252,6 +1276,9 @@
       <stack module="module.driver.spi_on_sci_b_spi.1186514597">
         <stack module="module.driver.transfer_on_dtc.207325813" requires="module.driver.spi_on_sci_b_spi.requires.transfer_tx"/>
         <stack module="module.driver.transfer_on_dtc.107088618" requires="module.driver.spi_on_sci_b_spi.requires.transfer_rx"/>
+      </stack>
+      <stack module="module.middleware.rm_vee_flash.1590955227">
+        <stack module="module.driver.flash_on_flash_hp.255943238" requires="module.middleware.rm_vee_flash.requires.flash"/>
       </stack>
     </context>
     <context id="rtos.threadx.thread.1290712810">
@@ -1294,7 +1321,6 @@
           </stack>
         </stack>
       </stack>
-      <stack module="module.driver.elc_on_elc.1332150646"/>
       <stack module="module.middleware.motor_120_degree.632096668">
         <stack module="module.middleware.motor_120_control_on_motor_120_control_hall.597991235" requires="module.middleware.motor_120_degree.requires.control">
           <stack module="module.driver.timer_on_agt.562675574" requires="module.middleware.motor_120_control.requires.timer_cyclic"/>
@@ -1312,8 +1338,13 @@
           </stack>
         </stack>
       </stack>
-      <stack module="module.driver.dac_on_dac.302151789"/>
+      <stack module="module.driver.elc_on_elc.1332150646"/>
     </context>
+    <config id="config.driver.flash_hp">
+      <property id="config.driver.flash_hp.param_checking_enable" value="config.flash_hp.param_checking_enable.bsp"/>
+      <property id="config.driver.flash_hp.param_code_flash_programming_enable" value="config.driver.flash_hp.param_code_flash_programming_enable.disabled"/>
+      <property id="config.driver.flash_hp.param_data_flash_programming_enable" value="config.driver.flash_hp.param_data_flash_programming_enable.enabled"/>
+    </config>
     <config id="config.middleware.motor_120_degree">
       <property id="config.middleware.motor_120_degree.param_checking_enable" value="config.middleware.motor_120_degree.param_checking_enable.bsp"/>
     </config>
@@ -1341,8 +1372,10 @@
     <config id="config.driver.rm_block_media_spi">
       <property id="config.driver.rm_block_media_spi.param_checking_enable" value="config.driver.rm_block_media_spi.param_checking_enable.bsp"/>
     </config>
-    <config id="config.driver.dac">
-      <property id="config.driver.dac.param_checking_enable" value="config.driver.dac.param_checking_enable.bsp"/>
+    <config id="config.middleware.rm_vee_flash">
+      <property id="config.middleware.rm_vee_flash.checking" value="config.middleware.rm_vee_flash.checking.system"/>
+      <property id="config.middleware.rm_vee_flash.ref_data_support" value="config.middleware.rm_vee_flash.ref_data_support.disabled"/>
+      <property id="config.middleware.rm_vee_flash.refresh_buf_size" value="32"/>
     </config>
     <config id="config.driver.sci_b_spi">
       <property id="config.driver.sci_b_spi.param_checking_enable" value="config.driver.sci_b_spi.param_checking_enable.bsp"/>
@@ -1468,15 +1501,15 @@
       <configSetting altId="adc0.an005.p010" configurationId="adc0.an005"/>
       <configSetting altId="adc0.an006.p009" configurationId="adc0.an006"/>
       <configSetting altId="adc0.an008.p008" configurationId="adc0.an008"/>
-      <configSetting altId="adc0.an016.p513" configurationId="adc0.an016"/>
-      <configSetting altId="adc0.an017.p805" configurationId="adc0.an017"/>
-      <configSetting altId="adc0.an018.p806" configurationId="adc0.an018"/>
       <configSetting altId="adc0.mode.custom.free" configurationId="adc0.mode"/>
       <configSetting altId="adc1.an100.p000" configurationId="adc1.an100"/>
       <configSetting altId="adc1.an101.p001" configurationId="adc1.an101"/>
       <configSetting altId="adc1.an102.p002" configurationId="adc1.an102"/>
       <configSetting altId="adc1.an104.p003" configurationId="adc1.an104"/>
       <configSetting altId="adc1.an105.p015" configurationId="adc1.an105"/>
+      <configSetting altId="adc1.an116.p513" configurationId="adc1.an116"/>
+      <configSetting altId="adc1.an117.p805" configurationId="adc1.an117"/>
+      <configSetting altId="adc1.an118.p806" configurationId="adc1.an118"/>
       <configSetting altId="adc1.an119.p502" configurationId="adc1.an119"/>
       <configSetting altId="adc1.an120.p501" configurationId="adc1.an120"/>
       <configSetting altId="adc1.an121.p500" configurationId="adc1.an121"/>
@@ -1645,7 +1678,7 @@
       <configSetting altId="p501.gpio_mode.gpio_mode_an" configurationId="p501.gpio_mode"/>
       <configSetting altId="p502.adc1.an119" configurationId="p502"/>
       <configSetting altId="p502.gpio_mode.gpio_mode_an" configurationId="p502.gpio_mode"/>
-      <configSetting altId="p513.adc0.an016" configurationId="p513"/>
+      <configSetting altId="p513.adc1.an116" configurationId="p513"/>
       <configSetting altId="p513.gpio_mode.gpio_mode_an" configurationId="p513.gpio_mode"/>
       <configSetting altId="p600.gpt6.gtioc6b" configurationId="p600"/>
       <configSetting altId="p600.gpio_mode.gpio_mode_peripheral" configurationId="p600.gpio_mode"/>
@@ -1696,9 +1729,9 @@
       <configSetting altId="p803.gpio_mode.gpio_mode_peripheral" configurationId="p803.gpio_mode"/>
       <configSetting altId="p804.output.high" configurationId="p804"/>
       <configSetting altId="p804.gpio_mode.gpio_mode_out.high" configurationId="p804.gpio_mode"/>
-      <configSetting altId="p805.adc0.an017" configurationId="p805"/>
+      <configSetting altId="p805.adc1.an117" configurationId="p805"/>
       <configSetting altId="p805.gpio_mode.gpio_mode_an" configurationId="p805.gpio_mode"/>
-      <configSetting altId="p806.adc0.an018" configurationId="p806"/>
+      <configSetting altId="p806.adc1.an118" configurationId="p806"/>
       <configSetting altId="p806.gpio_mode.gpio_mode_an" configurationId="p806.gpio_mode"/>
       <configSetting altId="p808.output.low" configurationId="p808"/>
       <configSetting altId="p808.gpio_mode.gpio_mode_out.low" configurationId="p808.gpio_mode"/>

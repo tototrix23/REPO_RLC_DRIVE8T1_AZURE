@@ -70,7 +70,7 @@ extern const char firmware[10];
 // Adaptation des niveau en fonction des ponts diviseurs
 #define ADC_VIN_ADAPT(f)        (f*10.1f)
 #define ADC_VBATT_ADAPT(f)      (f*10.1f)
-#define ADC_IIN_ADAPT(f)        ((f/20.0f)/0.01f)
+#define ADC_IIN_ADAPT(f)        (f*2.966841187f)
 #define ADC_VHALL1_ADAPT(f)     (f*4.3222f)
 #define ADC_VHALL2_ADAPT(f)     (f*4.3222f)
 

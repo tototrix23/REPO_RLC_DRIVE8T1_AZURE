@@ -141,8 +141,6 @@
         <peripheral name="GPT12" group="GPT" security=""/>
         <peripheral name="GPT6" group="GPT" security=""/>
         <peripheral name="GPT7" group="GPT" security=""/>
-        <peripheral name="DAC0" group="DAC" security=""/>
-        <peripheral name="DAC120" group="DAC12" security=""/>
         <peripheral name="ICU">
             <slot name="IRQ0" secure="true"/>
             <slot name="IRQ1" secure="true"/>
@@ -163,6 +161,8 @@
             <slot name="IRQ16" secure="true"/>
             <slot name="IRQ17" secure="true"/>
             <slot name="IRQ18" secure="true"/>
+            <slot name="IRQ19" secure="true"/>
+            <slot name="IRQ20" secure="true"/>
         </peripheral>
     </partition>
 </azone>

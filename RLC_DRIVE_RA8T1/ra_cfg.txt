@@ -227,7 +227,7 @@ FSP Configuration
       P502 147 ADC1_AN119 - - - "Analog mode" - - "ADC0: AN019; ADC1: AN119; SDHI1: SD1DAT3; USB FS: USB_OVRCURB" - I - - 
       P511 176 - - - - Disabled - - "CANFD1: CRX1; GPT0: GTIOC0B; IIC1: SDA1; IRQ15: IRQ15" - None - - 
       P512 175 - - - - Disabled - - "CANFD1: CTX1; GPT0: GTIOC0A; IIC1: SCL1; IRQ14: IRQ14" - None - - 
-      P513 174 ADC0_AN016 - - - "Analog mode" - - "ACMPHS1: IVCMP1_0; ADC0: AN016; ADC1: AN116" - I - - 
+      P513 174 ADC1_AN116 - - - "Analog mode" - - "ACMPHS1: IVCMP1_0; ADC0: AN016; ADC1: AN116" - I - - 
       P600 122 GPT6_GTIOC6B - L - "Peripheral mode" - - "CAC: CACREF; GPT6: GTIOC6B; ULPT1: ULPTEVI1_A-DS" - IO - - 
       P601 121 GPT6_GTIOC6A - L - "Peripheral mode" - - "BUS: D0; GPT6: GTIOC6A; SCI0: DE0; SCI0: SCK0; SDRAM: DQ0; ULPT0: ULPTEVI0" - IO - - 
       P602 120 GPT7_GTIOC7B - L - "Peripheral mode" - - "BUS: D1; GPT7: GTIOC7B; SCI0: RXD0; SDRAM: DQ1; ULPT0: ULPTEE0" - IO - - 
@@ -259,8 +259,8 @@ FSP Configuration
       P802 135 GPT12_GTIOC12A - L - "Peripheral mode" - - "GPT12: GTIOC12A; GPT_OPS: GTIW; SCI2: RXD2" - IO - - 
       P803 136 GPT12_GTIOC12B - L - "Peripheral mode" - - "GPT12: GTIOC12B; GPT_POEGC: GTETRGC; SCI2: DE2; SCI2: SCK2" - IO - - 
       P804 137 GPIO IO_VM_SWITCH_CMD L None "Output mode (Initial High)" - - "GPT13: GTIOC13A; GPT_POEGD: GTETRGD; IRQ14: IRQ14; SCI2: CTS_RTS2; SCI2: DE2" - IO - - 
-      P805 173 ADC0_AN017 - - - "Analog mode" - - "ADC0: AN017; ADC1: AN117" - I - - 
-      P806 172 ADC0_AN018 - - - "Analog mode" - - "ADC0: AN018; ADC1: AN118; IRQ0: IRQ0" - I - - 
+      P805 173 ADC1_AN117 - - - "Analog mode" - - "ADC0: AN017; ADC1: AN117" - I - - 
+      P806 172 ADC1_AN118 - - - "Analog mode" - - "ADC0: AN018; ADC1: AN118; IRQ0: IRQ0" - I - - 
       P808 138 GPIO IO_VM_BALLAST_CMD L None "Output mode (Initial Low)" - - "GPT13: GTIOC13B; IRQ15: IRQ15" - IO - - 
       P809 139 GPIO IO_MOT_SIG3 - - "Input mode" - - - - IO - - 
       P810 142 - - - - Disabled - - "SDHI1: SD1CLK; ULPT0: ULPTOA0" - None - - 
@@ -383,8 +383,15 @@ FSP Configuration
   Module "ADC (r_adc)"
     Parameter Checking: Default (BSP)
     
-  Module "DAC (r_dac)"
+  Module "Virtual EEPROM on Flash (rm_vee_flash)"
     Parameter Checking: Default (BSP)
+    Reference Data Support: Disabled
+    Refresh Buffer Size: 32
+    
+  Module "Flash (r_flash_hp)"
+    Parameter Checking: Default (BSP)
+    Code Flash Programming Enable: Disabled
+    Data Flash Programming Enable: Enabled
     
   Azure RTOS ThreadX
     General: Custom tx_user.h: 
@@ -550,6 +557,22 @@ FSP Configuration
         Number of Blocks (Valid only in Block Mode): 0
         Number of Transfer Descriptors: 1
         Activation Source: SCI9 RXI (Receive data full)
+        
+    Instance "Virtual EEPROM on Flash (rm_vee_flash)"
+      Name: g_vee
+      Record Max ID: 16
+      Number of Segments: 2
+      Start Address: BSP_FEATURE_FLASH_DATA_FLASH_START
+      Total Size: BSP_DATA_FLASH_SIZE_BYTES
+      Reference Data Size: 0
+      Callback: vee_callback
+      
+      Instance "g_flash0 Flash (r_flash_hp)"
+        Name: g_flash0
+        Data Flash Background Operation: Enabled
+        Callback: rm_vee_flash_callback
+        Flash Ready Interrupt Priority: Priority 9
+        Flash Error Interrupt Priority: Priority 9
         
   Thread "Main Thread"
     Symbol: main_thread
@@ -755,7 +778,7 @@ FSP Configuration
             General: Clear after read: Off
             General: Mode: Single Scan
             General: Double-trigger: Disabled
-            Input: Channel Scan Mask (channel availability varies by MCU): Channel 0, Channel 1, Channel 2, Channel 20, Channel 21, Channel 22
+            Input: Channel Scan Mask (channel availability varies by MCU): Channel 0, Channel 1, Channel 2, Channel 4, Channel 8, Channel 20, Channel 21, Channel 22
             Input: Group B Scan Mask (channel availability varies by MCU): Channel 5
             Interrupts: Normal/Group A Trigger: GPT8 COUNTER UNDERFLOW (Underflow)
             Interrupts: Group B Trigger: Disabled
@@ -955,9 +978,6 @@ FSP Configuration
               Extra Features: Output Disable: GTIOCA Disable Setting: Set Hi Z
               Extra Features: Output Disable: GTIOCB Disable Setting: Set Hi Z
               
-    Instance "g_elc Event Link Controller (r_elc)"
-      Name: g_elc
-      
     Instance "Motor 120 degree control (rm_motor_120_degree)"
       General: Name: g_motor_120_degree1
       General: Limit of over current (A): 12.0
@@ -1138,7 +1158,7 @@ FSP Configuration
             General: Clear after read: Off
             General: Mode: Single Scan
             General: Double-trigger: Disabled
-            Input: Channel Scan Mask (channel availability varies by MCU): Channel 0, Channel 1, Channel 2, Channel 5, Channel 19
+            Input: Channel Scan Mask (channel availability varies by MCU): Channel 0, Channel 1, Channel 2, Channel 5, Channel 16, Channel 17, Channel 18, Channel 19
             Input: Group B Scan Mask (channel availability varies by MCU): Channel 20, Channel 21, Channel 22
             Interrupts: Normal/Group A Trigger: GPT6 COUNTER UNDERFLOW (Underflow)
             Interrupts: Group B Trigger: Disabled
@@ -1338,16 +1358,8 @@ FSP Configuration
               Extra Features: Output Disable: GTIOCA Disable Setting: Set Hi Z
               Extra Features: Output Disable: GTIOCB Disable Setting: Set Hi Z
               
-    Instance "g_dac DAC (r_dac)"
-      Name: g_dac
-      Channel: 0
-      Synchronize with ADC: Enabled
-      Data Format: Right Justified
-      Output Amplifier: Disabled
-      Charge Pump (Requires MOCO active): Disabled
-      Internal Output: Disabled
-      ELC Trigger Source: Disabled
-      Reference Voltage: Not supported
+    Instance "g_elc Event Link Controller (r_elc)"
+      Name: g_elc
       
   Object "g_queue_log Queue"
     Name: Log Queue
@@ -1369,5 +1381,20 @@ FSP Configuration
   Object "g_mutex_spi Mutex"
     Name: SPI Mutex
     Symbol: g_mutex_spi
+    Priority inheritance: Enabled
+    
+  Object "g_mutex_system_status Mutex"
+    Name: System Status Mutex
+    Symbol: g_mutex_system_status
+    Priority inheritance: Enabled
+    
+  Object "g_mutex_vee Mutex"
+    Name: Vee Mutex
+    Symbol: g_mutex_vee
+    Priority inheritance: Enabled
+    
+  Object "g_exchanged_data_mutex Mutex"
+    Name: Exchanged Data Mutex
+    Symbol: g_exchanged_data_mutex
     Priority inheritance: Enabled
     

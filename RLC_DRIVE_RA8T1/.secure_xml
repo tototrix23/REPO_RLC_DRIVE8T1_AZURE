@@ -100,20 +100,20 @@
       <configSetting altId="adc0.an005.p010" configurationId="adc0.an005" isUsedByDriver="true"/>
       <configSetting altId="adc0.an006.p009" configurationId="adc0.an006" isUsedByDriver="true"/>
       <configSetting altId="adc0.an008.p008" configurationId="adc0.an008" isUsedByDriver="true"/>
-      <configSetting altId="adc0.an016.p513" configurationId="adc0.an016" isUsedByDriver="true"/>
-      <configSetting altId="adc0.an017.p805" configurationId="adc0.an017" isUsedByDriver="true"/>
-      <configSetting altId="adc0.an018.p806" configurationId="adc0.an018" isUsedByDriver="true"/>
       <configSetting altId="adc1.an100.p000" configurationId="adc1.an100" isUsedByDriver="true"/>
       <configSetting altId="adc1.an101.p001" configurationId="adc1.an101" isUsedByDriver="true"/>
       <configSetting altId="adc1.an102.p002" configurationId="adc1.an102" isUsedByDriver="true"/>
       <configSetting altId="adc1.an104.p003" configurationId="adc1.an104" isUsedByDriver="true"/>
       <configSetting altId="adc1.an105.p015" configurationId="adc1.an105" isUsedByDriver="true"/>
+      <configSetting altId="adc1.an116.p513" configurationId="adc1.an116" isUsedByDriver="true"/>
+      <configSetting altId="adc1.an117.p805" configurationId="adc1.an117" isUsedByDriver="true"/>
+      <configSetting altId="adc1.an118.p806" configurationId="adc1.an118" isUsedByDriver="true"/>
       <configSetting altId="adc1.an119.p502" configurationId="adc1.an119" isUsedByDriver="true"/>
       <configSetting altId="adc1.an120.p501" configurationId="adc1.an120" isUsedByDriver="true"/>
       <configSetting altId="adc1.an121.p500" configurationId="adc1.an121" isUsedByDriver="true"/>
       <configSetting altId="adc1.an122.p812" configurationId="adc1.an122" isUsedByDriver="true"/>
       <configSetting altId="cgc.extal.p212" configurationId="cgc.extal"/>
-      <configSetting altId="dac120.da0.p014" configurationId="dac120.da0" isUsedByDriver="true"/>
+      <configSetting altId="dac120.da0.p014" configurationId="dac120.da0"/>
       <configSetting altId="gpt12.gtioc12a.p802" configurationId="gpt12.gtioc12a" isUsedByDriver="true"/>
       <configSetting altId="gpt12.gtioc12b.p803" configurationId="gpt12.gtioc12b" isUsedByDriver="true"/>
       <configSetting altId="gpt4.gtioc4a.p610" configurationId="gpt4.gtioc4a" isUsedByDriver="true"/>

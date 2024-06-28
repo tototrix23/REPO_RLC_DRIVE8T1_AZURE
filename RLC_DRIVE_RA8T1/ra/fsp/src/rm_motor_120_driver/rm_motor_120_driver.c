@@ -216,7 +216,7 @@ fsp_err_t RM_MOTOR_120_DRIVER_Open (motor_120_driver_ctrl_t * const p_ctrl, moto
 #else                                  // MOTOR_120_DRIVER_CFG_SUPPORT_SHARED_ADC == 0
     if (p_extended_cfg->p_adc_instance != NULL)
     {
-        adc_status_t status = {.state = ADC_STATE_SCAN_IN_PROGRESS};
+        /*adc_status_t status = {.state = ADC_STATE_SCAN_IN_PROGRESS};
 
         p_extended_cfg->p_adc_instance->p_api->open(p_extended_cfg->p_adc_instance->p_ctrl,
                                                     p_extended_cfg->p_adc_instance->p_cfg);
@@ -230,7 +230,7 @@ fsp_err_t RM_MOTOR_120_DRIVER_Open (motor_120_driver_ctrl_t * const p_ctrl, moto
             p_extended_cfg->p_adc_instance->p_api->scanStatusGet(p_extended_cfg->p_adc_instance->p_ctrl, &status);
         }
 
-        p_extended_cfg->p_adc_instance->p_api->scanStart(p_extended_cfg->p_adc_instance->p_ctrl);
+        p_extended_cfg->p_adc_instance->p_api->scanStart(p_extended_cfg->p_adc_instance->p_ctrl);*/
     }
 #endif
 
@@ -1347,20 +1347,30 @@ fsp_err_t RM_MOTOR_120_DRIVER_CurrentOffsetCalc (motor_120_driver_ctrl_t * const
         uint8_t *ptr_brake = p_instance_ctrl->brake_mode;
         if(*ptr_brake == 1)
         {
-
-                uint32_t *counter = &p_instance_ctrl->brake_counter;
-                if( (*counter & *p_instance_ctrl->brake_mask) == *p_instance_ctrl->brake_mask)
+                if(*p_instance_ctrl->brake_mask != 0)
                 {
-                    RM_MOTOR_120_DRIVER_ExtBrake(p_instance_ctrl);
+                    volatile uint32_t counter = p_instance_ctrl->brake_counter;
+                    volatile uint16_t mask = *p_instance_ctrl->brake_mask;
+                    if( (counter & mask) == mask)
+                    {
+                        RM_MOTOR_120_DRIVER_ExtBrake(p_instance_ctrl);
+                    }
+                    else
+                    {
+                        rm_motor_120_driver_ctrl_stop(p_instance_ctrl);
+                    }
+
+                    p_instance_ctrl->brake_counter++;
+                    if(p_instance_ctrl->brake_counter >= 0x8000)
+                    {
+                        p_instance_ctrl->brake_counter = 0;
+                    }
                 }
                 else
                 {
-                    rm_motor_120_driver_ctrl_stop(p_instance_ctrl);
+                    p_instance_ctrl->brake_counter = 0x00;
+                    RM_MOTOR_120_DRIVER_ExtBrake(p_instance_ctrl);
                 }
-
-                *counter = *counter+1;
-                if(*counter >= 0x8000)
-                    *counter = 0;
        }
     }
 
