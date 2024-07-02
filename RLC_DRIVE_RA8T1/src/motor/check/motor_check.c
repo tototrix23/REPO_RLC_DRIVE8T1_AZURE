@@ -57,13 +57,13 @@ return_t motor_check(bool_t long_vm_cuttof)
     // Ouverture du FSP
     motor_init_fsp();
     motors_instance.motorH->motor_ctrl_instance->p_api->configSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorH);
-    //motors_instance.motorL->motor_ctrl_instance->p_api->configSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorL);
+    motors_instance.motorL->motor_ctrl_instance->p_api->configSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorL);
 
-    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_12V_EN,BSP_IO_LEVEL_HIGH);
+    /*R_IOPORT_PinWrite(&g_ioport_ctrl, IO_12V_EN,BSP_IO_LEVEL_HIGH);
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_EN_12V_HALL1,BSP_IO_LEVEL_HIGH);
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_EN_12V_HALL2,BSP_IO_LEVEL_HIGH);
-    delay_ms(50);
-/*
+    delay_ms(50);*/
+
     delay_ms(50);
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_12V_EN,BSP_IO_LEVEL_HIGH);
     delay_ms(10);
@@ -96,7 +96,7 @@ return_t motor_check(bool_t long_vm_cuttof)
     }
     else
         sys_mot.error_lvl1.bits.vcc_hall_l = FALSE;
-*/
+
     // Configuration du drivers haut
     ret = motor_config_spi_init();
     ret = motor_config_spi(&drv_mot1);
@@ -118,10 +118,10 @@ return_t motor_check(bool_t long_vm_cuttof)
     motor_profil_t *ptr = &motors_instance.profil;
     sequence_result_t sequence_result;
     //motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    //motor_drive_sequence(&ptr->sequences.automatic.poster_enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    motors_instance.motors[0]->motor_ctrl_instance->p_api->run(motors_instance.motors[0]->motor_ctrl_instance->p_ctrl);
-    motors_instance.motors[0]->motor_ctrl_instance->p_api->speedSet(
-                                    motors_instance.motors[0]->motor_ctrl_instance->p_ctrl,
+    //motor_drive_sequence(&ptr->sequences.manual.enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    motors_instance.motors[1]->motor_ctrl_instance->p_api->run(motors_instance.motors[1]->motor_ctrl_instance->p_ctrl);
+    motors_instance.motors[1]->motor_ctrl_instance->p_api->speedSet(
+                                    motors_instance.motors[1]->motor_ctrl_instance->p_ctrl,
                                     500.0f);
     while(1)
     {

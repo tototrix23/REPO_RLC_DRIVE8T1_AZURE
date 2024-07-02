@@ -77,7 +77,7 @@ extern const char firmware[10];
 //------------------------------------------------------------------------
 // REMOTE CONTROL
 //------------------------------------------------------------------------
-#define REMOTECTRL_ACTIVE_LEVEL 0
+#define REMOTECTRL_ACTIVE_LEVEL 1
 
 
 #endif /* CONFIG_COMPILER_CONFIG_H_ */

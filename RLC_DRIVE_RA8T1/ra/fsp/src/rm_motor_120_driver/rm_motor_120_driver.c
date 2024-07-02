@@ -216,7 +216,7 @@ fsp_err_t RM_MOTOR_120_DRIVER_Open (motor_120_driver_ctrl_t * const p_ctrl, moto
 #else                                  // MOTOR_120_DRIVER_CFG_SUPPORT_SHARED_ADC == 0
     if (p_extended_cfg->p_adc_instance != NULL)
     {
-        adc_status_t status = {.state = ADC_STATE_SCAN_IN_PROGRESS};
+        /*adc_status_t status = {.state = ADC_STATE_SCAN_IN_PROGRESS};
 
         p_extended_cfg->p_adc_instance->p_api->open(p_extended_cfg->p_adc_instance->p_ctrl,
                                                     p_extended_cfg->p_adc_instance->p_cfg);
@@ -230,7 +230,7 @@ fsp_err_t RM_MOTOR_120_DRIVER_Open (motor_120_driver_ctrl_t * const p_ctrl, moto
             p_extended_cfg->p_adc_instance->p_api->scanStatusGet(p_extended_cfg->p_adc_instance->p_ctrl, &status);
         }
 
-        p_extended_cfg->p_adc_instance->p_api->scanStart(p_extended_cfg->p_adc_instance->p_ctrl);
+        p_extended_cfg->p_adc_instance->p_api->scanStart(p_extended_cfg->p_adc_instance->p_ctrl);*/
     }
 #endif
 

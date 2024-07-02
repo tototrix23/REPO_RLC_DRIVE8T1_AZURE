@@ -5,7 +5,7 @@
  *      Author: Ch.Leclercq
  */
 #include "remotectrl.h"
-
+#include <motor/drive_mode.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE

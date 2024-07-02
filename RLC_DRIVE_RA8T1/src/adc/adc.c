@@ -86,7 +86,7 @@ const adc_cfg_t g_adc1_custom_cfg =
 return_t adc_init(void)
 {
     return_t ret = X_RET_OK;
-    return ret;
+
     ptr_adc_instance[0] = (adc_instance_t*)&g_adc0;
     ptr_adc_instance[1] = (adc_instance_t*)&g_adc1;
 
@@ -180,7 +180,7 @@ void adc_mot_callback(adc_callback_args_t *p_args)
         adc_inst.instantaneous.vhall2 = (uint16_t)ADC_VHALL2_ADAPT(v_vhall2);
         adc_inst.average.vhall1 = (uint16_t)ADC_VHALL1_ADAPT(adc_hall1);
         adc_inst.average.vhall2 = (uint16_t)ADC_VHALL2_ADAPT(adc_hall2);
-        rm_motor_120_driver_cyclic(p_args);
+
     }
     else if(p_instance == &g_motor_120_driver1)
     {
@@ -212,7 +212,7 @@ void adc_mot_callback(adc_callback_args_t *p_args)
         end=0;
 
     }
-
+    rm_motor_120_driver_cyclic(p_args);
 
 
 }

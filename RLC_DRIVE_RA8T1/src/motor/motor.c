@@ -221,15 +221,15 @@ void motor_init_fsp(void)
 {
     /* Motor application (120_degree) */
     g_motor_120_degree0.p_api->open(g_motor_120_degree0.p_ctrl, g_motor_120_degree0.p_cfg);
-    //g_motor_120_degree1.p_api->open(g_motor_120_degree1.p_ctrl, g_motor_120_degree1.p_cfg);
+    g_motor_120_degree1.p_api->open(g_motor_120_degree1.p_ctrl, g_motor_120_degree1.p_cfg);
 
     /* POEG */
     R_POEG_Open(g_poeg0.p_ctrl, g_poeg0.p_cfg);
 
     R_GPT_THREE_PHASE_Stop(g_three_phase0.p_ctrl);
-    //R_GPT_THREE_PHASE_Stop(g_three_phase1.p_ctrl);
+    R_GPT_THREE_PHASE_Stop(g_three_phase1.p_ctrl);
     R_GPT_THREE_PHASE_Reset(g_three_phase0.p_ctrl);
-    //R_GPT_THREE_PHASE_Reset(g_three_phase1.p_ctrl);
+    R_GPT_THREE_PHASE_Reset(g_three_phase1.p_ctrl);
     gpt_periodset(g_timer0.p_ctrl,g_timer0.p_cfg->period_counts,(uint32_t)(g_timer0.p_cfg->period_counts));
     gpt_periodset(g_timer1.p_ctrl,g_timer1.p_cfg->period_counts,(uint32_t)(g_timer1.p_cfg->period_counts));
     gpt_periodset(g_timer2.p_ctrl,g_timer2.p_cfg->period_counts,(uint32_t)(g_timer2.p_cfg->period_counts));
@@ -237,7 +237,7 @@ void motor_init_fsp(void)
     gpt_periodset(g_timer6.p_ctrl,g_timer6.p_cfg->period_counts,(uint32_t)((float)g_timer6.p_cfg->period_counts*1.5f));
     gpt_periodset(g_timer7.p_ctrl,g_timer7.p_cfg->period_counts,(uint32_t)((float)g_timer7.p_cfg->period_counts*1.5f));
     R_GPT_THREE_PHASE_Start(g_three_phase0.p_ctrl);
-    //R_GPT_THREE_PHASE_Start(g_three_phase1.p_ctrl);
+    R_GPT_THREE_PHASE_Start(g_three_phase1.p_ctrl);
 
     /* ELC */
     g_elc.p_api->open(g_elc.p_ctrl, g_elc.p_cfg);
@@ -262,7 +262,7 @@ void motor_init_fsp(void)
 
 
 
-   /* g_user_motor1_cfg = *(g_motor_120_degree1_ctrl.p_cfg);
+    g_user_motor1_cfg = *(g_motor_120_degree1_ctrl.p_cfg);
     g_user_motor1_120_degree_extended_cfg = *(motor_120_degree_extended_cfg_t *)g_user_motor1_cfg.p_extend;
     g_user_motor1_cfg.p_extend = &g_user_motor1_120_degree_extended_cfg;
     g_motor_120_degree1_ctrl.p_cfg = &g_user_motor1_cfg;
@@ -274,17 +274,17 @@ void motor_init_fsp(void)
 
     g_user_motor1_120_driver_cfg = *(g_motor_120_driver1_ctrl.p_cfg);
     g_user_motor1_120_driver_extended_cfg = *(motor_120_driver_extended_cfg_t *)g_user_motor1_120_driver_cfg.p_extend;
-    g_user_motor1_120_driver_cfg.p_extend = &g_user_motor1_120_driver_extended_cfg;*/
+    g_user_motor1_120_driver_cfg.p_extend = &g_user_motor1_120_driver_extended_cfg;
 
 
     g_motor_120_degree0.p_api->reset(g_motor_120_degree0.p_ctrl);
-    //g_motor_120_degree1.p_api->reset(g_motor_120_degree1.p_ctrl);
+    g_motor_120_degree1.p_api->reset(g_motor_120_degree1.p_ctrl);
 
 
     motor0.motor_ctrl_instance->p_api->statusGet(motor0.motor_ctrl_instance->p_ctrl,&motor0.status);
-    //motor1.motor_ctrl_instance->p_api->statusGet(motor1.motor_ctrl_instance->p_ctrl,&motor1.status);
+    motor1.motor_ctrl_instance->p_api->statusGet(motor1.motor_ctrl_instance->p_ctrl,&motor1.status);
     motor0.motor_ctrl_instance->p_api->errorCheck(motor0.motor_ctrl_instance->p_ctrl,&motor0.error);
-    //motor1.motor_ctrl_instance->p_api->errorCheck(motor1.motor_ctrl_instance->p_ctrl,&motor1.error);
+    motor1.motor_ctrl_instance->p_api->errorCheck(motor1.motor_ctrl_instance->p_ctrl,&motor1.error);
 }
 
 void motor_log_speed(st_motor_t *mot)
