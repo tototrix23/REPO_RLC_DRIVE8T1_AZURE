@@ -62,17 +62,22 @@ extern const char firmware[10];
 // Définition de l'échantillonage
 #define ADC_VIN_AVERAGE         32.0f
 #define ADC_VBATT_AVERAGE       32.0f
-#define ADC_IIN_AVERAGE         128.0f
+#define ADC_IIN_AVERAGE         1000.0f//128.0f
 #define ADC_VHALL1_AVERAGE      32.0f
 #define ADC_VHALL2_AVERAGE      32.0f
 #define ADC_IMOT_AVERAGE        1024.0f
 
 // Adaptation des niveau en fonction des ponts diviseurs
-#define ADC_VIN_ADAPT(f)        (f*10.1f)
-#define ADC_VBATT_ADAPT(f)      (f*10.1f)
-#define ADC_IIN_ADAPT(f)        (f*2.966841187f)
-#define ADC_VHALL1_ADAPT(f)     (f*4.3222f)
-#define ADC_VHALL2_ADAPT(f)     (f*4.3222f)
+#define ADC_VM_ADAPT(f)            (uint32_t)((float)f*8.137207031f) //8,137207031
+#define ADC_VIN_ADAPT(f)           (uint32_t)((float)f*8.137207031f)
+#define ADC_VBATT_ADAPT(f)         (uint32_t)((float)f*8.137207031f)
+#define ADC_IIN_ADAPT(f)           (uint32_t)((float)f*2.685546875f)
+#define ADC_VHALL1_ADAPT(f)        (uint32_t)((float)f*3.482288855f)
+#define ADC_VHALL2_ADAPT(f)        (uint32_t)((float)f*3.482288855f)
+#define ADC_IMOT_ADAPT_GAIN_X5(f)  (uint32_t)((float)f*3.22265625f)
+#define ADC_IMOT_ADAPT_GAIN_X10(f) (uint32_t)((float)f*1.611328125f)
+#define ADC_IMOT_ADAPT_GAIN_X20(f) (uint32_t)((float)f*0.805664063f)
+#define ADC_IMOT_ADAPT_GAIN_X40(f) (uint32_t)((float)f*0.402832031f)
 
 //------------------------------------------------------------------------
 // REMOTE CONTROL

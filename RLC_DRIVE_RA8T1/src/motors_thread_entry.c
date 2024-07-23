@@ -11,6 +11,7 @@
 #include <system_status/system_status.h>
 #include <motor/config_spi/config_spi.h>
 #include <motor/check/motor_check.h>
+#include <motor/emergency/emergency.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -33,6 +34,8 @@ void g_poe_overcurrent(poeg_callback_args_t *p_args)
 
         // Flag indiquant le défaut
         flag_overcurrent_vm = TRUE;
+
+        motor_emergency_set_overcurrent();
     }
 }
 

@@ -608,7 +608,7 @@ FSP Configuration
       
       Instance "120-degree conduction control with Hall sensors (rm_motor_120_control_hall)"
         General: Name: g_motor_120_control_hall0
-        General: Conduction type: Complementary First 60 degree PWM
+        General: Conduction type: First 60 degree PWM
         Hall sensor port U: BSP_IO_PORT_03_PIN_01
         Hall sensor port V: BSP_IO_PORT_03_PIN_00
         Hall sensor port W: BSP_IO_PORT_03_PIN_02
@@ -1396,5 +1396,10 @@ FSP Configuration
   Object "g_exchanged_data_mutex Mutex"
     Name: Exchanged Data Mutex
     Symbol: g_exchanged_data_mutex
+    Priority inheritance: Enabled
+    
+  Object "g_emergency_mutex Mutex"
+    Name: Emergency Mutex
+    Symbol: g_emergency_mutex
     Priority inheritance: Enabled
     

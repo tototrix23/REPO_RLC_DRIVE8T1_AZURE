@@ -394,7 +394,9 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
 
        if(init_phase == TRUE)
        {
-          uint32_t iin =  adc_inst.instantaneous.iin;
+           st_adc_t adc_snapshot;
+           adc_get_snapshot(&adc_snapshot);
+          uint32_t iin =  adc_snapshot.iin;
           h_time_is_elapsed_ms(&ts, 150, &ts_elasped);
           if(iin > ptr->current_stop && ts_elasped)
           {

@@ -7,24 +7,92 @@
 #include <motors_thread.h>
 #include <config.h>
 #include <_core/c_protected/c_protected.h>
+#include <_hal/h_time/h_time.h>
 #include "adc.h"
 #include <motor/motor.h>
-
+#include <motor/emergency/emergency.h>
+#include <motor/config_spi/config_spi.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
 #define LOG_MODULE    "adc"
 
+
+typedef struct adc_accumulator_t
+{
+    uint32_t accumulator;
+   uint32_t counter;
+}adc_accumulator_t;
+
+
+typedef enum e_current_phase
+{
+    motor1_iu,
+    motor1_iw,
+    motor2_iu,
+    motor2_iw
+}current_phase_t;
+
+typedef  struct adc_imotor_internal_t
+{
+   uint32_t accumulator;
+   uint32_t counter;
+   uint32_t accumulator2;
+   uint32_t counter2;
+   uint32_t accumulator_stopped;
+   uint32_t counter_stopped;
+   uint32_t counter_timeout;
+   bool_t detect;
+   bool_t motor_stopped;
+}adc_imotor_internal_t;
+
+typedef  struct adc_imotor_phase_t
+{
+    uint32_t calibration_accumulator;
+    uint16_t calibration_adc;
+    motor_120_driver_phase_pattern_t pattern1;
+    motor_120_driver_phase_pattern_t pattern2;
+    adc_imotor_internal_t internal;
+    uint32_t *ptr_result;
+}adc_imotor_phase_t;
+
+
+typedef  struct adc_imotor_t
+{
+    adc_imotor_phase_t iu;
+    adc_imotor_phase_t iw;
+}adc_imotor_t;
+
+st_adc_raw_t adc_raw_inst;
 st_adc_t adc_inst;
 
 bool_t adc_calibration_finished = FALSE;
 bool_t adc_int=FALSE;
-float adc_iin=0.0;
-float adc_vin=0.0;
-float adc_hall1=0.0;
-float adc_hall2=0.0;
-float adc_vbatt=0.0;
+volatile float adc_iin=0.0;
+volatile float adc_vin=0.0;
+volatile float adc_hall1=0.0;
+volatile float adc_hall2=0.0;
+volatile float adc_vbatt=0.0;
 uint16_t adc_uiin;
+
+static bool_t calibration_mode = FALSE;
+static uint32_t calibration_count = 0;
+
+
+volatile adc_accumulator_t accumulator_iin;
+volatile adc_accumulator_t accumulator_vin;
+volatile adc_accumulator_t accumulator_vbatt;
+volatile adc_accumulator_t accumulator_vhall_common;
+volatile adc_accumulator_t accumulator_vhall1;
+volatile adc_accumulator_t accumulator_vhall2;
+volatile adc_accumulator_t accumulator_vm;
+
+volatile adc_imotor_t motor1_currents;
+volatile adc_imotor_t motor2_currents;
+
+
+bool_t process_current(adc_imotor_phase_t* ptr,motor_120_driver_instance_ctrl_t* drv_inst,uint16_t adc_value);
+
 
 void adc_mot_callback(adc_callback_args_t *p_args);
 adc_instance_t *ptr_adc_instance[2];
@@ -90,8 +158,6 @@ return_t adc_init(void)
     ptr_adc_instance[0] = (adc_instance_t*)&g_adc0;
     ptr_adc_instance[1] = (adc_instance_t*)&g_adc1;
 
-
-
     memset(&adc_inst,0x00,sizeof(st_adc_t));
     for(uint8_t i=0;i<2;i++)
     {
@@ -109,6 +175,25 @@ return_t adc_init(void)
         }
         R_ADC_ScanStart(ptr_adc_instance[i]->p_ctrl);
     }
+
+    memset(&accumulator_iin,0x00,sizeof(adc_accumulator_t));
+    memset(&accumulator_vin,0x00,sizeof(adc_accumulator_t));
+    memset(&accumulator_vbatt,0x00,sizeof(adc_accumulator_t));
+    memset(&accumulator_vhall_common,0x00,sizeof(adc_accumulator_t));
+    memset(&accumulator_vhall1,0x00,sizeof(adc_accumulator_t));
+    memset(&accumulator_vhall2,0x00,sizeof(adc_accumulator_t));
+    memset(&accumulator_vm,0x00,sizeof(adc_accumulator_t));
+
+
+
+    memset(&motor1_currents,0x00,sizeof(adc_imotor_t));
+    memset(&motor2_currents,0x00,sizeof(adc_imotor_t));
+    motor1_currents.iu.pattern1=MOTOR_120_DRIVER_PHASE_PATTERN_UP_PWM_WN_ON;
+    motor1_currents.iu.pattern2=MOTOR_120_DRIVER_PHASE_PATTERN_WP_PWM_UN_ON;
+    motor1_currents.iu.ptr_result = &adc_raw_inst.average.mot1_iu_uint;
+    motor1_currents.iw.pattern1=MOTOR_120_DRIVER_PHASE_PATTERN_UP_PWM_WN_ON;
+    motor1_currents.iw.pattern2=MOTOR_120_DRIVER_PHASE_PATTERN_WP_PWM_UN_ON;
+    motor1_currents.iw.ptr_result = &adc_raw_inst.average.mot1_iw_uint;
     return ret;
 
 }
@@ -152,34 +237,268 @@ return_t adc_capture(void)
     return ret;
 }
 
+return_t adc_set_calibration_mode(bool_t active)
+{
+    if(calibration_mode == FALSE && active == TRUE)
+    {
+        calibration_count = 0;
+        motor1_currents.iu.calibration_accumulator=0;
+        motor1_currents.iw.calibration_accumulator=0;
+    }
+    else if(calibration_mode == TRUE && active == FALSE)
+    {
+        motor1_currents.iu.calibration_accumulator= motor1_currents.iu.calibration_accumulator/calibration_count;
+        motor1_currents.iu.calibration_adc = (uint16_t)motor1_currents.iu.calibration_accumulator;
+        motor1_currents.iw.calibration_accumulator= motor1_currents.iw.calibration_accumulator/calibration_count;
+        motor1_currents.iw.calibration_adc = (uint16_t)motor1_currents.iw.calibration_accumulator;
+    }
+    calibration_mode = active;
+    return X_RET_OK;
+}
+
+return_t adc_get_snapshot(st_adc_t *res)
+{
+    return_t ret = X_RET_OK;
+    st_adc_raw_t obj;
+    c_protected_get_object(&adc_raw_inst, &obj, sizeof(st_adc_raw_t));
+    memset(res,0x00,sizeof(st_adc_t));
+    res->vhall1 = (uint16_t)ADC_VHALL1_ADAPT(obj.average.vhall1_uint);
+    res->vhall2 = (uint16_t)ADC_VHALL2_ADAPT(obj.average.vhall2_uint);
+    res->vin = (uint16_t)ADC_VIN_ADAPT(obj.average.vin_uint);
+    res->vm = (uint16_t)ADC_VM_ADAPT(obj.average.vm_uint);
+    res->iin = (uint16_t)ADC_IIN_ADAPT(obj.average.iin_uint);
+    res->vbatt = (uint16_t)ADC_VBATT_ADAPT(obj.average.vbatt_uint);
+
+
+    uint8_t gain;
+    ret = h_drv8323s_get_gain(&drv_mot1,FALSE,&gain);
+    if(ret != X_RET_OK)
+    {
+        return ret;
+    }
+    else
+    {
+        if(gain == 5)
+        {
+            res->mot1_iu = (uint16_t)ADC_IMOT_ADAPT_GAIN_X5(obj.average.mot1_iu_uint);
+            res->mot1_iw = (uint16_t)ADC_IMOT_ADAPT_GAIN_X5(obj.average.mot1_iw_uint);
+        }
+        else if(gain == 10)
+        {
+            res->mot1_iu = (uint16_t)ADC_IMOT_ADAPT_GAIN_X10(obj.average.mot1_iu_uint);
+            res->mot1_iw = (uint16_t)ADC_IMOT_ADAPT_GAIN_X10(obj.average.mot1_iw_uint);
+        }
+        else if(gain == 20)
+        {
+            res->mot1_iu = (uint16_t)ADC_IMOT_ADAPT_GAIN_X20(obj.average.mot1_iu_uint);
+            res->mot1_iw = (uint16_t)ADC_IMOT_ADAPT_GAIN_X20(obj.average.mot1_iw_uint);
+        }
+        else if(gain == 40)
+        {
+            res->mot1_iu = (uint16_t)ADC_IMOT_ADAPT_GAIN_X40(obj.average.mot1_iu_uint);
+            res->mot1_iw = (uint16_t)ADC_IMOT_ADAPT_GAIN_X40(obj.average.mot1_iw_uint);
+        }
+    }
+
+    ret = h_drv8323s_get_gain(&drv_mot2,FALSE,&gain);
+    if(ret != X_RET_OK)
+    {
+        return ret;
+    }
+    else
+    {
+        if(gain == 5)
+        {
+            res->mot2_iu = (uint16_t)ADC_IMOT_ADAPT_GAIN_X5(obj.average.mot2_iu_uint);
+            res->mot2_iw = (uint16_t)ADC_IMOT_ADAPT_GAIN_X5(obj.average.mot2_iw_uint);
+        }
+        else if(gain == 10)
+        {
+            res->mot2_iu = (uint16_t)ADC_IMOT_ADAPT_GAIN_X10(obj.average.mot2_iu_uint);
+            res->mot2_iw = (uint16_t)ADC_IMOT_ADAPT_GAIN_X10(obj.average.mot2_iw_uint);
+        }
+        else if(gain == 20)
+        {
+            res->mot2_iu = (uint16_t)ADC_IMOT_ADAPT_GAIN_X20(obj.average.mot2_iu_uint);
+            res->mot2_iw = (uint16_t)ADC_IMOT_ADAPT_GAIN_X20(obj.average.mot2_iw_uint);
+        }
+        else if(gain == 40)
+        {
+            res->mot2_iu = (uint16_t)ADC_IMOT_ADAPT_GAIN_X40(obj.average.mot2_iu_uint);
+            res->mot2_iw = (uint16_t)ADC_IMOT_ADAPT_GAIN_X40(obj.average.mot2_iw_uint);
+        }
+    }
+    return ret;
+}
+
+return_t adc_get_snapshot_raw(st_adc_raw_t *res)
+{
+    st_adc_raw_t obj;
+    c_protected_get_object(&adc_raw_inst, res, sizeof(st_adc_raw_t));
+    return X_RET_OK;
+}
+
+bool_t process_current(adc_imotor_phase_t* ptr,motor_120_driver_instance_ctrl_t* drv_inst,uint16_t adc_value)
+{
+    volatile uint16_t adc_val = 0;
+
+    if(drv_inst->pattern == ptr->pattern1 ||
+       drv_inst->pattern == ptr->pattern2)
+    {
+        R_IOPORT_PinWrite(&g_ioport_ctrl, IO_LED_ERROR,BSP_IO_LEVEL_HIGH );
+        ptr->internal.detect = 1;
+        ptr->internal.counter_timeout = 0;
+        if(adc_value> ptr->calibration_adc)
+            adc_val = adc_value-ptr->calibration_adc;
+        else
+            adc_val = ptr->calibration_adc - adc_value;
+
+
+        if(ptr->internal.counter < 2000)
+        {
+            ptr->internal.accumulator += adc_val;
+            ptr->internal.counter++;
+            ptr->internal.motor_stopped = FALSE;
+            ptr->internal.counter_stopped = 0;
+        }
+        else
+        {
+            ptr->internal.counter = 0;
+            ptr->internal.accumulator = 0;
+            ptr->internal.counter2 = 0;
+            ptr->internal.accumulator2 = 0;
+            ptr->internal.motor_stopped = TRUE;
+            ptr->internal.detect = FALSE;
+            if(ptr->internal.counter_stopped < 1000)
+            {
+                ptr->internal.accumulator_stopped+=adc_val;
+                ptr->internal.counter_stopped++;
+            }
+            else
+            {
+                ptr->internal.accumulator_stopped = ptr->internal.accumulator_stopped/ptr->internal.counter_stopped;
+                ptr->internal.accumulator_stopped = ptr->internal.accumulator_stopped*drv_inst->duty_uint;
+                ptr->internal.accumulator_stopped = ptr->internal.accumulator_stopped/drv_inst->u4_carrier_base;
+                *ptr->ptr_result = ptr->internal.accumulator_stopped;
+                ptr->internal.accumulator_stopped = 0;
+                ptr->internal.counter_stopped = 0;
+            }
+        }
+    }
+    else
+    {
+        R_IOPORT_PinWrite(&g_ioport_ctrl, IO_LED_ERROR,BSP_IO_LEVEL_LOW);
+        if(ptr->internal.detect == 1)
+        {
+            ptr->internal.accumulator = ptr->internal.accumulator/ptr->internal.counter;
+            ptr->internal.accumulator = ptr->internal.accumulator * drv_inst->duty_uint;
+            ptr->internal.accumulator = ptr->internal.accumulator/drv_inst->u4_carrier_base;
+
+            ptr->internal.accumulator2+=ptr->internal.accumulator;
+            ptr->internal.counter2++;
+            if(ptr->internal.counter2 >= 8)
+            {
+                ptr->internal.accumulator2 = ptr->internal.accumulator2/ptr->internal.counter2;
+                *ptr->ptr_result = ptr->internal.accumulator2;
+                ptr->internal.counter2 = 0;
+                ptr->internal.accumulator2 = 0;
+            }
+            ptr->internal.detect = 0;
+            ptr->internal.accumulator = 0;
+            ptr->internal.counter = 0;
+        }
+        else
+        {
+            ptr->internal.counter_timeout++;
+            if(ptr->internal.counter_timeout >= 2000)
+            {
+                *ptr->ptr_result = 0;
+            }
+        }
+    }
+
+
+    return ptr->internal.motor_stopped;
+}
+
 void adc_mot_callback(adc_callback_args_t *p_args)
 {
     motor_120_driver_instance_t      * p_instance      = (motor_120_driver_instance_t *) p_args->p_context;
     motor_120_driver_instance_ctrl_t * p_instance_ctrl = (motor_120_driver_instance_ctrl_t *) p_instance->p_ctrl;
     motor_120_driver_callback_args_t   temp_args_t;
 
-
     uint16_t data[5];
+
+    bsp_io_level_t mot1_fault;
+    bsp_io_level_t mot2_fault;
+    R_IOPORT_PinRead(&g_ioport_ctrl, IO_MOT1_FAULT,&mot1_fault );
+    R_IOPORT_PinRead(&g_ioport_ctrl, IO_MOT2_FAULT,&mot2_fault );
+    if(mot1_fault == 0)
+        motor_emergency_set_motor1_fault();
+    if(mot2_fault == 0)
+        motor_emergency_set_motor2_fault();
 
 
     if(p_instance == &g_motor_120_driver0)
     {
+        //R_IOPORT_PinWrite(&g_ioport_ctrl, IO_LED_ERROR,BSP_IO_LEVEL_HIGH );
+
+
+
+
+
         R_ADC_Read(&g_adc0_ctrl,8,&data[0]);
         R_ADC_Read(&g_adc0_ctrl,4,&data[1]);
+        R_ADC_Read(&g_adc0_ctrl,2,&data[2]);
+        R_ADC_Read(&g_adc0_ctrl,1,&data[3]);
+        R_ADC_Read(&g_adc0_ctrl,0,&data[4]);
+        if(calibration_mode == TRUE && calibration_count<2000)
+        {
+            motor1_currents.iu.calibration_accumulator += data[2];
+            motor1_currents.iw.calibration_accumulator += data[3];
+            calibration_count++;
+        }
 
 
-        volatile float v_vhall1 = (float)(((float)data[0]*3300.0f)/4096.0f);
-        adc_hall1 = (adc_hall1*(ADC_VHALL1_AVERAGE-1.0f))/(ADC_VHALL1_AVERAGE);
-        adc_hall1 = adc_hall1+(v_vhall1/ADC_VHALL1_AVERAGE);
 
-        volatile float v_vhall2 = (float)(((float)data[1]*3300.0f)/4096.0f);
-        adc_hall2 = (adc_hall2*(ADC_VHALL2_AVERAGE-1.0f))/(ADC_VHALL2_AVERAGE);
-        adc_hall2 = adc_hall2+(v_vhall2/ADC_VHALL2_AVERAGE);
+        adc_raw_inst.instantaneous.vm = ADC_VM_ADAPT(data[4]);
+        accumulator_vm.accumulator+=data[4];
+        accumulator_vm.counter++;
+        if(accumulator_vm.counter>=1000)
+        {
+            adc_raw_inst.average.vhall1_uint = accumulator_vm.accumulator/accumulator_vm.counter;
+            accumulator_vm.accumulator=0;
+            accumulator_vm.counter = 0;
+        }
 
-        adc_inst.instantaneous.vhall1 = (uint16_t)ADC_VHALL1_ADAPT(v_vhall1);
-        adc_inst.instantaneous.vhall2 = (uint16_t)ADC_VHALL2_ADAPT(v_vhall2);
-        adc_inst.average.vhall1 = (uint16_t)ADC_VHALL1_ADAPT(adc_hall1);
-        adc_inst.average.vhall2 = (uint16_t)ADC_VHALL2_ADAPT(adc_hall2);
+        adc_raw_inst.instantaneous.vhall1 = (float)ADC_VHALL1_ADAPT(data[0]);
+        accumulator_vhall1.accumulator+=data[0];
+        accumulator_vhall1.counter++;
+        if(accumulator_vhall1.counter>=1000)
+        {
+            adc_raw_inst.average.vhall1_uint = accumulator_vhall1.accumulator/accumulator_vhall1.counter;
+            accumulator_vhall1.accumulator=0;
+            accumulator_vhall1.counter = 0;
+        }
+
+        adc_raw_inst.instantaneous.vhall2 = (float)ADC_VHALL1_ADAPT(data[1]);
+        accumulator_vhall2.accumulator+=data[1];
+        accumulator_vhall2.counter++;
+        if(accumulator_vhall2.counter>=1000)
+        {
+            adc_raw_inst.average.vhall2_uint = accumulator_vhall2.accumulator/accumulator_vhall2.counter;
+            accumulator_vhall2.accumulator=0;
+            accumulator_vhall2.counter = 0;
+        }
+
+        bool_t stopped = process_current(&motor1_currents.iu,p_instance_ctrl,data[2]);
+        if(stopped)
+            *motor1_currents.iw.ptr_result = 0;
+        stopped = process_current(&motor1_currents.iw,p_instance_ctrl,data[3]);
+        if(stopped)
+            *motor1_currents.iu.ptr_result = 0;
+
+        //R_IOPORT_PinWrite(&g_ioport_ctrl, IO_LED_ERROR,BSP_IO_LEVEL_LOW);
 
     }
     else if(p_instance == &g_motor_120_driver1)
@@ -188,123 +507,36 @@ void adc_mot_callback(adc_callback_args_t *p_args)
         R_ADC_Read(&g_adc1_ctrl,17,&data[1]);
         R_ADC_Read(&g_adc1_ctrl,18,&data[2]);
 
-        volatile float v_vin = (((float)data[1]*3300.0f)/4096.0f);
-        adc_vin = (adc_vin*(ADC_VIN_AVERAGE-1.0f))/(ADC_VIN_AVERAGE);
-        adc_vin = adc_vin+(v_vin/ADC_VIN_AVERAGE);
 
-        volatile float v_vbatt = (float)(((float)data[0]*3300.0f)/4096.0f);
-        adc_vbatt = (adc_vbatt*(ADC_VBATT_AVERAGE-1.0f))/(ADC_VBATT_AVERAGE);
-        adc_vbatt = adc_vbatt+(v_vbatt/ADC_VBATT_AVERAGE);
+        adc_raw_inst.instantaneous.vin = (float)ADC_VIN_ADAPT(data[1]);
+        accumulator_vin.accumulator+=data[1];
+        accumulator_vin.counter++;
+        if(accumulator_vin.counter>=1000)
+        {
+            adc_raw_inst.average.vin_uint = accumulator_vin.accumulator/accumulator_vin.counter;
+            accumulator_vin.accumulator=0;
+            accumulator_vin.counter = 0;
+        }
 
-        volatile float v_iin = (float)(((float)data[2]*3300.0f)/4096.0f);
-        adc_iin = (adc_iin*(ADC_IIN_AVERAGE-1.0f))/(ADC_IIN_AVERAGE);
-        adc_iin = adc_iin+(v_iin/ADC_IIN_AVERAGE);
+        adc_raw_inst.instantaneous.vbatt = (float)ADC_VBATT_ADAPT(data[0]);
+        accumulator_vbatt.accumulator+=data[0];
+        accumulator_vbatt.counter++;
+        if(accumulator_vbatt.counter>=1000)
+        {
+            adc_raw_inst.average.vbatt_uint = accumulator_vbatt.accumulator/accumulator_vbatt.counter;
+            accumulator_vbatt.accumulator=0;
+            accumulator_vbatt.counter = 0;
+        }
 
-
-        adc_inst.instantaneous.vin = (uint16_t)ADC_VIN_ADAPT(v_vin);
-        adc_inst.instantaneous.iin = (uint16_t)ADC_IIN_ADAPT(v_iin);
-        adc_inst.instantaneous.vbatt = (uint16_t)ADC_VBATT_ADAPT(v_vbatt);
-        adc_inst.average.vin = (uint16_t)ADC_VIN_ADAPT(adc_vin);
-        adc_inst.average.iin = (uint16_t)ADC_IIN_ADAPT(adc_iin);
-        adc_inst.average.vbatt = (uint16_t)ADC_VBATT_ADAPT(adc_vbatt);
-
-        volatile uint8_t end=1+adc_iin;
-        end=0;
-
+        adc_raw_inst.instantaneous.iin = (float)ADC_IIN_ADAPT(data[2]);
+        accumulator_iin.accumulator+=data[2];
+        accumulator_iin.counter++;
+        if(accumulator_iin.counter>=10000)
+        {
+            adc_raw_inst.average.iin_uint = accumulator_iin.accumulator/accumulator_iin.counter;
+            accumulator_iin.accumulator=0;
+            accumulator_iin.counter = 0;
+        }
     }
     rm_motor_120_driver_cyclic(p_args);
-
-
 }
-
-
-
-/*void adc_interrupt(adc_callback_args_t *p_args)
-{
-    if (p_args->event == ADC_EVENT_SCAN_COMPLETE)
-    {
-        if (p_args->group_mask == ADC_GROUP_MASK_0)
-        {
-            p_args->p_context = motors_instance.motorH->motor_driver_instance;
-            rm_motor_120_driver_cyclic(p_args);
-
-            motor_120_driver_instance_ctrl_t* driverH_ctrl = (motor_120_driver_instance_ctrl_t*)motors_instance.motorH->motor_driver_instance->p_ctrl;
-            adc_inst.motorH.iu_ad = (adc_inst.motorH.iu_ad*(ADC_IMOT_AVERAGE-1.0f))/(ADC_IMOT_AVERAGE);
-            adc_inst.motorH.iu_ad = adc_inst.motorH.iu_ad + (driverH_ctrl->f_iu_ad/ADC_IMOT_AVERAGE);
-            adc_inst.motorH.iw_ad = (adc_inst.motorH.iw_ad*(ADC_IMOT_AVERAGE-1.0f))/(ADC_IMOT_AVERAGE);
-            adc_inst.motorH.iw_ad = adc_inst.motorH.iw_ad + (driverH_ctrl->f_iw_ad/ADC_IMOT_AVERAGE);
-
-
-
-        }
-        if (p_args->group_mask == ADC_GROUP_MASK_2)
-        {
-            p_args->p_context = motors_instance.motorL->motor_driver_instance;
-            rm_motor_120_driver_cyclic(p_args);
-
-            motor_120_driver_instance_ctrl_t* driverL_ctrl = (motor_120_driver_instance_ctrl_t*)motors_instance.motorL->motor_driver_instance->p_ctrl;
-            adc_inst.motorL.iu_ad = (adc_inst.motorL.iu_ad*(ADC_IMOT_AVERAGE-1.0f))/(ADC_IMOT_AVERAGE);
-            adc_inst.motorL.iu_ad = adc_inst.motorL.iu_ad + (driverL_ctrl->f_iu_ad/ADC_IMOT_AVERAGE);
-            adc_inst.motorL.iw_ad = (adc_inst.motorL.iw_ad*(ADC_IMOT_AVERAGE-1.0f))/(ADC_IMOT_AVERAGE);
-            adc_inst.motorL.iw_ad = adc_inst.motorL.iw_ad + (driverL_ctrl->f_iw_ad/ADC_IMOT_AVERAGE);
-
-        }
-        if (p_args->group_mask == ADC_GROUP_MASK_8)
-        {
-
-            uint16_t data[5] = {0};
-            R_ADC_B_Read(&g_adc_external_ctrl, ADC_CHANNEL_VIN,&data[0]);
-            R_ADC_B_Read(&g_adc_external_ctrl, ADC_CHANNEL_VBATT,&data[1]);
-            R_ADC_B_Read(&g_adc_external_ctrl, ADC_CHANNEL_IIN,&data[2]);
-            R_ADC_B_Read(&g_adc_external_ctrl, ADC_CHANNEL_VHALL1,&data[3]);
-            R_ADC_B_Read(&g_adc_external_ctrl, ADC_CHANNEL_VHALL2,&data[4]);
-
-
-            volatile float v_vin = (((float)data[0]*3300.0f)/4096.0f);
-            adc_vin = (adc_vin*(ADC_VIN_AVERAGE-1.0f))/(ADC_VIN_AVERAGE);
-            adc_vin = adc_vin+(v_vin/ADC_VIN_AVERAGE);
-
-            volatile float v_vbatt = (float)(((float)data[1]*3300.0f)/4096.0f);
-            adc_vbatt = (adc_vbatt*(ADC_VBATT_AVERAGE-1.0f))/(ADC_VBATT_AVERAGE);
-            adc_vbatt = adc_vbatt+(v_vbatt/ADC_VBATT_AVERAGE);
-
-            volatile float v_iin = (float)(((float)data[2]*3300.0f)/4096.0f);
-            adc_iin = (adc_iin*(ADC_IIN_AVERAGE-1.0f))/(ADC_IIN_AVERAGE);
-            adc_iin = adc_iin+(v_iin/ADC_IIN_AVERAGE);
-
-            volatile float v_vhall1 = (float)(((float)data[3]*3300.0f)/4096.0f);
-            adc_hall1 = (adc_hall1*(ADC_VHALL1_AVERAGE-1.0f))/(ADC_VHALL1_AVERAGE);
-            adc_hall1 = adc_hall1+(v_vhall1/ADC_VHALL1_AVERAGE);
-
-            volatile float v_vhall2 = (float)(((float)data[4]*3300.0f)/4096.0f);
-            adc_hall2 = (adc_hall2*(ADC_VHALL2_AVERAGE-1.0f))/(ADC_VHALL2_AVERAGE);
-            adc_hall2 = adc_hall2+(v_vhall2/ADC_VHALL2_AVERAGE);
-
-
-            adc_inst.instantaneous.vin = (uint16_t)ADC_VIN_ADAPT(v_vin);
-            adc_inst.instantaneous.iin = (uint16_t)ADC_IIN_ADAPT(v_iin);
-            adc_inst.instantaneous.vbatt = (uint16_t)ADC_VBATT_ADAPT(v_vbatt);
-            adc_inst.instantaneous.vhall1 = (uint16_t)ADC_VHALL1_ADAPT(v_vhall1);
-            adc_inst.instantaneous.vhall2 = (uint16_t)ADC_VHALL2_ADAPT(v_vhall2);
-            adc_inst.average.vin = (uint16_t)ADC_VIN_ADAPT(adc_vin);
-            adc_inst.average.iin = (uint16_t)ADC_IIN_ADAPT(adc_iin);
-            adc_inst.average.vbatt = (uint16_t)ADC_VBATT_ADAPT(adc_vbatt);
-            adc_inst.average.vhall1 = (uint16_t)ADC_VHALL1_ADAPT(adc_hall1);
-            adc_inst.average.vhall2 = (uint16_t)ADC_VHALL2_ADAPT(adc_hall2);
-
-
-            //R_IOPORT_PinWrite(&g_ioport_ctrl, LED,BSP_IO_LEVEL_LOW );
-
-        }
-    }
-    else if(p_args->event == ADC_EVENT_CALIBRATION_COMPLETE || p_args->event == ADC_EVENT_CALIBRATION_REQUEST)
-    {
-        if(p_args->event == ADC_EVENT_CALIBRATION_COMPLETE) adc_calibration_finished = TRUE;
-        //LOG_D(LOG_STD,"ADC EVENT CALIBRATION");
-        return;
-    }
-    else
-    {
-
-    }
-}*/

@@ -208,7 +208,7 @@ static return_t init_strectch(void)
 
                 LOG_D(LOG_STD,"motorH: 0x%X ,motorL: 0x%X",motors_instance.motorH->error,motors_instance.motorL->error);*/
 
-                LOG_D(LOG_STD,"current %d mA",adc_inst.instantaneous.iin);
+                //LOG_D(LOG_STD,"current %d mA",adc_inst.instantaneous.iin);
                 end = TRUE;
             }
             else if(expected_errorH_ok==-1 || expected_errorL_ok==-1)
@@ -337,7 +337,9 @@ static return_t init_enrl(void)
             pulsesH1 = pulsesH2;
         }
 
-        uint16_t value_iin = adc_inst.instantaneous.iin;
+        st_adc_t adc_snapshot;
+        adc_get_snapshot(&adc_snapshot);
+        uint16_t value_iin = adc_snapshot.iin;
         if(value_iin > ptr->current_stop)
         {
             motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);

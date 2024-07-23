@@ -75,8 +75,11 @@ return_t motor_check(bool_t long_vm_cuttof)
         sys_mot.error_lvl1.bits.vcc_12v  = FALSE;
 
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_EN_12V_HALL1,BSP_IO_LEVEL_HIGH);
-    delay_ms(10);
-    if(adc_inst.instantaneous.vhall1 < 11000 || adc_inst.instantaneous.vhall1 > 13000)
+    delay_ms(100);
+
+    st_adc_t adc_snapshot;
+    adc_get_snapshot(&adc_snapshot);
+    if(adc_snapshot.vhall1 < 11000 || adc_snapshot.vhall1 > 13000)
     {
         R_IOPORT_PinWrite(&g_ioport_ctrl, IO_EN_12V_HALL1,BSP_IO_LEVEL_LOW);
         delay_ms(10);
@@ -87,8 +90,9 @@ return_t motor_check(bool_t long_vm_cuttof)
 
 
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_EN_12V_HALL2,BSP_IO_LEVEL_HIGH);
-    delay_ms(10);
-    if(adc_inst.instantaneous.vhall2 < 11000 || adc_inst.instantaneous.vhall2 > 13000)
+    delay_ms(100);
+    adc_get_snapshot(&adc_snapshot);
+    if(adc_snapshot.vhall2 < 11000 || adc_snapshot.vhall2 > 13000)
     {
         R_IOPORT_PinWrite(&g_ioport_ctrl, IO_EN_12V_HALL2,BSP_IO_LEVEL_LOW);
         delay_ms(10);
@@ -115,16 +119,45 @@ return_t motor_check(bool_t long_vm_cuttof)
         return F_RET_MOTOR_CHECK_ERROR;
 
 
+
+
+
+    //R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT_CAL,BSP_IO_LEVEL_HIGH );
+    drv_mot1.registers.csa_control.bits.CSA_CAL_A=1;
+    drv_mot1.registers.csa_control.bits.CSA_CAL_B=1;
+    drv_mot1.registers.csa_control.bits.CSA_CAL_C=1;
+    ret = h_drv8323s_write_all_registers(&drv_mot1);
+    ret = h_drv8323s_read_all_registers(&drv_mot1);
+    tx_thread_sleep(10);
+    //R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT_CAL,BSP_IO_LEVEL_LOW );
+    drv_mot1.registers.csa_control.bits.CSA_CAL_A=0;
+    drv_mot1.registers.csa_control.bits.CSA_CAL_B=0;
+    drv_mot1.registers.csa_control.bits.CSA_CAL_C=0;
+    ret = h_drv8323s_write_all_registers(&drv_mot1);
+    ret = h_drv8323s_read_all_registers(&drv_mot1);
+    adc_set_calibration_mode(TRUE);
+    tx_thread_sleep(10);
+    adc_set_calibration_mode(FALSE);
+
     motor_profil_t *ptr = &motors_instance.profil;
     sequence_result_t sequence_result;
     //motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     //motor_drive_sequence(&ptr->sequences.manual.enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    motors_instance.motors[1]->motor_ctrl_instance->p_api->run(motors_instance.motors[1]->motor_ctrl_instance->p_ctrl);
-    motors_instance.motors[1]->motor_ctrl_instance->p_api->speedSet(
-                                    motors_instance.motors[1]->motor_ctrl_instance->p_ctrl,
+    motors_instance.motors[0]->motor_ctrl_instance->p_api->run(motors_instance.motors[0]->motor_ctrl_instance->p_ctrl);
+    motors_instance.motors[0]->motor_ctrl_instance->p_api->speedSet(
+                                    motors_instance.motors[0]->motor_ctrl_instance->p_ctrl,
                                     500.0f);
     while(1)
     {
+
+
+        /*motors_instance.motors[0]->motor_ctrl_instance->p_api->run(motors_instance.motors[0]->motor_ctrl_instance->p_ctrl);
+        motors_instance.motors[0]->motor_ctrl_instance->p_api->speedSet(
+                                        motors_instance.motors[0]->motor_ctrl_instance->p_ctrl,
+                                        500.0f);
+        tx_thread_sleep(200);
+        motors_instance.motors[0]->motor_ctrl_instance->p_api->stop(motors_instance.motors[0]->motor_ctrl_instance->p_ctrl);
+        tx_thread_sleep(200);*/
         tx_thread_sleep(1);
     }
 

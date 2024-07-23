@@ -19,6 +19,10 @@
 #include <files/json_file.h>
 #include <remotectrl/remotectrl.h>
 #include <motor/motor.h>
+#include <motor/config_spi/config_spi.h>
+#include <motor/emergency/emergency.h>
+
+#include <adc/adc.h>
 
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
@@ -101,6 +105,8 @@ void main_thread_entry(void)
     motor_init_type(MOTOR_TYPE_RM_ITOH_BRAKE);
 
     // Initialisation de la partie ADC
+
+
     ret = adc_init();
     if(ret != X_RET_OK){
         LOG_E(LOG_STD,"INIT ADC ERROR");}
@@ -120,10 +126,45 @@ void main_thread_entry(void)
 
 
 
+     c_timespan_t ts;
+     c_timespan_init(&ts);
+     h_time_update(&ts);
+
+
+
+
+
     /* TODO: add your own code here */
     while (1)
     {
         remotectrl_process();
-        tx_thread_sleep (10);
+
+        /*bool_t elasped = FALSE;
+        h_time_is_elapsed_ms(&ts, 500, &elasped);
+        if(elasped == TRUE)
+        {
+            h_time_update(&ts);
+            st_adc_t adc_snapshot;
+            adc_get_snapshot(&adc_snapshot);
+            //LOG_D(LOG_STD,"%d %d",adc_inst.average.iin,adc_inst.instantaneous.iin);
+            //LOG_D(LOG_STD,"%.6f",adc_inst.motorH.iu_ad);
+            //LOG_D(LOG_STD,"%lu  %lu",adc_inst.motorH.iu_reg,adc_inst.motorH.iw_reg);
+            LOG_D(LOG_STD,"%lu mV / %lu mA / %lu mA /%lu mA",adc_snapshot.vin,adc_snapshot.iin,adc_snapshot.mot1_iu,adc_snapshot.mot1_iw);
+        }*/
+
+        if(motor_emergency_is_error())
+        {
+             emergency_src_t emergency_data = motor_emergency_get_data();
+             if(emergency_data.bits.motor1_fault)
+             {
+                 h_drv8323s_read_status_registers(&drv_mot1);
+                 LOG_D(LOG_STD,"%04X %04X",drv_mot1.registers.fault_status1.value,drv_mot1.registers.vgs_status2.value);
+                 tx_thread_sleep (10);
+                 h_drv8323s_clear_fault(&drv_mot1);
+                 motor_emergency_init();
+             }
+        }
+
+        tx_thread_sleep (1);
     }
 }

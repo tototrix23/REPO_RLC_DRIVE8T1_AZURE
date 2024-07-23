@@ -480,6 +480,8 @@ fsp_err_t RM_MOTOR_120_DRIVER_PhasePatternSet (motor_120_driver_ctrl_t * const  
         temp_duty.duty[1] = temp_duty.duty[0];
         temp_duty.duty[2] = temp_duty.duty[0];
 
+        p_instance_ctrl->duty_uint = temp_duty.duty[0];
+
         /* set register */
         /* PWM output arm setting */
         if (((pattern >= MOTOR_120_DRIVER_PHASE_PATTERN_UP_PWM_VN_ON) &&
@@ -508,6 +510,9 @@ fsp_err_t RM_MOTOR_120_DRIVER_PhasePatternSet (motor_120_driver_ctrl_t * const  
         }
 
 
+
+
+        p_instance_ctrl->pattern = pattern;
 
         /* set pattern */
         switch (pattern)
@@ -1692,10 +1697,14 @@ static void rm_motor_120_driver_set_uvw_duty (motor_120_driver_instance_ctrl_t *
 {
     motor_120_driver_extended_cfg_t * p_extended_cfg = (motor_120_driver_extended_cfg_t *) p_ctrl->p_cfg->p_extend;
     three_phase_instance_t const    * p_three_phase  = p_extended_cfg->p_three_phase_instance;
+    motor_120_driver_instance_ctrl_t * p_instance_ctrl = (motor_120_driver_instance_ctrl_t *) p_ctrl;
+
     uint32_t                 u4_count_u              = 0U;
     uint32_t                 u4_count_v              = 0U;
     uint32_t                 u4_count_w              = 0U;
     three_phase_duty_cycle_t temp_duty;
+
+
     float f_temp_base  = (float) p_ctrl->u4_carrier_base;
     float f_temp_deadt = (float) p_ctrl->u4_deadtime_count;
 

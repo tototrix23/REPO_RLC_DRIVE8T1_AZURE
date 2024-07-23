@@ -458,7 +458,7 @@
     </module>
     <module id="module.middleware.motor_120_control_on_motor_120_control_hall.830698077">
       <property id="module.middleware.motor_120_control.name" value="g_motor_120_control_hall0"/>
-      <property id="module.middleware.motor_120_control.conduction_type" value="module.middleware.motor_120_control.conduction_type.complementary_pwm"/>
+      <property id="module.middleware.motor_120_control.conduction_type" value="module.middleware.motor_120_control.conduction_type.non_complementary_pwm"/>
       <property id="module.middleware.motor_120_control.port_hall_sensor_u" value="BSP_IO_PORT_03_PIN_01"/>
       <property id="module.middleware.motor_120_control.port_hall_sensor_v" value="BSP_IO_PORT_03_PIN_00"/>
       <property id="module.middleware.motor_120_control.port_hall_sensor_w" value="BSP_IO_PORT_03_PIN_02"/>
@@ -1262,6 +1262,11 @@
     <object id="rtos.threadx.object.mutex.2138142461">
       <property id="rtos.threadx.object.mutex.name" value="Exchanged Data Mutex"/>
       <property id="rtos.threadx.object.mutex.symbol" value="g_exchanged_data_mutex"/>
+      <property id="rtos.threadx.object.mutex.inherit" value="rtos.threadx.object.mutex.inherit.enabled"/>
+    </object>
+    <object id="rtos.threadx.object.mutex.1232760463">
+      <property id="rtos.threadx.object.mutex.name" value="Emergency Mutex"/>
+      <property id="rtos.threadx.object.mutex.symbol" value="g_emergency_mutex"/>
       <property id="rtos.threadx.object.mutex.inherit" value="rtos.threadx.object.mutex.inherit.enabled"/>
     </object>
     <context id="_hal.0">

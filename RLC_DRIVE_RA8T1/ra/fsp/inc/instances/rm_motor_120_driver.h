@@ -187,7 +187,10 @@ typedef struct st_motor_120_driver_instance_ctrl
     motor_ext_settings_api_t *extSettings;
     motor_ext_cfg_t *extCfg;
 
+    motor_120_driver_phase_pattern_t pattern;
+    uint32_t duty_uint;
 } motor_120_driver_instance_ctrl_t;
+
 
 /**********************************************************************************************************************
  * Exported global variables

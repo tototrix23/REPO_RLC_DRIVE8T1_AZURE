@@ -440,6 +440,12 @@ void mtr0_callback_120_degree(motor_callback_args_t * p_args)
         case MOTOR_CALLBACK_EVENT_ADC_FORWARD:
         {
             /* Do nothing */
+
+
+            motor_120_driver_instance_ctrl_t * p_instance_ctrl = (motor_120_driver_instance_ctrl_t *) motor0.motor_driver_instance->p_ctrl;
+
+
+
         }
         break;
 
