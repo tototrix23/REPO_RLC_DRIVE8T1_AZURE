@@ -90,6 +90,7 @@ volatile adc_accumulator_t accumulator_vm;
 volatile adc_imotor_t motor1_currents;
 volatile adc_imotor_t motor2_currents;
 
+volatile adc_ballast_activated = FALSE;
 
 bool_t process_current(adc_imotor_phase_t* ptr,motor_120_driver_instance_ctrl_t* drv_inst,uint16_t adc_value);
 
@@ -538,5 +539,33 @@ void adc_mot_callback(adc_callback_args_t *p_args)
             accumulator_iin.counter = 0;
         }
     }
+
+    if(adc_raw_inst.instantaneous.vm > adc_raw_inst.instantaneous.vin)
+    {
+        volatile float diff_vin_vm = adc_raw_inst.instantaneous.vm - adc_raw_inst.instantaneous.vin;
+        if(adc_ballast_activated == FALSE && diff_vin_vm > 2000.0f)
+        {
+            LOG_D(LOG_STD,"1 -> %d",(uint32_t)diff_vin_vm);
+            adc_ballast_activated = TRUE;
+            //R_GPT_Open(&g_timer_ballast_ctrl, &g_timer_ballast_cfg);
+            //(void) R_GPT_Start(&g_timer_ballast_ctrl);
+            R_IOPORT_PinWrite(&g_ioport_ctrl, IO_VM_BALLAST_CMD,BSP_IO_LEVEL_HIGH);
+        }
+        else if(adc_ballast_activated == TRUE && diff_vin_vm < 500.0f)
+        {
+            LOG_D(LOG_STD,"0 -> %d",(uint32_t)diff_vin_vm);
+            adc_ballast_activated = FALSE;
+            //(void) R_GPT_Stop(&g_timer_ballast_ctrl);
+            //R_GPT_Close(&g_timer_ballast_ctrl);
+            R_IOPORT_PinWrite(&g_ioport_ctrl, IO_VM_BALLAST_CMD,BSP_IO_LEVEL_LOW);
+        }
+    }
+    else if(adc_ballast_activated == TRUE)
+    {
+        adc_ballast_activated = FALSE;
+        R_IOPORT_PinWrite(&g_ioport_ctrl, IO_VM_BALLAST_CMD,BSP_IO_LEVEL_LOW);
+    }
+
+
     rm_motor_120_driver_cyclic(p_args);
 }

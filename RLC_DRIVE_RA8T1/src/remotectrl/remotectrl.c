@@ -74,7 +74,7 @@ return_t remotectrl_process(void)
 return_t remotectrl_enter_manual(void)
 {
     LOG_D(LOG_STD,"Enter manual mode");
-    //set_drive_mode(MOTOR_MANUAL_MODE);
+    set_drive_mode(MOTOR_MANUAL_MODE);
     return X_RET_OK;
 }
 
@@ -82,6 +82,6 @@ return_t remotectrl_exit_manual(void)
 {
     //motors_instance.error = MOTORS_ERROR_NONE;
     LOG_D(LOG_STD,"Exit manual mode");
-    //set_drive_mode(MOTOR_INIT_MODE);
+    set_drive_mode(MOTOR_INIT_MODE);
     return X_RET_OK;
 }

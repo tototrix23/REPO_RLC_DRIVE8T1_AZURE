@@ -56,6 +56,19 @@ void motors_thread_entry(void)
     // Initialisation POEG
     R_POEG_Open(g_poeg0.p_ctrl, g_poeg0.p_cfg);
 
+    /*volatile fsp_err_t errfsp = R_GPT_Open(&g_timer_ballast_ctrl, &g_timer_ballast_cfg);
+    errfsp =  R_GPT_Start(&g_timer_ballast_ctrl);*/
+    /*tx_thread_sleep(20);
+    errfsp =  R_GPT_Stop(&g_timer_ballast_ctrl);*/
+
+    /*R_IOPORT_PinWrite(&g_ioport_ctrl, IO_VM_BALLAST_CMD,BSP_IO_LEVEL_HIGH);
+    tx_thread_sleep(10);
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_VM_BALLAST_CMD,BSP_IO_LEVEL_LOW);
+
+    while(1)
+    {
+        tx_thread_sleep(1);
+    }*/
 
     // Analyse du status dans la VEE
     // Si le process moteur est déjà en défault alors on passe directement en mode MOTOR_ERROR_MODE

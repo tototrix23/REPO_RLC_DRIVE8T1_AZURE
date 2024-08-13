@@ -268,6 +268,7 @@ static return_t init_enrl(void)
     //flag_overcurrent_vm = TRUE;//DEBUG_FORCE
 
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH1);
+    LOG_D(LOG_STD,"enrl_start");
     motor_drive_sequence(&ptr->sequences.init.enrl_start,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     delay_ms(500);
     h_time_update(&ts2);
@@ -281,6 +282,7 @@ static return_t init_enrl(void)
         if(ts_elasped == TRUE && start_finished == FALSE)
         {
             start_finished = TRUE;
+            LOG_D(LOG_STD,"enrl");
             motor_drive_sequence(&ptr->sequences.init.enrl,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
         }
 
@@ -288,6 +290,7 @@ static return_t init_enrl(void)
         if(ts_elasped == TRUE)
         {
             // Arrêt des moteurs
+            LOG_D(LOG_STD,"enrl timeout");
             motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
             // Macro d'enregistrement d'erreur et code de retour
             MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_TIMEOUT_SEARCHING_BASE_H,F_RET_MOTOR_INIT_TIMEOUT_BASE_H);

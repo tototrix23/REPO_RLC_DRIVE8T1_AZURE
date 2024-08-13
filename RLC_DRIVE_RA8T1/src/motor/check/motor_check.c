@@ -23,6 +23,7 @@ return_t motor_check(bool_t long_vm_cuttof)
 
 
     // Desactivation des drivers moteurs
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_VM_BALLAST_CMD,BSP_IO_LEVEL_LOW);
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_VM_SWITCH_CMD,BSP_IO_LEVEL_LOW );
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT1_ENABLE,BSP_IO_LEVEL_LOW );
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT2_ENABLE,BSP_IO_LEVEL_LOW );
@@ -139,10 +140,8 @@ return_t motor_check(bool_t long_vm_cuttof)
     tx_thread_sleep(10);
     adc_set_calibration_mode(FALSE);
 
-    motor_profil_t *ptr = &motors_instance.profil;
+    /*motor_profil_t *ptr = &motors_instance.profil;
     sequence_result_t sequence_result;
-    //motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    //motor_drive_sequence(&ptr->sequences.manual.enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     motors_instance.motors[0]->motor_ctrl_instance->p_api->run(motors_instance.motors[0]->motor_ctrl_instance->p_ctrl);
     motors_instance.motors[0]->motor_ctrl_instance->p_api->speedSet(
                                     motors_instance.motors[0]->motor_ctrl_instance->p_ctrl,
@@ -151,15 +150,9 @@ return_t motor_check(bool_t long_vm_cuttof)
     {
 
 
-        /*motors_instance.motors[0]->motor_ctrl_instance->p_api->run(motors_instance.motors[0]->motor_ctrl_instance->p_ctrl);
-        motors_instance.motors[0]->motor_ctrl_instance->p_api->speedSet(
-                                        motors_instance.motors[0]->motor_ctrl_instance->p_ctrl,
-                                        500.0f);
-        tx_thread_sleep(200);
-        motors_instance.motors[0]->motor_ctrl_instance->p_api->stop(motors_instance.motors[0]->motor_ctrl_instance->p_ctrl);
-        tx_thread_sleep(200);*/
+
         tx_thread_sleep(1);
-    }
+    }*/
 
     return ret;
 }

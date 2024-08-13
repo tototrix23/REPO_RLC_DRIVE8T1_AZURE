@@ -1739,6 +1739,7 @@
       <configSetting altId="p806.adc1.an118" configurationId="p806"/>
       <configSetting altId="p806.gpio_mode.gpio_mode_an" configurationId="p806.gpio_mode"/>
       <configSetting altId="p808.output.low" configurationId="p808"/>
+      <configSetting altId="p808.gpio_speed.gpio_speed_m" configurationId="p808.gpio_drivecapacity"/>
       <configSetting altId="p808.gpio_mode.gpio_mode_out.low" configurationId="p808.gpio_mode"/>
       <configSetting altId="p809.input" configurationId="p809"/>
       <configSetting altId="p809.gpio_mode.gpio_mode_in" configurationId="p809.gpio_mode"/>

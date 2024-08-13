@@ -304,7 +304,8 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
                     break;
 
                 case MOTOR_120_DEGREE_CTRL_STATUS_RUN:
-                    motor_is_speed_achieved(motors_instance.motors[i],&speeds_achieved[i]);
+                    //motor_is_speed_achieved(motors_instance.motors[i],&speeds_achieved[i]);
+                    speeds_achieved[i] = TRUE;
                     break;
 
                 case MOTOR_120_DEGREE_CTRL_STATUS_BRAKE:

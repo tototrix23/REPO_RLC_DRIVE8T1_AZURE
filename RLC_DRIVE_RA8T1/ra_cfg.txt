@@ -261,7 +261,7 @@ FSP Configuration
       P804 137 GPIO IO_VM_SWITCH_CMD L None "Output mode (Initial High)" - - "GPT13: GTIOC13A; GPT_POEGD: GTETRGD; IRQ14: IRQ14; SCI2: CTS_RTS2; SCI2: DE2" - IO - - 
       P805 173 ADC1_AN117 - - - "Analog mode" - - "ADC0: AN017; ADC1: AN117" - I - - 
       P806 172 ADC1_AN118 - - - "Analog mode" - - "ADC0: AN018; ADC1: AN118; IRQ0: IRQ0" - I - - 
-      P808 138 GPIO IO_VM_BALLAST_CMD L None "Output mode (Initial Low)" - - "GPT13: GTIOC13B; IRQ15: IRQ15" - IO - - 
+      P808 138 GPIO IO_VM_BALLAST_CMD M None "Output mode (Initial Low)" - - "GPT13: GTIOC13B; IRQ15: IRQ15" - IO - - 
       P809 139 GPIO IO_MOT_SIG3 - - "Input mode" - - - - IO - - 
       P810 142 - - - - Disabled - - "SDHI1: SD1CLK; ULPT0: ULPTOA0" - None - - 
       P811 143 - - - - Disabled - - "SDHI1: SD1CMD; ULPT0: ULPTOB0; USB FS: USB_ID" - None - - 

@@ -883,6 +883,13 @@ void rm_motor_120_control_hall_interrupt (external_irq_callback_args_t * p_args)
     motor_120_control_hall_extended_cfg_t * p_extended_cfg =
         (motor_120_control_hall_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend;
 
+
+    if ((MOTOR_120_CONTROL_STATUS_ACTIVE == p_instance_ctrl->active && p_instance_ctrl->u4_adc_interrupt_cnt == 0) ||
+                (MOTOR_120_CONTROL_STATUS_ACTIVE != p_instance_ctrl->active))
+    {
+        rm_motor_120_control_hall_pulses_counting(p_instance_ctrl);
+    }
+
     if (p_instance_ctrl->u4_adc_interrupt_cnt == 0)
     {
         if (MOTOR_120_CONTROL_WAIT_STOP_FLAG_SET != p_instance_ctrl->flag_wait_stop) /* waiting for motor stop */
