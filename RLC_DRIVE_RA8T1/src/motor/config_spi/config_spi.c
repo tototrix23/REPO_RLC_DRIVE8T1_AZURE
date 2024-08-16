@@ -37,10 +37,10 @@ return_t motor_config_spi(h_drv8323s_t *ptr)
     if(ret != X_RET_OK) return ret;
 
     ptr->registers.csa_control.bits.GAIN = 0x01;
-    ptr->registers.gate_drive_hs.bits.IDRIVEN_HS = 0x2;
-    ptr->registers.gate_drive_hs.bits.IDRIVEP_HS = 0x2;
-    ptr->registers.gate_drive_ls.bits.IDRIVEN_LS = 0x2;
-    ptr->registers.gate_drive_ls.bits.IDRIVEP_LS = 0x2;
+    ptr->registers.gate_drive_hs.bits.IDRIVEN_HS = 0xF;
+    ptr->registers.gate_drive_hs.bits.IDRIVEP_HS = 0xF;
+    ptr->registers.gate_drive_ls.bits.IDRIVEN_LS = 0xF;
+    ptr->registers.gate_drive_ls.bits.IDRIVEP_LS = 0xF;
     ptr->registers.gate_drive_ls.bits.TDRIVE = 0x03;
     ptr->registers.ocp_control.bits.OCP_MODE = 0;
     ptr->registers.csa_control.bits.VREF_DIV = 1;

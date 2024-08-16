@@ -1319,7 +1319,11 @@ fsp_err_t RM_MOTOR_120_DRIVER_CurrentOffsetCalc (motor_120_driver_ctrl_t * const
             else
             {
                 p_instance_ctrl->u1_flag_offset_calc = MOTOR_120_DRIVER_FLAG_OFFSET_CALC_ALL_FINISH;
-                rm_motor_120_driver_ctrl_stop(p_instance_ctrl);
+                uint8_t *ptr_brake = p_instance_ctrl->brake_mode;
+                if(*ptr_brake == 1)
+                    RM_MOTOR_120_DRIVER_ExtBrake(p_instance_ctrl);
+                else
+                   rm_motor_120_driver_ctrl_stop(p_instance_ctrl);
             }
         }
     }

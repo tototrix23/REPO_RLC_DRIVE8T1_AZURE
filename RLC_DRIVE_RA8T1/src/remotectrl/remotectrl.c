@@ -37,22 +37,22 @@ return_t remotectrl_process(void)
 
 	if(m12_auto != m12_auto_previous)
 	{
-	    LOG_D(LOG_STD,"M12_AUTO %d",m12_auto);
+	    //LOG_D(LOG_STD,"M12_AUTO %d",m12_auto);
 	    m12_auto_previous = m12_auto;
 	}
 	if(m12_enrl != m12_enrl_previous)
     {
-        LOG_D(LOG_STD,"M12_ENRL %d",m12_enrl);
+        //LOG_D(LOG_STD,"M12_ENRL %d",m12_enrl);
         m12_enrl_previous = m12_enrl;
     }
 	if(m12_enrh != m12_enrh_previous)
     {
-        LOG_D(LOG_STD,"M12_ENRH %d",m12_enrh);
+        //LOG_D(LOG_STD,"M12_ENRH %d",m12_enrh);
         m12_enrh_previous = m12_enrh;
     }
 	if(m12_derh != m12_derh_previous)
     {
-        LOG_D(LOG_STD,"M12_DERH %d",m12_derh);
+        //LOG_D(LOG_STD,"M12_DERH %d",m12_derh);
         m12_derh_previous = m12_derh;
     }
 

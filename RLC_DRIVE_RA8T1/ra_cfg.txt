@@ -612,7 +612,7 @@ FSP Configuration
         Hall sensor port U: BSP_IO_PORT_03_PIN_01
         Hall sensor port V: BSP_IO_PORT_03_PIN_00
         Hall sensor port W: BSP_IO_PORT_03_PIN_02
-        General: Timeout counts (msec): 800
+        General: Timeout counts (msec): 2000
         General: Maximum voltage (V): 23.5
         General: Minimum voltage (V): 3.0
         General: Speed PI decimation: 0
@@ -992,7 +992,7 @@ FSP Configuration
         Hall sensor port U: BSP_IO_PORT_08_PIN_00
         Hall sensor port V: BSP_IO_PORT_01_PIN_04
         Hall sensor port W: BSP_IO_PORT_01_PIN_05
-        General: Timeout counts (msec): 800
+        General: Timeout counts (msec): 2000
         General: Maximum voltage (V): 23.5
         General: Minimum voltage (V): 3.0
         General: Speed PI decimation: 0

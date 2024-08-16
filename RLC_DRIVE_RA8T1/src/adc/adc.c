@@ -543,17 +543,17 @@ void adc_mot_callback(adc_callback_args_t *p_args)
     if(adc_raw_inst.instantaneous.vm > adc_raw_inst.instantaneous.vin)
     {
         volatile float diff_vin_vm = adc_raw_inst.instantaneous.vm - adc_raw_inst.instantaneous.vin;
-        if(adc_ballast_activated == FALSE && diff_vin_vm > 2000.0f)
+        if(adc_ballast_activated == FALSE && diff_vin_vm > 3000.0f)
         {
-            LOG_D(LOG_STD,"1 -> %d",(uint32_t)diff_vin_vm);
+            //LOG_D(LOG_STD,"1 -> %d",(uint32_t)diff_vin_vm);
             adc_ballast_activated = TRUE;
             //R_GPT_Open(&g_timer_ballast_ctrl, &g_timer_ballast_cfg);
             //(void) R_GPT_Start(&g_timer_ballast_ctrl);
             R_IOPORT_PinWrite(&g_ioport_ctrl, IO_VM_BALLAST_CMD,BSP_IO_LEVEL_HIGH);
         }
-        else if(adc_ballast_activated == TRUE && diff_vin_vm < 500.0f)
+        else if(adc_ballast_activated == TRUE && diff_vin_vm < 1000.0f)
         {
-            LOG_D(LOG_STD,"0 -> %d",(uint32_t)diff_vin_vm);
+            //LOG_D(LOG_STD,"0 -> %d",(uint32_t)diff_vin_vm);
             adc_ballast_activated = FALSE;
             //(void) R_GPT_Stop(&g_timer_ballast_ctrl);
             //R_GPT_Close(&g_timer_ballast_ctrl);

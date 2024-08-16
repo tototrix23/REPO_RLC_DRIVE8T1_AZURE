@@ -152,9 +152,9 @@ void manual_mode_process(void) {
             }
             else
             {
-                LOG_D(LOG_STD,"off_no_brake");
-                motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-                current_list = &ptr->sequences.off_no_brake;
+                LOG_D(LOG_STD,"off_brake");
+                motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                current_list = &ptr->sequences.off_brake;
             }
         }
 

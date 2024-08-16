@@ -33,7 +33,7 @@
 
 
 static bool_t init_phase = TRUE;
-static void scroll_stop(void);
+static void scroll_stop(uint8_t direction);
 static void positions_process(void);
 static void poster_comp(uint8_t direction,uint8_t index);
 static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t index);
@@ -41,12 +41,17 @@ static return_motor_cplx_t low_band_enrh(void);
 static return_motor_cplx_t low_band_enrl(void);
 
 
-static void scroll_stop(void)
+static void scroll_stop(uint8_t direction)
 {
     motor_profil_t *ptr = &motors_instance.profil;
     sequence_result_t sequence_result;
-    motor_drive_sequence(&ptr->sequences.automatic.poster_stop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    if(direction == AUTO_ENRH)
+       motor_drive_sequence(&ptr->sequences.automatic.poster_stop_enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    else
+        motor_drive_sequence(&ptr->sequences.automatic.poster_stop_enrl,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
 }
+
+
 
 static void poster_comp(uint8_t direction,uint8_t index)
 {
@@ -191,7 +196,7 @@ static return_motor_cplx_t low_band_enrh(void)
 
        if(motors_instance.motorH->error != 0x00 || motors_instance.motorL->error != 0x00)
        {
-          scroll_stop();
+          scroll_stop(AUTO_ENRH);
           end = TRUE;
           return_motor_cplx_update(&ret,F_RET_MOTOR_ERROR_API_FSP);
           LOG_W(LOG_STD,"Error FSP");
@@ -237,7 +242,7 @@ static return_motor_cplx_t low_band_enrl(void)
        h_time_is_elapsed_ms(&ts, 3000, &ts_elasped);
        if(ts_elasped)
        {
-           scroll_stop();
+           scroll_stop(AUTO_ENRL);
            return_motor_cplx_update(&ret,F_RET_MOTOR_AUTO_TIMEOUT_POSTER);
            LOG_E(LOG_STD,"timeout");
            return ret;
@@ -246,21 +251,21 @@ static return_motor_cplx_t low_band_enrl(void)
        motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL);
        if(abs(pulsesL)>= ptr->sizes.prime_band_lower_size)
        {
-           scroll_stop();
+           scroll_stop(AUTO_ENRL);
            end = TRUE;
        }
 
 
-       h_time_is_elapsed_ms(&ts_error, 250, &ts_elasped);
+       /*h_time_is_elapsed_ms(&ts_error, 250, &ts_elasped);
        if(ts_elasped && error_flag==FALSE)
        {
            error_flag = TRUE;
            motors_instance.motorL->error = 0x10;
-       }
+       }*/
 
        if(motors_instance.motorH->error != 0x00 || motors_instance.motorL->error != 0x00)
        {
-          scroll_stop();
+          scroll_stop(AUTO_ENRL);
           error_count++;
           if(error_count >= 4)
           {
@@ -309,7 +314,9 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
    int32_t pulsesL1;
    int32_t pulsesL2;
    bool_t init_speed_finished;
+   bool_t decelerate_flag = FALSE;
    poster_change_start:
+   //LOG_D(LOG_STD,"poster_change_start");
    h_time_update(&ts_error);
 
    init_speed_finished = FALSE;
@@ -349,7 +356,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
        if(ts_elasped == TRUE)
        {
            h_time_update(&ts);
-           scroll_stop();
+           scroll_stop(direction);
            return_motor_cplx_update(&ret,F_RET_MOTOR_AUTO_TIMEOUT_POSTER);
            LOG_E(LOG_STD,"timeout");
            return ret;
@@ -363,20 +370,49 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
        {
            if(abs(pulsesH) >= (pulsesH_start + ptr->sizes.prime_band_lower_size*2))
            {
-               motor_drive_sequence(&ptr->sequences.automatic.poster_init_enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+               motor_drive_sequence(&ptr->sequences.automatic.poster_enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
                init_speed_finished = TRUE;
            }
        }
 
+       int32_t pos_final;
+       int32_t pos;
+       // Gestion de la deceleration
+       if(decelerate_flag == FALSE)
+       {
+          if(direction == AUTO_ENRH)
+          {
+              pos_final = ptr->panels.positions[index]+ptr->panels.positions_compH[index];
+              pos = pos_final-150;
+              if(abs(pulsesH) >= pos)
+              {
+                  LOG_D(LOG_STD,"pos%d ENRH %d / %d",index,pos,pos_final);
+                  motor_drive_sequence(&ptr->sequences.automatic.poster_enrh_decelerate,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                  decelerate_flag = TRUE;
+              }
+          }
+          else if(direction == AUTO_ENRL)
+          {
+              pos_final = ptr->panels.positions[index]+ptr->panels.positions_compL[index];
+              pos = pos_final+150;
+              if(abs(pulsesH) <= pos)
+              {
+                  LOG_D(LOG_STD,"pos%d ENRL %d / %d",index,pos,pos_final);
+                  motor_drive_sequence(&ptr->sequences.automatic.poster_enrl_decelerate,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                  decelerate_flag = TRUE;
+              }
+          }
+       }
+
 
        // Gestion de l'arrêt sur position
-       int32_t pos;
+
        if(direction == AUTO_ENRH)
        {
            pos = ptr->panels.positions[index]+ptr->panels.positions_compH[index];
            if(abs(pulsesH) >= pos)
            {
-              scroll_stop();
+              scroll_stop(direction);
               end = TRUE;
            }
        }
@@ -385,7 +421,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
            pos = ptr->panels.positions[index]+ptr->panels.positions_compL[index];
            if(abs(pulsesH) <= pos)
            {
-               scroll_stop();
+               scroll_stop(direction);
                end = TRUE;
            }
        }
@@ -406,7 +442,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
               else ovc_max_value = 3;
               if(ovc_counter >= ovc_max_value)
               {
-                  scroll_stop();
+                  scroll_stop(direction);
                   end = TRUE;
                   return_motor_cplx_update(&ret,F_RET_MOTOR_AUTO_OVERCURRENT);
                   LOG_W(LOG_STD,"Overcurrent");
@@ -443,7 +479,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
        }*/
 
        // Surveillance des erreurs remontées par la librairie RENESAS
-       if(motors_instance.motorH->error != 0x00 || motors_instance.motorL->error != 0x00)
+       /*if(motors_instance.motorH->error != 0x00 || motors_instance.motorL->error != 0x00)
        {
            scroll_stop();
 
@@ -462,7 +498,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
                LOG_W(LOG_STD,"Error FSP");
                goto poster_change_start;
            }
-       }
+       }*/
 
        // Gestion de l'évolution du codeur haut.
        // Cela permet de detecter un train en butée.
@@ -480,7 +516,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
 
            if( (abs(pulsesH2 - pulsesH1) <= 3) || (abs(pulsesL2 - pulsesL1) <= 3))
            {
-               scroll_stop();
+               scroll_stop(direction);
                LOG_W(LOG_STD,"no pulses");
                return_motor_cplx_update(&ret,F_RET_MOTOR_AUTO_TIMEOUT_PULSES);
                return ret;
@@ -596,6 +632,7 @@ return_t auto_mode_process(void)
 
 
     // A la fin du comptage d'affiches on tire à nouveau sur le train pour s'assurer qu'il est bien tendu
+    LOG_D(LOG_STD,"low_band_enrh");
     ret_cplx = low_band_enrh();
     CHECK_STOP_REQUEST();
     if(ret_cplx.code != X_RET_OK)
@@ -609,6 +646,7 @@ return_t auto_mode_process(void)
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH);
     LOG_I(LOG_STD,"Total PulsesH: %d",pulsesH);
     // On se positionne sur la dernière affiche
+    LOG_D(LOG_STD,"low_band_enrl");
     ret_cplx = low_band_enrl();
     CHECK_STOP_REQUEST();
     if(ret_cplx.code != X_RET_OK)

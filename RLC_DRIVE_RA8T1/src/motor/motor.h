@@ -38,9 +38,9 @@ typedef struct st_motor_t
 
     motor_120_control_hall_instance_ctrl_t *hall_vars;
 
-    uint8_t status;
+    volatile uint8_t status;
     uint16_t error;
-    int16_t current_drive_mode;
+    volatile int16_t current_drive_mode;
 }st_motor_t;
 
 
@@ -61,7 +61,7 @@ typedef struct st_return_motor_cplx_t
     uint32_t fsp_motorL_error_code;
 }return_motor_cplx_t;
 
-extern st_drive_t motors_instance;
+extern volatile st_drive_t motors_instance;
 
 extern char motorh_serial[20];
 extern char motorl_serial[20];

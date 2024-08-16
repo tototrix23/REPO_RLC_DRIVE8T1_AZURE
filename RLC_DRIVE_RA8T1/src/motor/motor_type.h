@@ -141,9 +141,13 @@ typedef struct st_motor_profil_t
         struct
         {
             c_linked_list_t poster_enrh;
-            c_linked_list_t poster_enrh_slow;
+            c_linked_list_t poster_enrh_decelerate;
             c_linked_list_t poster_enrl;
+            c_linked_list_t poster_enrl_decelerate;
             c_linked_list_t poster_stop;
+            c_linked_list_t poster_stop_enrh;
+            c_linked_list_t poster_stop_enrl;
+
             c_linked_list_t lower_band_enrh;
             c_linked_list_t lower_band_enrl;
 

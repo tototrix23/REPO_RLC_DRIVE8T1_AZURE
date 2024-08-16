@@ -89,6 +89,8 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
         for(i=0;i<2;i++)
         {
             motors_instance.motors[i]->motor_ctrl_instance->p_api->statusGet(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl, (uint8_t *)&motors_instance.motors[i]->status);
+
+
             switch(phase->params_motors[i].mode)
             {
                 case MOTOR_REGULATED_MODE:

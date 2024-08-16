@@ -767,7 +767,8 @@ static uint8_t rm_motor_120_degree_active (motor_120_degree_instance_ctrl_t * p_
 {
     fsp_err_t err = FSP_SUCCESS;
     motor_120_degree_extended_cfg_t * p_extended_cfg = (motor_120_degree_extended_cfg_t *) p_ctrl->p_cfg->p_extend;
-
+    motor_120_degree_instance_ctrl_t * p_instance_ctrl = (motor_120_degree_instance_ctrl_t *) p_ctrl;
+    p_instance_ctrl->brake_mode = 0;
     if (p_extended_cfg->p_motor_120_control_instance != NULL)
     {
         err = p_extended_cfg->p_motor_120_control_instance->p_api->run(
@@ -787,7 +788,8 @@ static uint8_t rm_motor_120_degree_inactive (motor_120_degree_instance_ctrl_t * 
 {
     fsp_err_t err = FSP_SUCCESS;
     motor_120_degree_extended_cfg_t * p_extended_cfg = (motor_120_degree_extended_cfg_t *) p_ctrl->p_cfg->p_extend;
-
+    motor_120_degree_instance_ctrl_t * p_instance_ctrl = (motor_120_degree_instance_ctrl_t *) p_ctrl;
+    p_instance_ctrl->brake_mode = 0;
     if (p_extended_cfg->p_motor_120_control_instance != NULL)
     {
         err = p_extended_cfg->p_motor_120_control_instance->p_api->stop(
@@ -941,6 +943,10 @@ static uint16_t rm_motor_120_degree_statemachine_event (motor_120_degree_instanc
     p_ctrl->st_statem.current_event = u1_event;
     p_ctrl->st_statem.status_next   =
         (motor_120_degree_ctrl_status_t) (state_transition_table[u1_event][p_ctrl->st_statem.status]);
+
+
+    volatile motor_120_degree_ctrl_status_t st = (motor_120_degree_ctrl_status_t) (state_transition_table[u1_event][p_ctrl->st_statem.status]);
+
 
     /* Get action function from action table and execute action */
     func_action = motor_120_degree_action_table[u1_event][p_ctrl->st_statem.status];

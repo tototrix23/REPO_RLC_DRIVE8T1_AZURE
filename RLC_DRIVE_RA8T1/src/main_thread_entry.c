@@ -139,18 +139,19 @@ void main_thread_entry(void)
     {
         remotectrl_process();
 
-        /*bool_t elasped = FALSE;
-        h_time_is_elapsed_ms(&ts, 500, &elasped);
+        bool_t elasped = FALSE;
+        h_time_is_elapsed_ms(&ts, 2000, &elasped);
         if(elasped == TRUE)
         {
             h_time_update(&ts);
-            st_adc_t adc_snapshot;
-            adc_get_snapshot(&adc_snapshot);
-            //LOG_D(LOG_STD,"%d %d",adc_inst.average.iin,adc_inst.instantaneous.iin);
-            //LOG_D(LOG_STD,"%.6f",adc_inst.motorH.iu_ad);
-            //LOG_D(LOG_STD,"%lu  %lu",adc_inst.motorH.iu_reg,adc_inst.motorH.iw_reg);
-            LOG_D(LOG_STD,"%lu mV / %lu mA / %lu mA /%lu mA",adc_snapshot.vin,adc_snapshot.iin,adc_snapshot.mot1_iu,adc_snapshot.mot1_iw);
-        }*/
+            //bsp_io_level_t lvl;
+            //R_IOPORT_PinRead(&g_ioport_ctrl, IO_VM_SWITCH_CMD,&lvl );
+            //LOG_D(LOG_STD,"VM CMD %d",lvl);
+            //st_adc_t adc_snapshot;
+            //adc_get_snapshot(&adc_snapshot);
+
+            //LOG_D(LOG_STD,"%lu mV / %lu mA / %lu mA /%lu mA",adc_snapshot.vin,adc_snapshot.iin,adc_snapshot.mot1_iu,adc_snapshot.mot1_iw);
+        }
 
         if(motor_emergency_is_error())
         {
@@ -158,11 +159,21 @@ void main_thread_entry(void)
              if(emergency_data.bits.motor1_fault)
              {
                  h_drv8323s_read_status_registers(&drv_mot1);
-                 LOG_D(LOG_STD,"%04X %04X",drv_mot1.registers.fault_status1.value,drv_mot1.registers.vgs_status2.value);
+                 LOG_E(LOG_STD,"MOT1 %04X %04X",drv_mot1.registers.fault_status1.value,drv_mot1.registers.vgs_status2.value);
                  tx_thread_sleep (10);
                  h_drv8323s_clear_fault(&drv_mot1);
                  motor_emergency_init();
              }
+
+             if(emergency_data.bits.motor2_fault)
+              {
+                  h_drv8323s_read_status_registers(&drv_mot2);
+                  LOG_E(LOG_STD,"MOT2 %04X %04X",drv_mot2.registers.fault_status1.value,drv_mot2.registers.vgs_status2.value);
+                  tx_thread_sleep (10);
+                  h_drv8323s_clear_fault(&drv_mot2);
+                  motor_emergency_init();
+              }
+
         }
 
         tx_thread_sleep (1);

@@ -70,7 +70,7 @@ motor_cfg_t g_mot_120_degree1_cfg;
 motor_instance_t g_mot_120_degree1;*/
 st_motor_t motor1;
 
-st_drive_t motors_instance;
+volatile st_drive_t motors_instance;
 
 char motorh_serial[20]={0};
 char motorl_serial[20]={0};

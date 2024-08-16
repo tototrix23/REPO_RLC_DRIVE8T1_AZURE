@@ -462,7 +462,7 @@
       <property id="module.middleware.motor_120_control.port_hall_sensor_u" value="BSP_IO_PORT_03_PIN_01"/>
       <property id="module.middleware.motor_120_control.port_hall_sensor_v" value="BSP_IO_PORT_03_PIN_00"/>
       <property id="module.middleware.motor_120_control.port_hall_sensor_w" value="BSP_IO_PORT_03_PIN_02"/>
-      <property id="module.middleware.motor_120_control.u4_timeout_cnt" value="800"/>
+      <property id="module.middleware.motor_120_control.u4_timeout_cnt" value="2000"/>
       <property id="module.middleware.motor_120_control.f4_max_drive_v" value="23.5"/>
       <property id="module.middleware.motor_120_control.f4_min_drive_v" value="3.0"/>
       <property id="module.middleware.motor_120_control.u1_speed_pi_decimation" value="0"/>
@@ -808,7 +808,7 @@
       <property id="module.middleware.motor_120_control.port_hall_sensor_u" value="BSP_IO_PORT_08_PIN_00"/>
       <property id="module.middleware.motor_120_control.port_hall_sensor_v" value="BSP_IO_PORT_01_PIN_04"/>
       <property id="module.middleware.motor_120_control.port_hall_sensor_w" value="BSP_IO_PORT_01_PIN_05"/>
-      <property id="module.middleware.motor_120_control.u4_timeout_cnt" value="800"/>
+      <property id="module.middleware.motor_120_control.u4_timeout_cnt" value="2000"/>
       <property id="module.middleware.motor_120_control.f4_max_drive_v" value="23.5"/>
       <property id="module.middleware.motor_120_control.f4_min_drive_v" value="3.0"/>
       <property id="module.middleware.motor_120_control.u1_speed_pi_decimation" value="0"/>
