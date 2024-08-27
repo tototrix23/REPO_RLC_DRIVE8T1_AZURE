@@ -106,6 +106,7 @@ const motor_120_control_api_t g_motor_120_control_on_motor_120_control_hall =
     .settingsSet         = RM_MOTOR_120_CONTROL_HALL_ExtFreeSettingsSet,
     .pulsesSet           = RM_MOTOR_120_CONTROL_HALL_ExtPulsesSetPtr,
     .brake               = RM_MOTOR_120_CONTROL_HALL_ExtBrake,
+    .driver_init_finished=RM_MOTOR_120_CONTROL_HALL_DriverInitFinished
 
 };
 
@@ -625,12 +626,13 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_ParameterUpdate (motor_120_control_ctrl_t * 
     return FSP_SUCCESS;
 }
 
-fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtBrakeSet (motor_120_control_ctrl_t * const p_ctrl, uint8_t * const p_brake,uint16_t *p_brake_mask)
+fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtBrakeSet (motor_120_control_ctrl_t * const p_ctrl, motor_brake_t *p_brake)
 {
     fsp_err_t err = FSP_SUCCESS;
     motor_120_control_hall_instance_ctrl_t *p_instance_ctrl = (motor_120_control_hall_instance_ctrl_t*) p_ctrl;
-    p_instance_ctrl->brake_mode = p_brake;
-    p_instance_ctrl->brake_mask = p_brake_mask;
+    //p_instance_ctrl->brake_mode = p_brake;
+    //p_instance_ctrl->brake_mask = p_brake_mask;
+    p_instance_ctrl->p_brake = p_brake;
 
     motor_120_control_hall_extended_cfg_t * p_extended_cfg =
             (motor_120_control_hall_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend;
@@ -639,7 +641,7 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtBrakeSet (motor_120_control_ctrl_t * cons
     {
         p_extended_cfg->p_motor_120_driver_instance->p_api->brakeSet(
             p_extended_cfg->p_motor_120_driver_instance->p_ctrl,
-            p_brake,p_brake_mask);
+            p_brake);
     }
     return err;
 }
@@ -715,7 +717,7 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtPulsesSetPtr(motor_120_control_ctrl_t * c
     return err;
 }
 
-fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtBrake(motor_120_control_ctrl_t * const p_ctrl)
+fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtBrake(motor_120_control_ctrl_t * const p_ctrl,uint16_t value)
 {
     fsp_err_t err = FSP_SUCCESS;
     motor_120_control_hall_instance_ctrl_t *p_instance_ctrl = (motor_120_control_hall_instance_ctrl_t*) p_ctrl;
@@ -729,15 +731,30 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtBrake(motor_120_control_ctrl_t * const p_
 
     if (p_extended_cfg->p_motor_120_driver_instance != NULL)
     {
-        p_extended_cfg->p_motor_120_driver_instance->p_api->stop(
-                    p_extended_cfg->p_motor_120_driver_instance->p_ctrl);
+        /*p_extended_cfg->p_motor_120_driver_instance->p_api->stop(
+                    p_extended_cfg->p_motor_120_driver_instance->p_ctrl);*/
 
         p_extended_cfg->p_motor_120_driver_instance->p_api->brake(
-            p_extended_cfg->p_motor_120_driver_instance->p_ctrl);
+            p_extended_cfg->p_motor_120_driver_instance->p_ctrl,value);
     }
     return err;
 }
 
+fsp_err_t RM_MOTOR_120_CONTROL_HALL_DriverInitFinished(motor_120_control_ctrl_t * const p_ctrl,uint8_t *result)
+{
+    fsp_err_t err = FSP_SUCCESS;
+    motor_120_control_hall_instance_ctrl_t *p_instance_ctrl = (motor_120_control_hall_instance_ctrl_t*) p_ctrl;
+
+    *result = 0;
+    motor_120_control_hall_extended_cfg_t * p_extended_cfg =
+            (motor_120_control_hall_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend;
+    if (p_extended_cfg->p_motor_120_driver_instance != NULL)
+    {
+        p_extended_cfg->p_motor_120_driver_instance->p_api->driver_init_finished(
+                    p_extended_cfg->p_motor_120_driver_instance->p_ctrl,result);
+    }
+    return err;
+}
 /*******************************************************************************************************************//**
  * @} (end addtogroup MOTOR_120_CONTROL_HALL)
  **********************************************************************************************************************/

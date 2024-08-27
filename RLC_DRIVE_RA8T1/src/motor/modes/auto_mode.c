@@ -72,7 +72,7 @@ static void poster_comp(uint8_t direction,uint8_t index)
             ptr->panels.positions_compH[index] = 0;
         }
         //LOG_D(LOG_STD,"compH panel%d -> %d",index,ptr->panels.positions_compH[index]);
-        LOG_I(LOG_STD,"%d / %d (%+04d) pos compH: %+04d",pulsesH,ptr->panels.positions[index],diff,ptr->panels.positions_compH[index]);
+        LOG_I(LOG_STD,"ENRH%d %d / %d (%+04d) pos compH: %+04d",index,pulsesH,ptr->panels.positions[index],diff,ptr->panels.positions_compH[index]);
     }
     else
     {
@@ -84,7 +84,7 @@ static void poster_comp(uint8_t direction,uint8_t index)
         }
 
         //LOG_D(LOG_STD,"compL panel%d -> %d",index,ptr->panels.positions_compL[index]);
-        LOG_I(LOG_STD,"%d / %d (%+04d) pos compL: %+04d",pulsesH,ptr->panels.positions[index],diff,ptr->panels.positions_compL[index]);
+        LOG_I(LOG_STD,"ENRL%d %d / %d (%+04d) pos compL: %+04d",index,pulsesH,ptr->panels.positions[index],diff,ptr->panels.positions_compL[index]);
     }
 
 
@@ -383,7 +383,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
           if(direction == AUTO_ENRH)
           {
               pos_final = ptr->panels.positions[index]+ptr->panels.positions_compH[index];
-              pos = pos_final-150;
+              pos = pos_final-100;//150;
               if(abs(pulsesH) >= pos)
               {
                   LOG_D(LOG_STD,"pos%d ENRH %d / %d",index,pos,pos_final);
@@ -394,7 +394,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
           else if(direction == AUTO_ENRL)
           {
               pos_final = ptr->panels.positions[index]+ptr->panels.positions_compL[index];
-              pos = pos_final+150;
+              pos = pos_final+100;//150;
               if(abs(pulsesH) <= pos)
               {
                   LOG_D(LOG_STD,"pos%d ENRL %d / %d",index,pos,pos_final);

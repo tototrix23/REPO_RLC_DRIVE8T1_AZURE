@@ -181,11 +181,13 @@ typedef struct st_motor_120_driver_instance_ctrl
     motor_120_driver_shared_instance_ctrl_t * p_shared_ctrl;
 
     /* Extensions RAYLEC */
-    uint32_t brake_counter;
-    uint8_t *brake_mode;
-    uint16_t *brake_mask;
+    //uint32_t brake_counter;
+    //uint8_t *brake_mode;
+    //uint16_t *brake_mask;
     motor_ext_settings_api_t *extSettings;
     motor_ext_cfg_t *extCfg;
+
+    motor_brake_t *p_brake;
 
     motor_120_driver_phase_pattern_t pattern;
     uint32_t duty_uint;
@@ -239,11 +241,11 @@ fsp_err_t RM_MOTOR_120_DRIVER_ParameterUpdate(motor_120_driver_ctrl_t * const   
                                               motor_120_driver_cfg_t const * const p_cfg);
 
 /** Extensions RAYLEC */
-fsp_err_t RM_MOTOR_120_DRIVER_ExtBrakeSet (motor_120_driver_ctrl_t * const p_ctrl, uint8_t * const p_brake,uint16_t *brake_mask);
+fsp_err_t RM_MOTOR_120_DRIVER_ExtBrakeSet (motor_120_driver_ctrl_t * const p_ctrl, motor_brake_t *p_brake);
 fsp_err_t RM_MOTOR_120_DRIVER_ExtSettingsSet (motor_120_driver_ctrl_t * const p_ctrl, motor_ext_settings_api_t * const settings);
 fsp_err_t RM_MOTOR_120_DRIVER_ExtCfgSet (motor_120_driver_ctrl_t * const p_ctrl, motor_ext_cfg_t * const p_cfg);
-fsp_err_t RM_MOTOR_120_DRIVER_ExtBrake (motor_120_driver_ctrl_t * const p_ctrl);
-
+fsp_err_t RM_MOTOR_120_DRIVER_ExtBrake (motor_120_driver_ctrl_t * const p_ctrl,uint16_t value);
+fsp_err_t RM_MOTOR_120_DRIVER_DriverInitFinished(motor_120_driver_ctrl_t * const p_ctrl,uint8_t *result);
 /* Common macro for FSP header files. There is also a corresponding FSP_HEADER macro at the top of this file. */
 FSP_FOOTER
 

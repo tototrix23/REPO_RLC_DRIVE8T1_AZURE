@@ -217,7 +217,10 @@ typedef struct st_motor_api
     /** Fonction permettant de lire le compteur de points  */
     fsp_err_t (* pulsesGet)(motor_ctrl_t * const p_ctrl, int32_t *const value);
     /** Fonction permettant de lire le compteur de points  */
-    fsp_err_t (* brake)(motor_ctrl_t * const p_ctrl,uint16_t mask);
+    fsp_err_t (* brake)(motor_ctrl_t * const p_ctrl,uint16_t value);
+    fsp_err_t (* brakeStop)(motor_ctrl_t * const p_ctrl);
+    fsp_err_t (* driver_init_finished)(motor_ctrl_t * const p_ctrl,uint8_t *result);
+
 } motor_api_t;
 
 /** This structure encompasses everything that is needed to use an instance of this interface. */

@@ -407,12 +407,34 @@ return_t motor_wait_stop(st_motor_t *mot)
     	h_time_is_elapsed_ms(&ts, 1000, &res);
     	if(res == TRUE)
     	{
-    	    LOG_E(LOG_STD,"Wait stop flag timeout");
+    	    LOG_E(LOG_STD,"motor_wait_stop timeout");
     	    ERROR_LOG_AND_RETURN(F_RET_MOTOR_STOP_FLAG_TIMEOUT);
     	}
     	h_time_update(&ts);
 	}
 	return ret;
+}
+
+return_t motor_wait_driver_init(st_motor_t *mot)
+{
+    return_t ret=X_RET_OK;
+    c_timespan_t ts;
+    h_time_update(&ts);
+    uint8_t init_finished = 0;
+
+    while (init_finished == 0)
+    {
+        mot->motor_ctrl_instance->p_api->driver_init_finished(mot->motor_ctrl_instance->p_ctrl, &init_finished);
+        bool_t res=FALSE;
+        h_time_is_elapsed_ms(&ts, 1000, &res);
+        if(res == TRUE)
+        {
+            LOG_E(LOG_STD,"motor_wait_driver_init timeout");
+            ERROR_LOG_AND_RETURN(F_RET_MOTOR_STOP_FLAG_TIMEOUT);
+        }
+        h_time_update(&ts);
+    }
+    return ret;
 }
 
 

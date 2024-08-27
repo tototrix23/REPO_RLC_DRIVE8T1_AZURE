@@ -103,7 +103,7 @@ static const motor_120_degree_action_t motor_120_degree_action_table[MOTOR_120_D
 
 /* 3:EVENT_RESET    */ {rm_motor_120_degree_reset,    rm_motor_120_degree_error,    rm_motor_120_degree_reset    ,   rm_motor_120_degree_reset    },
 
-/* 4:EVENT_BRAKE    */ {rm_motor_120_degree_brake,    rm_motor_120_degree_brake,    rm_motor_120_degree_nowork,  rm_motor_120_degree_nowork    },
+/* 4:EVENT_BRAKE    */ {rm_motor_120_degree_brake,    rm_motor_120_degree_brake,    rm_motor_120_degree_nowork,  rm_motor_120_degree_brake    },
 };
 
 /* statemachine functions */
@@ -142,6 +142,8 @@ const motor_api_t g_motor_on_motor_120_degree =
     .pulsesSet       = RM_MOTOR_120_DEGREE_ExtPulsesSet,
     .pulsesGet       = RM_MOTOR_120_DEGREE_ExtPulsesGet,
     .brake           = RM_MOTOR_120_DEGREE_ExtBrake,
+    .brakeStop       = RM_MOTOR_120_DEGREE_ExtBrakeStop,
+    .driver_init_finished = RM_MOTOR_120_DEGREE_DriverInitFinished
 };
 
 /*******************************************************************************************************************//**
@@ -196,13 +198,11 @@ fsp_err_t RM_MOTOR_120_DEGREE_Open (motor_ctrl_t * const p_ctrl, motor_cfg_t con
     p_extended_cfg->p_motor_120_control_instance->p_api->pulsesSet(p_extended_cfg->p_motor_120_control_instance->p_ctrl,&p_instance_ctrl->extPulses);
     RM_MOTOR_120_DEGREE_ExtPulsesSet(p_instance_ctrl, 0);
     p_instance_ctrl->previous_mode = -1;
-    p_instance_ctrl->brake_mode = 0;
-    p_instance_ctrl->brake_mask = 0;
     p_instance_ctrl->extSettings.active = 0;
     if (p_extended_cfg != NULL)
     {
         p_extended_cfg->p_motor_120_control_instance->p_api->brakeSet(p_extended_cfg->p_motor_120_control_instance->p_ctrl,
-                                                                      &p_instance_ctrl->brake_mode,&p_instance_ctrl->brake_mask);
+                                                                      &p_instance_ctrl->brake);
     }
 
 
@@ -398,9 +398,8 @@ fsp_err_t RM_MOTOR_120_DEGREE_SpeedSet (motor_ctrl_t * const p_ctrl, float const
 
     motor_120_degree_extended_cfg_t * p_extended_cfg =
         (motor_120_degree_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend;
-
+    p_instance_ctrl->brake.activated = 0;
     p_instance_ctrl->extSettings.active = 0;
-    p_instance_ctrl->brake_mode = 0;
     if(p_instance_ctrl->extCfg.speed_reverse == 0)
         p_instance_ctrl->f_speed_rpm = speed_rpm;
     else
@@ -672,11 +671,10 @@ fsp_err_t RM_MOTOR_120_DEGREE_ExtSettingsSet(motor_ctrl_t *const p_ctrl, motor_e
 {
     fsp_err_t err = FSP_SUCCESS;
     motor_120_degree_instance_ctrl_t *p_instance_ctrl = (motor_120_degree_instance_ctrl_t*) p_ctrl;
-
+    p_instance_ctrl->brake.activated = 0;
     p_instance_ctrl->extSettings.active = 1;
     p_instance_ctrl->extSettings.voltage = 0.0;
     p_instance_ctrl->extSettings.settings = settings;
-    p_instance_ctrl->brake_mode = 0;
 
     if(p_instance_ctrl->extCfg.speed_reverse == 1)
     {
@@ -719,7 +717,7 @@ fsp_err_t RM_MOTOR_120_DEGREE_ExtPulsesGet(motor_ctrl_t * const p_ctrl, int32_t 
     return FSP_SUCCESS;
 }
 
-fsp_err_t RM_MOTOR_120_DEGREE_ExtBrake(motor_ctrl_t * const p_ctrl,uint16_t mask)
+fsp_err_t RM_MOTOR_120_DEGREE_ExtBrake(motor_ctrl_t * const p_ctrl,uint16_t value)
 {
     fsp_err_t err = FSP_SUCCESS;
     motor_120_degree_instance_ctrl_t * p_instance_ctrl = (motor_120_degree_instance_ctrl_t *) p_ctrl;
@@ -729,21 +727,49 @@ fsp_err_t RM_MOTOR_120_DEGREE_ExtBrake(motor_ctrl_t * const p_ctrl,uint16_t mask
     MOTOR_120_DEGREE_ERROR_RETURN(MOTOR_120_DEGREE_OPEN == p_instance_ctrl->open, FSP_ERR_NOT_OPEN);
 #endif
 
-    p_instance_ctrl->brake_mode = 1;
-    p_instance_ctrl->brake_mask = mask;
     p_instance_ctrl->extSettings.active=0;
-
-    motor_120_degree_extended_cfg_t *p_extended_cfg =
+    p_instance_ctrl->brake.value = value;
+    /*motor_120_degree_extended_cfg_t *p_extended_cfg =
                 (motor_120_degree_extended_cfg_t*) p_instance_ctrl->p_cfg->p_extend;
 
     if (p_extended_cfg->p_motor_120_control_instance != NULL)
     {
         err = p_extended_cfg->p_motor_120_control_instance->p_api->brake (
-                p_extended_cfg->p_motor_120_control_instance->p_ctrl);
-    }
+                p_extended_cfg->p_motor_120_control_instance->p_ctrl,value);
+    }*/
 
     rm_motor_120_degree_statemachine_event(p_instance_ctrl, MOTOR_120_DEGREE_CTRL_EVENT_BRAKE);
 
+    return err;
+}
+
+fsp_err_t RM_MOTOR_120_DEGREE_ExtBrakeStop(motor_ctrl_t * const p_ctrl)
+{
+    fsp_err_t err = FSP_SUCCESS;
+        motor_120_degree_instance_ctrl_t * p_instance_ctrl = (motor_120_degree_instance_ctrl_t *) p_ctrl;
+
+    #if MOTOR_120_DEGREE_CFG_PARAM_CHECKING_ENABLE
+        FSP_ASSERT(NULL != p_instance_ctrl);
+        MOTOR_120_DEGREE_ERROR_RETURN(MOTOR_120_DEGREE_OPEN == p_instance_ctrl->open, FSP_ERR_NOT_OPEN);
+    #endif
+
+    p_instance_ctrl->extSettings.active=0;
+    p_instance_ctrl->brake.activated = 0;
+    return err;
+}
+
+fsp_err_t RM_MOTOR_120_DEGREE_DriverInitFinished(motor_ctrl_t * const p_ctrl,uint8_t *result)
+{
+    fsp_err_t err = FSP_SUCCESS;
+    motor_120_degree_instance_ctrl_t * p_instance_ctrl = (motor_120_degree_instance_ctrl_t *) p_ctrl;
+    motor_120_degree_extended_cfg_t *p_extended_cfg =
+                   (motor_120_degree_extended_cfg_t*) p_instance_ctrl->p_cfg->p_extend;
+
+   if (p_extended_cfg->p_motor_120_control_instance != NULL)
+   {
+       err = p_extended_cfg->p_motor_120_control_instance->p_api->driver_init_finished (
+               p_extended_cfg->p_motor_120_control_instance->p_ctrl,result);
+   }
     return err;
 }
 
@@ -768,7 +794,6 @@ static uint8_t rm_motor_120_degree_active (motor_120_degree_instance_ctrl_t * p_
     fsp_err_t err = FSP_SUCCESS;
     motor_120_degree_extended_cfg_t * p_extended_cfg = (motor_120_degree_extended_cfg_t *) p_ctrl->p_cfg->p_extend;
     motor_120_degree_instance_ctrl_t * p_instance_ctrl = (motor_120_degree_instance_ctrl_t *) p_ctrl;
-    p_instance_ctrl->brake_mode = 0;
     if (p_extended_cfg->p_motor_120_control_instance != NULL)
     {
         err = p_extended_cfg->p_motor_120_control_instance->p_api->run(
@@ -789,7 +814,6 @@ static uint8_t rm_motor_120_degree_inactive (motor_120_degree_instance_ctrl_t * 
     fsp_err_t err = FSP_SUCCESS;
     motor_120_degree_extended_cfg_t * p_extended_cfg = (motor_120_degree_extended_cfg_t *) p_ctrl->p_cfg->p_extend;
     motor_120_degree_instance_ctrl_t * p_instance_ctrl = (motor_120_degree_instance_ctrl_t *) p_ctrl;
-    p_instance_ctrl->brake_mode = 0;
     if (p_extended_cfg->p_motor_120_control_instance != NULL)
     {
         err = p_extended_cfg->p_motor_120_control_instance->p_api->stop(
@@ -804,15 +828,14 @@ static uint8_t rm_motor_120_degree_brake (motor_120_degree_instance_ctrl_t * p_c
     fsp_err_t err = FSP_SUCCESS;
 
     motor_120_degree_instance_ctrl_t * p_instance_ctrl = (motor_120_degree_instance_ctrl_t *) p_ctrl;
-    p_instance_ctrl->brake_mode = 1;
     motor_120_degree_extended_cfg_t * p_extended_cfg = (motor_120_degree_extended_cfg_t *) p_ctrl->p_cfg->p_extend;
 
-
+    p_instance_ctrl->brake.activated = 1;
 
     if (p_extended_cfg->p_motor_120_control_instance != NULL)
     {
         err = p_extended_cfg->p_motor_120_control_instance->p_api->brake(
-            p_extended_cfg->p_motor_120_control_instance->p_ctrl);
+            p_extended_cfg->p_motor_120_control_instance->p_ctrl,p_instance_ctrl->brake.value);
     }
 
     return (uint8_t) err;
@@ -1126,7 +1149,7 @@ static uint16_t rm_motor_120_degree_error_check (motor_120_degree_instance_ctrl_
             u2_error_flags |= rm_motor_check_over_speed_error(f_speed, p_extended_cfg->f_overspeed_limit);
         }
 
-        if(p_ctrl->brake_mode == 0)
+        if(p_ctrl->brake.activated == 0)
         {
             /* timeout error check (undetected zerocross) */
             p_motor_120_control_instance->p_api->timeoutErrorFlagGet(p_motor_120_control_instance->p_ctrl,

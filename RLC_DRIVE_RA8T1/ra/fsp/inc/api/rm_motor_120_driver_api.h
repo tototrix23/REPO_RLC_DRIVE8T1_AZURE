@@ -200,10 +200,11 @@ typedef struct st_motor_120_driver_api
     fsp_err_t (* parameterUpdate)(motor_120_driver_ctrl_t * const p_ctrl, motor_120_driver_cfg_t const * const p_cfg);
 
     /** Extensions RAYLEC */
-    fsp_err_t (* brakeSet)(motor_120_driver_ctrl_t * const p_ctrl, uint8_t * const p_brake,uint16_t *p_brake_mask);
+    fsp_err_t (* brakeSet)(motor_120_driver_ctrl_t * const p_ctrl, motor_brake_t *p_brake);
     fsp_err_t (* settingsSet)(motor_120_driver_ctrl_t * const p_ctrl, motor_ext_settings_api_t * const settings);
     fsp_err_t (* configSet)(motor_120_driver_ctrl_t * const p_ctrl, motor_ext_cfg_t * const p_cfg);
-    fsp_err_t (* brake)(motor_120_driver_ctrl_t * const p_ctrl);
+    fsp_err_t (* brake)(motor_120_driver_ctrl_t * const p_ctrl,uint16_t value);
+    fsp_err_t (* driver_init_finished)(motor_120_driver_ctrl_t * const p_ctrl,uint8_t *result);
 } motor_120_driver_api_t;
 
 /** This structure encompasses everything that is needed to use an instance of this interface. */

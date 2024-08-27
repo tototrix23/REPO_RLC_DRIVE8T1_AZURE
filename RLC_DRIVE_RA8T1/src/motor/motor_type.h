@@ -80,7 +80,7 @@ typedef struct st_motor_control
 
     struct
     {
-        uint16_t mask;
+        uint16_t percent;
     }brake;
 
 
@@ -105,6 +105,8 @@ typedef struct st_motor_profil_t
     motor_ext_cfg_t cfg_motorL; ///< Configuration du comportement du moteur bas
     uint32_t poster_showtime;
     uint32_t current_stop;
+
+
 
     struct
     {

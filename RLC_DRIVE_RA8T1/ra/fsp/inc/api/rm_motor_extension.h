@@ -14,6 +14,19 @@ FSP_HEADER
 
 //@formatter:off
 
+
+
+
+
+typedef struct st_motor_brake
+{
+   uint8_t activated;
+   uint8_t stop_order;
+   uint16_t percent;
+   uint16_t value;
+}motor_brake_t;
+
+
 /** Enumeration des differentes technologies à supporter. */
 typedef enum e_motor_ext_technology
 {

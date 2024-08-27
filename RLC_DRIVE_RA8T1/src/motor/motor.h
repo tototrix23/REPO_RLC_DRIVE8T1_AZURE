@@ -73,6 +73,7 @@ void motor_init_fsp(void);
 
 return_t motor_is_speed_achieved(st_motor_t *mot,bool_t *res);
 return_t motor_wait_stop(st_motor_t *mot);
+return_t motor_wait_driver_init(st_motor_t *mot);
 void motor_log_speed(st_motor_t *mot);
 
 void motor_log_api(void);

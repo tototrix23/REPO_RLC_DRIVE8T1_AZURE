@@ -86,9 +86,11 @@ typedef struct st_motor_120_degree_instance_ctrl
     int8_t previous_mode;
     motor_ext_cfg_t extCfg;
     motor_ext_settings_api_t extSettings;
-    uint8_t brake_mode;
-    uint16_t brake_mask;
+    //uint8_t brake_mode;
+    //uint16_t brake_mask;
     motor_ext_pulses_t extPulses;
+
+    motor_brake_t brake;
 } motor_120_degree_instance_ctrl_t;
 
 /**********************************************************************************************************************
@@ -145,8 +147,9 @@ fsp_err_t RM_MOTOR_120_DEGREE_ExtCfgSet (motor_ctrl_t * const p_ctrl, motor_ext_
 fsp_err_t RM_MOTOR_120_DEGREE_ExtSettingsSet(motor_ctrl_t * const p_ctrl, motor_ext_settings_t const settings);
 fsp_err_t RM_MOTOR_120_DEGREE_ExtPulsesSet(motor_ctrl_t * const p_ctrl, int32_t const value);
 fsp_err_t RM_MOTOR_120_DEGREE_ExtPulsesGet(motor_ctrl_t * const p_ctrl, int32_t * const value);
-fsp_err_t RM_MOTOR_120_DEGREE_ExtBrake(motor_ctrl_t * const p_ctrl,uint16_t mask);
-
+fsp_err_t RM_MOTOR_120_DEGREE_ExtBrake(motor_ctrl_t * const p_ctrl,uint16_t value);
+fsp_err_t RM_MOTOR_120_DEGREE_ExtBrakeStop(motor_ctrl_t * const p_ctrl);
+fsp_err_t RM_MOTOR_120_DEGREE_DriverInitFinished(motor_ctrl_t * const p_ctrl,uint8_t *result);
 
 /*******************************************************************************************************************//**
  * @} (end addtogroup MOTOR_120_DEGREE)

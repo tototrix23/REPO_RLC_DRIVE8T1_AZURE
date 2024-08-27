@@ -61,6 +61,21 @@ return_t init_mode_process(void) {
         return X_RET_OK;
     }
 
+   /* motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    motors_instance.motors[0]->motor_ctrl_instance->p_api->brake(motors_instance.motors[0]->motor_ctrl_instance->p_ctrl,0);
+    motors_instance.motors[1]->motor_ctrl_instance->p_api->brake(motors_instance.motors[1]->motor_ctrl_instance->p_ctrl,0);
+    while(1)
+    {
+        motors_instance.motors[0]->motor_ctrl_instance->p_api->brake(motors_instance.motors[0]->motor_ctrl_instance->p_ctrl,2200);
+        tx_thread_sleep(100);
+        motors_instance.motors[0]->motor_ctrl_instance->p_api->brake(motors_instance.motors[0]->motor_ctrl_instance->p_ctrl,2550);
+        tx_thread_sleep(100);
+        motors_instance.motors[0]->motor_ctrl_instance->p_api->brake(motors_instance.motors[0]->motor_ctrl_instance->p_ctrl,2900);
+        tx_thread_sleep(100);
+
+    }*/
+
+
     //----------------------------------------------------------------------------------------------
     // Arrêt des moteurs
     //----------------------------------------------------------------------------------------------
@@ -86,6 +101,8 @@ return_t init_mode_process(void) {
     CHECK_STOP_REQUEST();
     if(ret != X_RET_OK)
         MOTOR_SET_ERROR_EVENT_AND_RETURN(MOTOR_INIT_MODE,ret);
+
+
     //----------------------------------------------------------------------------------------------
     // Recherche bande mère haute
     //----------------------------------------------------------------------------------------------
