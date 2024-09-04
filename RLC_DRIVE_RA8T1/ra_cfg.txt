@@ -1403,3 +1403,8 @@ FSP Configuration
     Symbol: g_emergency_mutex
     Priority inheritance: Enabled
     
+  Object "g_mutex_motor_error_sources Mutex"
+    Name: Motor Error Sources Mutex
+    Symbol: g_mutex_motor_error_sources
+    Priority inheritance: Enabled
+    

@@ -63,8 +63,7 @@ void motor_itoh_brake_init(void)
     memset(ptr,0x00,sizeof(motor_profil_t));
     ptr->initialised = MOTOR_PROFIL_INITIALISED;
     c_linked_list_init(&ptr->sequences.error);
-    c_linked_list_init(&ptr->sequences.off_no_brake);
-    c_linked_list_init(&ptr->sequences.off_brake);
+    c_linked_list_init(&ptr->sequences.off);
 
     //=====================================================================
 	// configuration et identification du moteur
@@ -147,19 +146,8 @@ void motor_itoh_brake_init(void)
     //=====================================================================
 	c_linked_list_append(&ptr->sequences.error,phase_brake_full);
 
-	// OFF NO BRAKE
-    c_linked_list_append(&ptr->sequences.off_no_brake,phase_off_no_brake);
-
-    // OFF BRAKE
-    C_SALLOC(sizeof(motor_phase_t),(void**)&phase);
-    memset(phase,0x00,sizeof(motor_phase_t));
-    phase->condition_timeout_ms = 0;
-    phase->next_condition = MOTOR_NEXT_CONDITION_NONE;
-    phase->params_motors[0].mode = MOTOR_BRAKE_MODE;
-    phase->params_motors[0].brake.percent = 100;//0x80
-    phase->params_motors[1].mode = MOTOR_BRAKE_MODE;
-    phase->params_motors[1].brake.percent = 100;//0x80;
-    c_linked_list_append(&ptr->sequences.off_brake,phase);
+	// OFF
+    c_linked_list_append(&ptr->sequences.off,phase_off_no_brake);
 
     //=====================================================================
     // initialisation des paramètres du mode manuel

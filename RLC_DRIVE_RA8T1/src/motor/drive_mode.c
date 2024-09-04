@@ -13,6 +13,7 @@
 #include <motor/drive_process/drive_sequence.h>
 #include <system_status/system_status.h>
 #include <exchanged_data/exchanged_data.h>
+#include <motor/errors/motor_error_sources.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -20,21 +21,37 @@
 
 drive_control_t drive_control;
 
+
+void motor_check_fault_pins(void)
+{
+    bsp_io_level_t mot1_fault;
+    bsp_io_level_t mot2_fault;
+    R_IOPORT_PinRead(&g_ioport_ctrl, IO_MOT1_FAULT,&mot1_fault );
+    R_IOPORT_PinRead(&g_ioport_ctrl, IO_MOT2_FAULT,&mot2_fault );
+    if(mot1_fault == 0)
+        motor_error_sources_set_driversH();
+    if(mot2_fault == 0)
+        motor_error_sources_set_driversL();
+}
+
 bool_t drive_stop_request(void)
 {
+
+    motor_check_fault_pins();
+
    if(drive_control.stop_order == TRUE)
    {
        motor_profil_t *ptr = &motors_instance.profil;
        sequence_result_t sequence_result;
-       motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+       motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
        drive_control.running = FALSE;
        return TRUE;
    }
-   else if(flag_overcurrent_vm==TRUE)
+   else if(motor_error_sources_is_error() == TRUE)
    {
        motor_profil_t *ptr = &motors_instance.profil;
        sequence_result_t sequence_result;
-       motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+       motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
        drive_control.running = FALSE;
        set_drive_mode(MOTOR_ERROR_MODE);
        return TRUE;

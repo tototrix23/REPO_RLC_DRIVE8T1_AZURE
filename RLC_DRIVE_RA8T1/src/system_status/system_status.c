@@ -8,13 +8,13 @@
 #include <vee/vee.h>
 #include <exchanged_data/exchanged_data.h>
 #include <system_status/system_status.h>
-bool_t flag_overcurrent_vm;
-//st_system_status_t system_inst;
+
+
 
 void system_status_init(void)
 {
     tx_mutex_get(&g_mutex_system_status,TX_WAIT_FOREVER);
-    flag_overcurrent_vm = FALSE;
+    //motor_emergency_init();
     st_system_status_t sys_status;
     memset(&sys_status,0x00,sizeof(st_system_status_t));
     exchdat_set_system_status(sys_status);
@@ -59,7 +59,7 @@ void system_status_clear_motor(void)
     {
         tx_mutex_get(&g_mutex_system_status,TX_WAIT_FOREVER);
         LOG_I(LOG_STD,"Reset des erreurs moteur");
-        flag_overcurrent_vm = FALSE;
+        //motor_emergency_init();
         st_system_status_t sys_status = exchdat_get_system_status();
         memset(&sys_status.motor,0x00,sizeof(st_system_motor_status_t));
         exchdat_set_system_status(sys_status);

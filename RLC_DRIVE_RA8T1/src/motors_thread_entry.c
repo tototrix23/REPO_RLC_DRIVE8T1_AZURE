@@ -11,7 +11,7 @@
 #include <system_status/system_status.h>
 #include <motor/config_spi/config_spi.h>
 #include <motor/check/motor_check.h>
-#include <motor/emergency/emergency.h>
+#include <motor/errors/motor_error_sources.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -27,15 +27,9 @@ void g_poe_overcurrent(poeg_callback_args_t *p_args)
     if (NULL != p_args)
     {
         R_POEG_Reset(g_poeg0.p_ctrl);
-        // Desactivation des drivers moteurs
-        R_IOPORT_PinWrite(&g_ioport_ctrl, IO_VM_SWITCH_CMD,BSP_IO_LEVEL_LOW );
-        R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT1_ENABLE,BSP_IO_LEVEL_LOW );
-        R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT2_ENABLE,BSP_IO_LEVEL_LOW );
 
         // Flag indiquant le défaut
-        flag_overcurrent_vm = TRUE;
-
-        motor_emergency_set_overcurrent();
+        motor_error_sources_set_overcurrent();
     }
 }
 
@@ -70,6 +64,13 @@ void motors_thread_entry(void)
         tx_thread_sleep(1);
     }*/
 
+
+    // Initialisation des drivers moteurs
+
+
+
+
+
     // Analyse du status dans la VEE
     // Si le process moteur est déjà en défault alors on passe directement en mode MOTOR_ERROR_MODE
     if(system_status_check_error() == TRUE)
@@ -89,7 +90,9 @@ void motors_thread_entry(void)
         // Analyse des différents organes relatifs au pilotage des moteurs
         c_timespan_t ts1;
         h_time_update(&ts1);
-        ret = motor_check(TRUE);
+        st_system_motor_status_t sys_mot;
+        memset(&sys_mot,0x00,sizeof(st_system_motor_status_t));
+        ret = motor_check(&sys_mot);
         if(ret != X_RET_OK)
         {
             LOG_E(LOG_STD,"Check motors level1 NOK");

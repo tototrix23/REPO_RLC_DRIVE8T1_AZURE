@@ -1269,6 +1269,11 @@
       <property id="rtos.threadx.object.mutex.symbol" value="g_emergency_mutex"/>
       <property id="rtos.threadx.object.mutex.inherit" value="rtos.threadx.object.mutex.inherit.enabled"/>
     </object>
+    <object id="rtos.threadx.object.mutex.556517956">
+      <property id="rtos.threadx.object.mutex.name" value="Motor Error Sources Mutex"/>
+      <property id="rtos.threadx.object.mutex.symbol" value="g_mutex_motor_error_sources"/>
+      <property id="rtos.threadx.object.mutex.inherit" value="rtos.threadx.object.mutex.inherit.enabled"/>
+    </object>
     <context id="_hal.0">
       <stack module="module.driver.ioport_on_ioport.0"/>
       <stack module="module.middleware.rm_threadx_port.0"/>

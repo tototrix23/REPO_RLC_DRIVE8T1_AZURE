@@ -51,7 +51,9 @@ void manual_mode_process(void) {
 
     // Routine pour vérifier la présence de défaut éléctrique sur la partie moteur.
     // Si une erreur éléctrique est présente alors le mode manuel est inactif.
-    return_t ret = motor_check(FALSE);
+    st_system_motor_status_t sys_mot;
+    memset(&sys_mot,0x00,sizeof(st_system_motor_status_t));
+    return_t ret = motor_check(&sys_mot);
     while(ret != X_RET_OK)
     {
 
@@ -60,15 +62,15 @@ void manual_mode_process(void) {
         if(ts_elasped)
         {
             h_time_update(&ts);
-            ret = motor_check(FALSE);
+            ret = motor_check(&sys_mot);
         }
         tx_thread_sleep(1);
     }
 
 
     bool_t end = FALSE;
-    motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-    current_list = &ptr->sequences.off_no_brake;
+    motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    current_list = &ptr->sequences.off;
 
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,0);
     motors_instance.motorL->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,0);
@@ -152,9 +154,9 @@ void manual_mode_process(void) {
             }
             else
             {
-                LOG_D(LOG_STD,"off_brake");
-                motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
-                current_list = &ptr->sequences.off_brake;
+                LOG_D(LOG_STD,"off");
+                motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                current_list = &ptr->sequences.off;
             }
         }
 

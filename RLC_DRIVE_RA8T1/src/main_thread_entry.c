@@ -20,7 +20,6 @@
 #include <remotectrl/remotectrl.h>
 #include <motor/motor.h>
 #include <motor/config_spi/config_spi.h>
-#include <motor/emergency/emergency.h>
 
 #include <adc/adc.h>
 
@@ -153,7 +152,7 @@ void main_thread_entry(void)
             //LOG_D(LOG_STD,"%lu mV / %lu mA / %lu mA /%lu mA",adc_snapshot.vin,adc_snapshot.iin,adc_snapshot.mot1_iu,adc_snapshot.mot1_iw);
         }
 
-        if(motor_emergency_is_error())
+        /*if(motor_emergency_is_error())
         {
              emergency_src_t emergency_data = motor_emergency_get_data();
              if(emergency_data.bits.motor1_fault)
@@ -174,7 +173,7 @@ void main_thread_entry(void)
                   motor_emergency_init();
               }
 
-        }
+        }*/
 
         tx_thread_sleep (1);
     }

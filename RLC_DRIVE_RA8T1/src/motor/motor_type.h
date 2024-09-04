@@ -118,8 +118,7 @@ typedef struct st_motor_profil_t
     struct
     {
     	c_linked_list_t error;
-    	c_linked_list_t off_no_brake;
-    	c_linked_list_t off_brake;
+    	c_linked_list_t off;
 
         struct
         {

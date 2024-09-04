@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <hal_data.h>
 #include <_core/c_common.h>
-
+#include <_hal/h_motors/h_drv8323s/h_drv8323s.h>
 typedef struct st_system_motor_status_t
 {
    union
@@ -26,8 +26,22 @@ typedef struct st_system_motor_status_t
            bool_t config_driver_l :1;
            bool_t fsp_h :1;
            bool_t fsp_l :1;
+           bool_t fault_driver_h : 1;
+           bool_t fault_driver_l : 1;
        }bits;
    }error_lvl1;
+
+   struct
+   {
+       DRV8323S_FAULT_STATUS1_REG status1;
+       DRV8323S_VGS_STATUS2_REG status2;
+   }error_lvl1_motorH;
+
+   struct
+   {
+       DRV8323S_FAULT_STATUS1_REG status1;
+       DRV8323S_VGS_STATUS2_REG status2;
+   }error_lvl1_motorL;
 
    union
    {
@@ -63,8 +77,7 @@ typedef struct st_system_status_t
     st_system_motor_status_t motor;
 }st_system_status_t;
 
-extern bool_t flag_overcurrent_vm;
-//extern st_system_t system_inst;
+
 
 void system_status_init(void);
 void system_status_set_motor(st_system_motor_status_t *ptr_value);

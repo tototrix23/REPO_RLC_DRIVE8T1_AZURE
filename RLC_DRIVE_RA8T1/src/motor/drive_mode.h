@@ -13,7 +13,7 @@
 #include <_core/c_common.h>
 #include <return_codes.h>
 #include <system_status/system_status.h>
-
+#include <motor/errors/motor_error_sources.h>
 
 #define CHECK_STOP_REQUEST()              {\
                                           if(drive_stop_request())\
@@ -24,11 +24,13 @@
                                           }\
 
 #define CHECK_STOP_REQUEST_NESTED()       {\
-                                             if(drive_control.stop_order == TRUE || flag_overcurrent_vm == TRUE) return F_RET_MOTOR_DRIVE_CANCELLED;\
+                                             motor_check_fault_pins();\
+                                             if(drive_control.stop_order == TRUE || motor_error_sources_is_error() == TRUE) return F_RET_MOTOR_DRIVE_CANCELLED;\
                                           }\
 
 #define CHECK_STOP_REQUEST_NESTED_CPLX()  {\
-                                          if(drive_control.stop_order == TRUE || flag_overcurrent_vm == TRUE) \
+                                          motor_check_fault_pins();\
+                                          if(drive_control.stop_order == TRUE || motor_error_sources_is_error() == TRUE) \
                                              {\
                                               return_motor_cplx_update(&ret,F_RET_MOTOR_DRIVE_CANCELLED);\
                                               return ret;\
@@ -38,6 +40,7 @@
 
 #define MOTOR_SET_ERROR_EVENT_AND_RETURN(mode,event) {\
                                                         drive_control.running = FALSE;\
+                                                        motor_error_sources_set_firmware(event);\
                                                         set_drive_mode(MOTOR_ERROR_MODE);\
                                                         return event;\
                                                      }\
@@ -64,6 +67,6 @@ extern drive_control_t drive_control;
 
 bool_t drive_stop_request(void);
 return_t set_drive_mode(drive_mode_t mode);
-
+void motor_check_fault_pins(void);
 
 #endif /* APPLICATION_MOTOR_DRIVING_MODE_H_ */

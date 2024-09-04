@@ -16,7 +16,8 @@
 #include <motor/motors_errors.h>
 #include <motor/check/motor_check.h>
 #include <adc/adc.h>
-
+#include <motor/errors/motor_error_sources.h>
+#include <motor/config_spi/config_spi.h>
 #include <return_codes.h>
 
 #undef  LOG_LEVEL
@@ -31,12 +32,13 @@ static return_motor_cplx_t error_test_3(void);
 static return_t error_loop(void);
 static void error_log_results(st_system_motor_status_t *ptr_system_motor);
 static void scroll_stop(void);
+return_t analyze_error_drivers_source(motor_error_sources_t *str);
 
 static void scroll_stop(void)
 {
     motor_profil_t *ptr = &motors_instance.profil;
     sequence_result_t sequence_result;
-    motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
 }
 
 static return_motor_cplx_t error_test_1H(void)
@@ -195,7 +197,7 @@ static return_motor_cplx_t error_test_2(void)
 
 
 
-    motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     motor_drive_sequence(&ptr->sequences.error_check.test2,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
 
     while(1)
@@ -222,7 +224,7 @@ static return_motor_cplx_t error_test_2(void)
                     {
                        LOG_W(LOG_STD,"Error index %d -> FSP 0x%02x",index,mot->error);
                        mot->error = 0;
-                       motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                       motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
                        delay_ms(200);
                        h_time_update(&ts_pulses[0]);
                        h_time_update(&ts_pulses[1]);
@@ -354,7 +356,7 @@ static return_motor_cplx_t error_test_3(void)
 
 
 
-    motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     motor_drive_sequence(&ptr->sequences.error_check.test2,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
 
     while(1)
@@ -381,7 +383,7 @@ static return_motor_cplx_t error_test_3(void)
                     {
                        LOG_W(LOG_STD,"Error index %d -> FSP 0x%02x",index,mot->error);
                        mot->error = 0;
-                       motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                       motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
                        delay_ms(200);
                        h_time_update(&ts_pulses[0]);
                        h_time_update(&ts_pulses[1]);
@@ -541,12 +543,53 @@ static return_t error_loop(void)
     return ret;
 }
 
+return_t analyze_error_drivers_source(motor_error_sources_t *str)
+{
+    return_t ret = X_RET_OK;
+    if(str->flags.bits.motorH_fault == 1)
+    {
+        ret = h_drv8323s_read_status_registers(&drv_mot1);
+        if(ret != X_RET_OK) return ret;
 
+        str->motorH_bits.status1.value = drv_mot1.registers.fault_status1.value;
+        str->motorH_bits.status2.value = drv_mot1.registers.vgs_status2.value;
+        h_drv8323s_clear_fault(&drv_mot1);
+    }
+
+    if(str->flags.bits.motorL_fault == 1)
+    {
+        ret = h_drv8323s_read_status_registers(&drv_mot2);
+        if(ret != X_RET_OK) return ret;
+        str->motorL_bits.status1.value = drv_mot2.registers.fault_status1.value;
+        str->motorL_bits.status2.value = drv_mot2.registers.vgs_status2.value;
+        h_drv8323s_clear_fault(&drv_mot2);
+    }
+    return ret;
+}
 
 return_t error_mode_process(void)
 {
     drive_control.running = TRUE;
     return_t ret = X_RET_OK;
+
+    // La première opération consiste à couper le pilotage des moteurs
+    motor_profil_t *ptr = &motors_instance.profil;
+    sequence_result_t sequence_result;
+    motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+
+    // Sauvegarde du vecteur ayant entrainé un passage en mode erreur
+    motor_error_sources_t error_sources_save;
+    error_sources_save = motor_error_sources_get_snapshot();
+    // RAZ du vecteur des sources d'erreurs. Ce même vecteur sera utilisé pour les futures detection en mode "erreur"
+    motor_error_sources_init();
+    // Analyse du vecteur source pour récupérer les éventuelles bits de défaut dans les drivers
+    analyze_error_drivers_source(&error_sources_save);
+    // RAZ des indicateurs d'erreur sur les moteurs
+    h_drv8323s_clear_fault(&drv_mot1);
+    h_drv8323s_clear_fault(&drv_mot2);
+    motor_check_fault_pins();
+
+    delay_ms(100);
 
     // Verification pour savoir si le mode erreur demarre avec une erreur déjà présente
     // Dans ce cas seul le mode manuel peut acquitter le défaut et il n'est pas souhaitable de relancer
@@ -564,7 +607,7 @@ return_t error_mode_process(void)
     memset(&sys_mot,0x00,sizeof(sys_mot));
 
     LOG_I(LOG_STD,"Checking motors level1...");
-    ret = motor_check(TRUE);
+    ret = motor_check(&sys_mot);
     if(ret != X_RET_OK)
     {
         LOG_E(LOG_STD,"Check motors level1 NOK")
@@ -580,11 +623,10 @@ return_t error_mode_process(void)
 
 
     LOG_I(LOG_STD,"Checking motors level2...");
-    volatile return_motor_cplx_t retcplx = error_test_1H();
-    CHECK_STOP_REQUEST();
-    if(flag_overcurrent_vm == TRUE)
+    return_motor_cplx_t retcplx = error_test_1H();
+    //CHECK_STOP_REQUEST();
+    if(motor_check_process_error_sources(&sys_mot) != X_RET_OK)
     {
-       sys_mot.error_lvl1.bits.overcurrent_vm = TRUE;
        error_log_results(&sys_mot);
        system_status_set_motor(&sys_mot);
        error_loop();
@@ -608,9 +650,8 @@ return_t error_mode_process(void)
 
     retcplx = error_test_1L();
     CHECK_STOP_REQUEST();
-    if(flag_overcurrent_vm == TRUE)
+    if(motor_check_process_error_sources(&sys_mot) != X_RET_OK)
     {
-       sys_mot.error_lvl1.bits.overcurrent_vm = TRUE;
        error_log_results(&sys_mot);
        system_status_set_motor(&sys_mot);
        error_loop();
@@ -642,7 +683,7 @@ return_t error_mode_process(void)
         retcplx = error_test_2();
         CHECK_STOP_REQUEST();
 
-        if(flag_overcurrent_vm == TRUE)
+        if(motor_check_process_error_sources(&sys_mot) != X_RET_OK)
         {
            sys_mot.error_lvl1.bits.overcurrent_vm = TRUE;
            error_log_results(&sys_mot);
@@ -700,7 +741,7 @@ return_t error_mode_process(void)
         LOG_I(LOG_STD,"Checking motors level3 advanced...");
         retcplx = error_test_3();
         CHECK_STOP_REQUEST();
-        if(flag_overcurrent_vm == TRUE)
+        if(motor_check_process_error_sources(&sys_mot) != X_RET_OK)
         {
            sys_mot.error_lvl1.bits.overcurrent_vm = TRUE;
            error_log_results(&sys_mot);

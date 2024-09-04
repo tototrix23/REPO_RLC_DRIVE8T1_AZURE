@@ -10,7 +10,7 @@
 #include <_hal/h_time/h_time.h>
 #include "adc.h"
 #include <motor/motor.h>
-#include <motor/emergency/emergency.h>
+#include <motor/errors/motor_error_sources.h>
 #include <motor/config_spi/config_spi.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
@@ -430,14 +430,7 @@ void adc_mot_callback(adc_callback_args_t *p_args)
 
     uint16_t data[5];
 
-    bsp_io_level_t mot1_fault;
-    bsp_io_level_t mot2_fault;
-    R_IOPORT_PinRead(&g_ioport_ctrl, IO_MOT1_FAULT,&mot1_fault );
-    R_IOPORT_PinRead(&g_ioport_ctrl, IO_MOT2_FAULT,&mot2_fault );
-    if(mot1_fault == 0)
-        motor_emergency_set_motor1_fault();
-    if(mot2_fault == 0)
-        motor_emergency_set_motor2_fault();
+
 
 
     if(p_instance == &g_motor_120_driver0)

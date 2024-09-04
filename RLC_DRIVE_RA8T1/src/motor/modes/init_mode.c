@@ -53,7 +53,9 @@ return_t init_mode_process(void) {
     //----------------------------------------------------------------------------------------------
     // Check de la partie moteur
     //----------------------------------------------------------------------------------------------
-    ret = motor_check(FALSE);
+    st_system_motor_status_t sys_mot;
+    memset(&sys_mot,0x00,sizeof(st_system_motor_status_t));
+    ret = motor_check(&sys_mot);
     if(ret != X_RET_OK)
     {
         drive_control.running=FALSE;
@@ -79,7 +81,7 @@ return_t init_mode_process(void) {
     //----------------------------------------------------------------------------------------------
     // Arrêt des moteurs
     //----------------------------------------------------------------------------------------------
-    motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     end = FALSE;
     while(!end)
     {
@@ -174,7 +176,7 @@ static return_t init_strectch(void)
         if(ts_elasped == TRUE)
         {
             // Arrêt des moteurs
-            motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+            motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
             // Macro d'enregistrement d'erreur et code de retour
             MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_DAMAGED_PANEL,F_RET_MOTOR_INIT_DAMAGED_PANELS);
 
@@ -231,7 +233,7 @@ static return_t init_strectch(void)
             else if(expected_errorH_ok==-1 || expected_errorL_ok==-1)
             {
                 LOG_E(LOG_STD,"motorH: 0x%X ,motorL: 0x%X",motors_instance.motorH->error,motors_instance.motorL->error);
-                motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
                 // Macro d'enregistrement d'erreur et code de retour
                 MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_GENERIC,F_RET_MOTOR_INIT_STRETCH);
             }
@@ -239,7 +241,7 @@ static return_t init_strectch(void)
         //
         tx_thread_sleep(1);
     }
-    motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
 
     return ret;
 }
@@ -308,7 +310,7 @@ static return_t init_enrl(void)
         {
             // Arrêt des moteurs
             LOG_D(LOG_STD,"enrl timeout");
-            motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+            motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
             // Macro d'enregistrement d'erreur et code de retour
             MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_TIMEOUT_SEARCHING_BASE_H,F_RET_MOTOR_INIT_TIMEOUT_BASE_H);
         }
@@ -323,13 +325,13 @@ static return_t init_enrl(void)
                    (motors_instance.motorH->error == MOTOR_ERROR_BEMF_TIMEOUT))
 
                 {
-                    motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                    motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
                     LOG_D(LOG_STD,"motorH: 0x%X",motors_instance.motorH->error);
                     end = TRUE;
                 }
                 else
                 {
-                    motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                    motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
                     LOG_E(LOG_STD,"!!! motorH: 0x%X",motors_instance.motorH->error);
                     MOTORS_SET_ERROR_AND_RETURN(MOTORS_ERROR_GENERIC,F_RET_MOTOR_INIT_UNEXPECTED_ERROR);
                 }
@@ -350,7 +352,7 @@ static return_t init_enrl(void)
             //LOG_D(LOG_STD,"p %d",pulsesH2);
             if(abs(pulsesH2 - pulsesH1) <= 5)
             {
-                motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
                 LOG_D(LOG_STD,"enrL stop condition");
                 end=TRUE;
             }
@@ -362,13 +364,13 @@ static return_t init_enrl(void)
         uint16_t value_iin = adc_snapshot.iin;
         if(value_iin > ptr->current_stop)
         {
-            motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+            motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
             end=TRUE;
             LOG_D(LOG_STD,"current %d mA",value_iin);
         }
         tx_thread_sleep(1);
     }
-    motor_drive_sequence(&ptr->sequences.off_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     return ret;
 }
 
@@ -381,7 +383,7 @@ static void scroll_stop(void)
 {
     motor_profil_t *ptr = &motors_instance.profil;
     sequence_result_t sequence_result;
-    motor_drive_sequence(&ptr->sequences.off_no_brake,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+    motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
     motor_drive_sequence(&ptr->sequences.init.end,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
 }
 

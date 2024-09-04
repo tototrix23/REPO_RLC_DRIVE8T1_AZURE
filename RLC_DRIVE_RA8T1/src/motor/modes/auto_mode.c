@@ -344,7 +344,6 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
    {
        CHECK_STOP_REQUEST_NESTED_CPLX();
 
-
        // Gestion d'un timeout sur le changement d'affiche
        uint32_t timeout_error;
        if(init_phase == TRUE)
