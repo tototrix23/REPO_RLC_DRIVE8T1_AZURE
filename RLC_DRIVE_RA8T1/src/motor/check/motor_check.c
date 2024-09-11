@@ -123,10 +123,12 @@ return_t motor_check(st_system_motor_status_t *sys_mot)
 
 
     // Ouverture du FSP
+    motor_check_fault_pins();
     motor_init_fsp();
+    motor_check_fault_pins();
     motors_instance.motorH->motor_ctrl_instance->p_api->configSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorH);
     motors_instance.motorL->motor_ctrl_instance->p_api->configSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorL);
-
+    motor_check_fault_pins();
     /*R_IOPORT_PinWrite(&g_ioport_ctrl, IO_12V_EN,BSP_IO_LEVEL_HIGH);
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_EN_12V_HALL1,BSP_IO_LEVEL_HIGH);
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_EN_12V_HALL2,BSP_IO_LEVEL_HIGH);
