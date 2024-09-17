@@ -163,6 +163,8 @@
             <slot name="IRQ18" secure="true"/>
             <slot name="IRQ19" secure="true"/>
             <slot name="IRQ20" secure="true"/>
+            <slot name="IRQ21" secure="true"/>
+            <slot name="IRQ22" secure="true"/>
         </peripheral>
     </partition>
 </azone>

@@ -393,6 +393,11 @@ FSP Configuration
     Code Flash Programming Enable: Disabled
     Data Flash Programming Enable: Enabled
     
+  Module "I2C Master (r_sci_b_i2c)"
+    Parameter Checking: Default (BSP)
+    DTC on Transmission and Reception: Disabled
+    10-bit slave addressing: Disabled
+    
   Azure RTOS ThreadX
     General: Custom tx_user.h: 
     General: Error Checking: Enabled
@@ -574,6 +579,20 @@ FSP Configuration
         Flash Ready Interrupt Priority: Priority 9
         Flash Error Interrupt Priority: Priority 9
         
+    Instance "g_i2c_sensor I2C Master (r_sci_b_i2c)"
+      Name: g_i2c_sensor
+      Channel: 1
+      Slave Address : 0x44
+      Address Mode: 7-Bit
+      Rate: Standard
+      SDA Output Delay (nano seconds): 300
+      Noise Filter Clock Select: The on-chip baud rate generator source clock divided by 1
+      Clock Source: PCLK
+      Bit Rate Modulation: Enable
+      Callback: i2c_sensor_callback
+      Interrupt Priority Level: Priority 12
+      RX Interrupt Priority Level [Only used when DTC is enabled]: Disabled
+      
   Thread "Main Thread"
     Symbol: main_thread
     Name: Main Thread

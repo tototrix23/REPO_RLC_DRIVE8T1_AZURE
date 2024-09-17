@@ -316,6 +316,10 @@
       <description>Virtual EEPROM</description>
       <originalPack>Renesas.RA.5.3.0.pack</originalPack>
     </component>
+    <component apiversion="" class="HAL Drivers" condition="" group="all" subgroup="r_sci_b_i2c" variant="" vendor="Renesas" version="5.3.0">
+      <description>SCI_B I2C Master Interface</description>
+      <originalPack>Renesas.RA.5.3.0.pack</originalPack>
+    </component>
   </raComponentSelection>
   <raElcConfiguration/>
   <raIcuConfiguration/>
@@ -1227,6 +1231,20 @@
       <property id="module.driver.flash.ipl" value="board.icu.common.irq.priority9"/>
       <property id="module.driver.flash.err_ipl" value="board.icu.common.irq.priority9"/>
     </module>
+    <module id="module.driver.i2c_on_sci_b_i2c.1305472037">
+      <property id="module.driver.i2c.name" value="g_i2c_sensor"/>
+      <property id="module.driver.i2c.channel" value="1"/>
+      <property id="module.driver.i2c.slave" value="0x44"/>
+      <property id="module.driver.i2c.addr_mode" value="module.driver.i2c.addr_mode.addr_mode_7bit"/>
+      <property id="module.driver.i2c.rate" value="module.driver.i2c.rate.rate_standard"/>
+      <property id="module.driver.i2c.sda_delay" value="300"/>
+      <property id="module.driver.i2c.snfr" value="module.driver.i2c.snfr.div_one"/>
+      <property id="module.driver.i2c.clock_source" value="module.driver.i2c.clock_source.pclk"/>
+      <property id="module.driver.i2c.bitrate_modulation" value="module.driver.i2c.bitrate_modulation.true"/>
+      <property id="module.driver.i2c.p_callback" value="i2c_sensor_callback"/>
+      <property id="module.driver.i2c.ipl" value="board.icu.common.irq.priority12"/>
+      <property id="module.driver.i2c.rx_ipl" value="_disabled"/>
+    </module>
     <object id="rtos.threadx.object.queue.146954789">
       <property id="rtos.threadx.object.queue.name" value="Log Queue"/>
       <property id="rtos.threadx.object.queue.symbol" value="g_queue_log"/>
@@ -1290,6 +1308,7 @@
       <stack module="module.middleware.rm_vee_flash.1590955227">
         <stack module="module.driver.flash_on_flash_hp.255943238" requires="module.middleware.rm_vee_flash.requires.flash"/>
       </stack>
+      <stack module="module.driver.i2c_on_sci_b_i2c.1305472037"/>
     </context>
     <context id="rtos.threadx.thread.1290712810">
       <property id="_symbol" value="main_thread"/>
@@ -1404,6 +1423,11 @@
     </config>
     <config id="config.driver.icu">
       <property id="config.driver.icu.param_checking_enable" value="config.driver.icu.param_checking_enable.bsp"/>
+    </config>
+    <config id="config.driver.sci_b_i2c">
+      <property id="config.driver.sci_b_i2c.param_checking_enable" value="config.driver.sci_b_i2c.param_checking_enable.bsp"/>
+      <property id="config.driver.sci_b_i2c.dtc_enable" value="config.driver.sci_b_i2c.dtc_enable.disabled"/>
+      <property id="config.driver.sci_b_i2c.addr_mode_10_bit_enable" value="config.driver.sci_b_i2c.addr_mode_10_bit_enable.disabled"/>
     </config>
     <config id="config.middleware.motor_120_control_hall">
       <property id="config.middleware.motor_120_control_hall.param_checking_enable" value="config.middleware.motor_120_control_hall.param_checking_enable.bsp"/>

@@ -34,7 +34,7 @@
 #define R_LIB_LOG_LEVEL               LOG_LVL_DEBUG
 
 #define USE_SALLOC                    1
-#define SALLOC_SIZE_BYTES             5000U//4000U
+#define SALLOC_SIZE_BYTES             4000U//4000U
 
 
 //========================================================================

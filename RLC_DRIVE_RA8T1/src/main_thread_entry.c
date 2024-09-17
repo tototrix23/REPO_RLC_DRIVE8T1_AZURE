@@ -20,7 +20,7 @@
 #include <remotectrl/remotectrl.h>
 #include <motor/motor.h>
 #include <motor/config_spi/config_spi.h>
-
+#include <sht40_sensor/sht40.h>
 #include <adc/adc.h>
 
 #undef  LOG_LEVEL
@@ -118,10 +118,29 @@ void main_thread_entry(void)
     // Initialisation de la VEE (EEPROM virtuelle)
     vee_init();
 
-    tx_thread_resume(&motors_thread);
 
 
-    set_drive_mode(MOTOR_INIT_MODE);
+
+
+    volatile float temperature,rh;
+
+    do
+    {
+        ret = sht40_read(&temperature,&rh);
+        if(ret != X_RET_OK)
+        {
+            LOG_E(LOG_STD,"error");
+        }
+        else
+        {
+            LOG_I(LOG_STD,"temp=%0.2f  rh=%0.2f",temperature,rh);
+        }
+        tx_thread_sleep(1000);
+    }while(1);
+    /*tx_thread_resume(&motors_thread);
+
+
+    set_drive_mode(MOTOR_INIT_MODE);*/
 
 
 

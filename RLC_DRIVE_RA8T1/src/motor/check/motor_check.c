@@ -60,26 +60,25 @@ return_t motor_check(st_system_motor_status_t *sys_mot)
 {
     return_t ret = X_RET_OK;
 
-    //st_system_motor_status_t sys_mot;
-    //memset(&sys_mot,0x00,sizeof(st_system_motor_status_t));
+    // Désactivation des drivers moteur
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT1_ENABLE,BSP_IO_LEVEL_HIGH );
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT2_ENABLE,BSP_IO_LEVEL_HIGH );
+    // Fermeture du FSP
+    motor_deinit_fsp();
+    delay_ms(100);
 
     motor_check_fault_pins();
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_VM_SWITCH_CMD,BSP_IO_LEVEL_HIGH );
-    motor_check_fault_pins();
     // Desactivation des drivers moteurs
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_12V_EN,BSP_IO_LEVEL_LOW);
-    motor_check_fault_pins();
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_EN_12V_HALL1,BSP_IO_LEVEL_LOW);
-    motor_check_fault_pins();
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_EN_12V_HALL2,BSP_IO_LEVEL_LOW);
-    motor_check_fault_pins();
     // RAZ de la structure de gestion des erreurs matérielles (OVERCURRENT et FAULT moteurs)
     motor_error_sources_init();
     motor_check_fault_pins();
     // Activation des enable des moteurs. Normalement inutile car dans la mesure où on utilise la pin FAULT,
     // il n'est plus nécessaire de couper les enable en urgence lors d'un défaut.
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT1_ENABLE,BSP_IO_LEVEL_HIGH );
-    motor_check_fault_pins();
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT2_ENABLE,BSP_IO_LEVEL_HIGH );
     delay_ms(50);
     motor_check_fault_pins();
@@ -92,6 +91,7 @@ return_t motor_check(st_system_motor_status_t *sys_mot)
         sys_mot->error_lvl1.bits.config_driver_l = TRUE;
     }
 
+    // Configuration du drivers haut
     ret = motor_config_spi(&drv_mot1);
     if(ret != X_RET_OK)
         sys_mot->error_lvl1.bits.config_driver_h = TRUE;
@@ -101,39 +101,36 @@ return_t motor_check(st_system_motor_status_t *sys_mot)
     if(ret != X_RET_OK)
         sys_mot->error_lvl1.bits.config_driver_l = TRUE;
 
-
+    // Si à ce stade nous avons déjà relevé une défaillance alors
+    // on coupe les drivers et on retourne une erreur
     if(sys_mot->error_lvl1.value != 0x00)
+    {
+        R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT1_ENABLE,BSP_IO_LEVEL_LOW );
+        R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT2_ENABLE,BSP_IO_LEVEL_LOW );
         return F_RET_MOTOR_CHECK_ERROR;
+    }
 
 
-    // Fermeture du FSP
-    //motor_deinit_fsp();
-    delay_ms(100);
+
     motor_check_fault_pins();
 
-
-
+    // Vérification des pins indiquant une défaillance sur la partie moteurs.
+    // Si une erreur est présente alors on coupe les drivers et on retourne une erreur
     if(motor_check_process_error_sources(sys_mot) != X_RET_OK)
     {
-        //R_IOPORT_PinWrite(&g_ioport_ctrl, IO_VM_SWITCH_CMD,BSP_IO_LEVEL_LOW );
-        //R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT1_ENABLE,BSP_IO_LEVEL_LOW );
-        //R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT2_ENABLE,BSP_IO_LEVEL_LOW );
+        R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT1_ENABLE,BSP_IO_LEVEL_LOW );
+        R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT2_ENABLE,BSP_IO_LEVEL_LOW );
         return F_RET_MOTOR_CHECK_ERROR;
     }
 
 
     // Ouverture du FSP
-    motor_check_fault_pins();
     motor_init_fsp();
-    motor_check_fault_pins();
     motors_instance.motorH->motor_ctrl_instance->p_api->configSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorH);
     motors_instance.motorL->motor_ctrl_instance->p_api->configSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,motors_instance.profil.cfg_motorL);
-    motor_check_fault_pins();
-    /*R_IOPORT_PinWrite(&g_ioport_ctrl, IO_12V_EN,BSP_IO_LEVEL_HIGH);
-    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_EN_12V_HALL1,BSP_IO_LEVEL_HIGH);
-    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_EN_12V_HALL2,BSP_IO_LEVEL_HIGH);
-    delay_ms(50);*/
 
+
+    // Activation et vérification du régulateur +12V
     delay_ms(50);
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_12V_EN,BSP_IO_LEVEL_HIGH);
     delay_ms(10);
@@ -144,6 +141,7 @@ return_t motor_check(st_system_motor_status_t *sys_mot)
     else
         sys_mot->error_lvl1.bits.vcc_12v  = FALSE;
 
+    // Activation et vérification du +12V pour le codeur du moteur H
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_EN_12V_HALL1,BSP_IO_LEVEL_HIGH);
     delay_ms(100);
 
@@ -158,7 +156,7 @@ return_t motor_check(st_system_motor_status_t *sys_mot)
     else
         sys_mot->error_lvl1.bits.vcc_hall_h = FALSE;
 
-
+    // Activation et vérification du +12V pour le codeur du moteur B
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_EN_12V_HALL2,BSP_IO_LEVEL_HIGH);
     delay_ms(100);
     adc_get_snapshot(&adc_snapshot);
@@ -173,16 +171,17 @@ return_t motor_check(st_system_motor_status_t *sys_mot)
 
 
 
-    //sys_mot.error_lvl1.bits.config_driver_l = TRUE;
-    //system_status_set_motor(&sys_mot);
-
+    // Si à ce stade nous avons déjà relevé une défaillance alors
+    // on coupe les drivers et on retourne une erreur
     if(sys_mot->error_lvl1.value != 0x0)
+    {
+        R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT1_ENABLE,BSP_IO_LEVEL_LOW );
+        R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT2_ENABLE,BSP_IO_LEVEL_LOW );
         return F_RET_MOTOR_CHECK_ERROR;
+    }
 
 
-
-
-
+    // Procédure de calibrage
     drv_mot1.registers.csa_control.bits.CSA_CAL_A=1;
     drv_mot1.registers.csa_control.bits.CSA_CAL_B=1;
     drv_mot1.registers.csa_control.bits.CSA_CAL_C=1;

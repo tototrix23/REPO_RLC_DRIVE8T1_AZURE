@@ -50,22 +50,13 @@ void motors_thread_entry(void)
     // Initialisation POEG
     R_POEG_Open(g_poeg0.p_ctrl, g_poeg0.p_cfg);
 
-    /*volatile fsp_err_t errfsp = R_GPT_Open(&g_timer_ballast_ctrl, &g_timer_ballast_cfg);
-    errfsp =  R_GPT_Start(&g_timer_ballast_ctrl);*/
-    /*tx_thread_sleep(20);
-    errfsp =  R_GPT_Stop(&g_timer_ballast_ctrl);*/
 
-    /*R_IOPORT_PinWrite(&g_ioport_ctrl, IO_VM_BALLAST_CMD,BSP_IO_LEVEL_HIGH);
-    tx_thread_sleep(10);
-    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_VM_BALLAST_CMD,BSP_IO_LEVEL_LOW);
-
-    while(1)
-    {
-        tx_thread_sleep(1);
-    }*/
 
 
     // Initialisation des drivers moteurs
+    ret = motor_config_spi_init();
+    ret = motor_config_spi(&drv_mot1);
+    ret = motor_config_spi(&drv_mot2);
 
 
 
@@ -106,51 +97,11 @@ void motors_thread_entry(void)
     }
 
 
-    /*
-    // Activation de l'alimentation du moteur
-    R_IOPORT_PinWrite(&g_ioport_ctrl, VM_CMD,BSP_IO_LEVEL_HIGH );
-    // Temporisation pour la stabilisation
-    delay_ms(1000);
-
-    ret = h_drv8316_read_all_registers(&drv_mot1);
-    drv_mot1.registers.ctrl2.bits.SLEW = 1;//3;
-    drv_mot1.registers.ctrl2.bits.PWM_MODE = 0;
-    drv_mot1.registers.ctrl4.bits.OCP_MODE = 0;
-    drv_mot1.registers.ctrl4.bits.OCP_DEG = 0;
-    drv_mot1.registers.ctrl4.bits.OCP_LVL = 0;
-    drv_mot1.registers.ctrl5.bits.CSA_GAIN = 0;
-    drv_mot1.registers.ctrl5.bits.EN_AAR = 0;
-    drv_mot1.registers.ctrl5.bits.EN_ASR = 0;
-    drv_mot1.registers.ctrl10.bits.DLY_TARGET = 0xB;//0x5;
-    drv_mot1.registers.ctrl10.bits.DLYCMP_EN = 1;
-    ret = h_drv8316_write_all_registers(&drv_mot1);
-    ret = h_drv8316_read_all_registers(&drv_mot1);
-
-    ret = h_drv8316_read_all_registers(&drv_mot2);
-    drv_mot2.registers.ctrl2.bits.SLEW = 3;
-    drv_mot2.registers.ctrl2.bits.PWM_MODE = 0;
-    drv_mot2.registers.ctrl4.bits.OCP_MODE = 0;
-    drv_mot2.registers.ctrl4.bits.OCP_DEG = 0;
-    drv_mot2.registers.ctrl4.bits.OCP_LVL = 0;
-    drv_mot2.registers.ctrl5.bits.CSA_GAIN = 0;
-    drv_mot2.registers.ctrl5.bits.EN_AAR = 0;
-    drv_mot2.registers.ctrl5.bits.EN_ASR = 0;
-    drv_mot2.registers.ctrl10.bits.DLY_TARGET = 0x5;
-    drv_mot2.registers.ctrl10.bits.DLYCMP_EN = 1;
-    ret = h_drv8316_write_all_registers(&drv_mot2);
-    ret = h_drv8316_read_all_registers(&drv_mot2);
-
-    delay_ms(50);*/
-
-
 
     // Demarrage de la boucle de traitement
     while (1)
     {
         drive_process();
         tx_thread_sleep (1);
-        //delay_ms(500);
-        //LOG_D(LOG_STD,"while motor");
-
     }
 }
