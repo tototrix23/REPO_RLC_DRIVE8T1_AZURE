@@ -84,7 +84,7 @@ FSP Configuration
   RA8T1 event data
   RA Common
     Main stack size (bytes): 0x1000
-    Heap size (bytes): 0x2000
+    Heap size (bytes): 0x4000
     MCU Vcc (mV): 3300
     Parameter checking: Disabled
     Assert Failures: Return FSP_ERR_ASSERTION
@@ -604,7 +604,7 @@ FSP Configuration
   Thread "Log Thread"
     Symbol: log_thread
     Name: Log Thread
-    Stack size (bytes): 4096
+    Stack size (bytes): 8192
     Priority: 3
     Auto start: Disabled
     Time slicing interval (ticks): 1
@@ -1380,6 +1380,40 @@ FSP Configuration
     Instance "g_elc Event Link Controller (r_elc)"
       Name: g_elc
       
+  Thread "Modem Thread"
+    Symbol: modem_thread
+    Name: Modem Thread
+    Stack size (bytes): 2048
+    Priority: 3
+    Auto start: Disabled
+    Time slicing interval (ticks): 1
+    
+    Instance "g_uart_modem UART (r_sci_b_uart)"
+      General: Name: g_uart_modem
+      General: Channel: 3
+      General: Data Bits: 8bits
+      General: Parity: None
+      General: Stop Bits: 1bit
+      Baud: Baud Rate: 1000000
+      Baud: Baud Rate Modulation: Disabled
+      Baud: Max Error (%): 5
+      Flow Control: CTS/RTS Selection: Hardware RTS
+      Flow Control: Software RTS Port: Disabled
+      Flow Control: Software RTS Pin: Disabled
+      Extra: Clock Source: Internal Clock
+      Extra: Start bit detection: Falling Edge
+      Extra: Noise Filter: Disable
+      Extra: Receive FIFO Trigger Level: Max
+      Extra: RS-485: DE Pin: Disable
+      Extra: RS-485: DE Pin Polarity: Active High
+      Extra: RS-485: DE Pin Assertion Time: 1
+      Extra: RS-485: DE Pin Negation Time: 1
+      Interrupts: Callback: modem_callback
+      Interrupts: Receive Interrupt Priority: Priority 3
+      Interrupts: Transmit Data Empty Interrupt Priority: Priority 12
+      Interrupts: Transmit End Interrupt Priority: Priority 12
+      Interrupts: Error Interrupt Priority: Priority 12
+      
   Object "g_queue_log Queue"
     Name: Log Queue
     Symbol: g_queue_log
@@ -1395,7 +1429,7 @@ FSP Configuration
     Name: JSON Queue
     Symbol: g_queue_json
     Message Size (Words): 1
-    Queue Size (Bytes): 20
+    Queue Size (Bytes): 40
     
   Object "g_mutex_spi Mutex"
     Name: SPI Mutex
@@ -1425,5 +1459,20 @@ FSP Configuration
   Object "g_mutex_motor_error_sources Mutex"
     Name: Motor Error Sources Mutex
     Symbol: g_mutex_motor_error_sources
+    Priority inheritance: Enabled
+    
+  Object "g_mutex_uartrx_modem Mutex"
+    Name: UartRx Mutex
+    Symbol: g_mutex_uartrx_modem
+    Priority inheritance: Enabled
+    
+  Object "g_modem_vars_mutex Mutex"
+    Name: Modem Var Mutex
+    Symbol: g_modem_vars_mutex
+    Priority inheritance: Enabled
+    
+  Object "g_flash_mutex Mutex"
+    Name: Flash Mutex
+    Symbol: g_flash_mutex
     Priority inheritance: Enabled
     

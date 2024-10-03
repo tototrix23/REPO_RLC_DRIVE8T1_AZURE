@@ -63,8 +63,6 @@ return_t motor_check(st_system_motor_status_t *sys_mot)
     // Désactivation des drivers moteur
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT1_ENABLE,BSP_IO_LEVEL_HIGH );
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT2_ENABLE,BSP_IO_LEVEL_HIGH );
-    // Fermeture du FSP
-    motor_deinit_fsp();
     delay_ms(100);
 
     motor_check_fault_pins();

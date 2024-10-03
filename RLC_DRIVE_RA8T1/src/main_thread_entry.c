@@ -1,6 +1,6 @@
 #include "main_thread.h"
 #include "log_thread.h"
-
+#include "modem_thread.h"
 
 #include <hal_data.h>
 #include <_core/c_common.h>
@@ -16,12 +16,13 @@
 #include <rtc/rtc.h>
 #include <files/lfs/lfs.h>
 #include <files/lfs_impl.h>
-#include <files/json_file.h>
 #include <remotectrl/remotectrl.h>
 #include <motor/motor.h>
 #include <motor/config_spi/config_spi.h>
 #include <sht40_sensor/sht40.h>
 #include <adc/adc.h>
+#include <files/mqtt_file.h>
+#include <exchanged_data/exchanged_data.h>
 
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
@@ -30,6 +31,7 @@
 
 extern TX_THREAD log_thread;
 extern TX_THREAD motors_thread;
+extern TX_THREAD modem_thread;
 i_time_t i_time_interface_t;
 
 
@@ -55,49 +57,48 @@ void main_thread_entry(void)
     LOG_I(LOG_STD,"Main thread start");
 
 
+
+
+
+
+
+
+
+
+
+
     rtc_init();
-    /*LFS_Init();
+    rtc_set(0);
+
+    LFS_Init(FALSE);
     LFS_ParseFolders("/");
-    LFS_ParseFolders((char*)dir_payloads);*/
-
-    /*char *ptr_test = malloc(1024);
-    memset(ptr_test,0x00,1024);
-    sprintf(ptr_test,"Ceci est un test");
-    json_file_add_to_queue(FILE_TYPE_PAYLOAD,ptr_test);*/
+    LFS_ParseFolders((char*)dir_payloads);
+    LFS_ParseFolders((char*)dir_json);
 
 
-    /*i_spi_init(&interface_mot1,&g_mutex_spi, spi_motor_open, spi_motor_close, spi_motor_read, spi_motor_write, spi_motor_mot1_cs_inactive, spi_motor_mot1_cs_active);
-    i_spi_init(&interface_mot2,&g_mutex_spi, spi_motor_open, spi_motor_close, spi_motor_read, spi_motor_write, spi_motor_mot2_cs_inactive, spi_motor_mot2_cs_active);
-    R_IOPORT_PinWrite (&g_ioport_ctrl, IO_MOT1_ENABLE, BSP_IO_LEVEL_HIGH);
-    R_IOPORT_PinWrite (&g_ioport_ctrl, IO_MOT2_ENABLE, BSP_IO_LEVEL_HIGH);
-    tx_thread_sleep(10);
-    volatile return_t ret_mot1 =  h_drv8323s_init(&drv_mot1,&interface_mot1,TRUE);
-    volatile return_t ret_mot2 =  h_drv8323s_init(&drv_mot2,&interface_mot2,TRUE);
+   /* lfs_dir_t dir;
+    int err = lfs_dir_open(&lfs,&dir,dir_json);
 
-    drv_mot1.registers.csa_control.bits.GAIN = 0x00;
-    drv_mot1.registers.gate_drive_hs.bits.IDRIVEN_HS = 0x2;
-    drv_mot1.registers.gate_drive_hs.bits.IDRIVEP_HS = 0x2;
-    drv_mot1.registers.gate_drive_ls.bits.IDRIVEN_LS = 0x2;
-    drv_mot1.registers.gate_drive_ls.bits.IDRIVEP_LS = 0x2;
-    drv_mot1.registers.gate_drive_ls.bits.TDRIVE = 0x01;
-    ret_mot1 =  h_drv8323s_write_all_registers(&drv_mot1);
+    lfs_file_t file;
+    err = lfs_file_open(&lfs, &file, "/JSON/1727873142052.json", LFS_O_RDWR | LFS_O_CREAT );
+    if(err != 0)
+    {
+        LOG_E(LOG_STD,"ERROR");
+    }
+    lfs_file_close(&lfs, &file);
+    lfs_dir_close(&lfs,&dir);
 
-    drv_mot2.registers.csa_control.bits.GAIN = 0x00;
-    drv_mot2.registers.gate_drive_hs.bits.IDRIVEN_HS = 0x2;
-    drv_mot2.registers.gate_drive_hs.bits.IDRIVEP_HS = 0x2;
-    drv_mot2.registers.gate_drive_ls.bits.IDRIVEN_LS = 0x2;
-    drv_mot2.registers.gate_drive_ls.bits.IDRIVEP_LS = 0x2;
-    drv_mot2.registers.gate_drive_ls.bits.TDRIVE = 0x01;
-    ret_mot2 =  h_drv8323s_write_all_registers(&drv_mot2);
+    LFS_ParseFolders((char*)dir_json);*/
+    /*char *ptr_data = malloc(200);
+    strcpy(ptr_data,"test rtc attr");
+    json_file_add_to_queue(FILE_TYPE_PAYLOAD,ptr_data);*/
 
 
-    R_IOPORT_PinWrite (&g_ioport_ctrl, IO_12V_EN, BSP_IO_LEVEL_HIGH);
-    R_IOPORT_PinWrite (&g_ioport_ctrl, IO_EN_12V_HALL1, BSP_IO_LEVEL_HIGH);
-    R_IOPORT_PinWrite (&g_ioport_ctrl, IO_EN_12V_HALL2, BSP_IO_LEVEL_HIGH);
-    tx_thread_sleep(10);*/
 
     // Demarrage du Thread dédié aux LOGs
     tx_thread_resume(&log_thread);
+    delay_ms(1000);
+    tx_thread_resume(&modem_thread);
 
     // Initialisation de la partie moteurs (partie logicielle)
     motor_structures_init();
@@ -121,8 +122,12 @@ void main_thread_entry(void)
 
 
 
+    //exchdat_set_temperature_humidity(24.12f,45.78f);
+    //mqtt_publish_temperature_humidity();
 
-    volatile float temperature,rh;
+
+
+    /*volatile float temperature,rh;
 
     do
     {
@@ -136,11 +141,12 @@ void main_thread_entry(void)
             LOG_I(LOG_STD,"temp=%0.2f  rh=%0.2f",temperature,rh);
         }
         tx_thread_sleep(1000);
-    }while(1);
-    /*tx_thread_resume(&motors_thread);
+    }while(1);*/
+
+    //tx_thread_resume(&motors_thread);
 
 
-    set_drive_mode(MOTOR_INIT_MODE);*/
+    set_drive_mode(MOTOR_INIT_MODE);
 
 
 

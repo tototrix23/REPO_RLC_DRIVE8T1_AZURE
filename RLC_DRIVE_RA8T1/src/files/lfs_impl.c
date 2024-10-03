@@ -16,10 +16,13 @@ void sci_b_spi_lfs_callback (spi_callback_args_t * p_args);
 int LFS_WriteRead(uint8_t *tx_b,uint8_t *rx_b,uint32_t count);
 int LFS_WriteEnable(void);
 int LFS_WriteDisable(void);
+int LFS_ChipErase(void);
+
 int LFS_ReadStatus(uint8_t *st);
 
 const char dir_payloads[] = "/PAYLOADS";
 const char dir_events[] = "/EVENTS";
+const char dir_json[] = "/JSON";
 const char dir_firmware[] = "/FIRMWARE";
 
 
@@ -38,7 +41,7 @@ const struct lfs_config cfg = {
     .prog_size = 256,//16,
     .block_size = 4096,
     .block_count = 1024,
-    .cache_size = 256,//16,
+    .cache_size = 1024,//256,//16,
     .lookahead_size = 256,//16,
     .block_cycles = 500,
 };
@@ -54,13 +57,28 @@ void sci_b_spi_lfs_callback (spi_callback_args_t * p_args)
     }
 }
 
-int LFS_Init(void)
+int LFS_Init(bool_t format)
 {
 
+    int err = 0;
 
+
+    if(format)
+    {
+        err = LFS_ChipErase();
+        err = lfs_format(&lfs, &cfg);
+        if(err == 0)
+        {
+            LOG_D(LOG_STD,"Success format FLASH");
+        }
+        else
+        {
+            LOG_E(LOG_STD,"Error format FLASH");
+        }
+    }
 
     lfs_init_success = FALSE;
-    int err = lfs_mount(&lfs, &cfg);
+    err = lfs_mount(&lfs, &cfg);
 
     if (err) {
         err = lfs_format(&lfs, &cfg);
@@ -73,6 +91,10 @@ int LFS_Init(void)
             return err;
         }
     }
+
+
+
+
 
     lfs_dir_t dir;
     err = lfs_dir_open(&lfs,&dir,dir_payloads);
@@ -103,13 +125,29 @@ int LFS_Init(void)
     }
     lfs_dir_close(&lfs,&dir);
 
+
+    err = lfs_dir_open(&lfs,&dir,dir_json);
+    if(err)
+    {
+        err = lfs_mkdir(&lfs,dir_json);
+        if(err)
+        {
+
+            LOG_E(LOG_STD,"Error creating 'json' directory");
+            LFS_DeInit();
+            return err;
+        }
+    }
+    lfs_dir_close(&lfs,&dir);
+
+
     err = lfs_dir_open(&lfs,&dir,dir_firmware);
     if(err)
     {
         err = lfs_mkdir(&lfs,dir_firmware);
         if(err)
         {
-            tx_mutex_put(&g_mutex_spi);
+            //tx_mutex_put(&g_mutex_spi);
             LOG_E(LOG_STD,"Error creating 'firmware' directory");
             LFS_DeInit();
             return err;
@@ -139,6 +177,9 @@ int LFS_ParseFolders(char *dir)
 
    LOG_I(LOG_STD,"'%s' folder",dir);
 
+
+   char full_path_name[64];
+
    struct lfs_info dir_info;
    do{
       err = lfs_dir_read(&lfs,&lfs_dir,&dir_info);
@@ -146,7 +187,22 @@ int LFS_ParseFolders(char *dir)
       {
           if(dir_info.type == LFS_TYPE_REG)
           {
-              LOG_I(LOG_STD,"--- '%s' (%lu bytes)",dir_info.name,dir_info.size);
+              strcpy(full_path_name,dir);
+              strcat(full_path_name,"/");
+              strcat(full_path_name,dir_info.name);
+
+              uint64_t timestamp;
+              lfs_ssize_t size = lfs_getattr(&lfs, full_path_name,
+                    0, &timestamp, sizeof(uint64_t));
+              if (size < 0 && size != LFS_ERR_NOATTR) {
+
+              }
+              if (size == LFS_ERR_NOATTR || size != sizeof(uint64_t)) {
+                // maybe assume arbitrary timestamp if missing?
+                timestamp = 0;
+              }
+
+              LOG_I(LOG_STD,"--- '%s' (%lu bytes) %llu",dir_info.name,dir_info.size,timestamp);
           }
           else if(dir_info.type == LFS_TYPE_DIR)
           {
@@ -156,9 +212,7 @@ int LFS_ParseFolders(char *dir)
    }while(err > 0);
 
    lfs_dir_close(&lfs,&lfs_dir);
-   volatile int i=0;
-
-
+   return 0;
 }
 
 int LFS_DeInit(void)
@@ -358,6 +412,13 @@ int LFS_ImplErase(const struct lfs_config *c, lfs_block_t block)
 
     int ret = 0;
     tx_mutex_get(&g_mutex_spi,TX_WAIT_FOREVER);
+    ret = LFS_WriteEnable();
+    if(ret != 0)
+    {
+        tx_mutex_put(&g_mutex_spi);
+        return ret;
+    }
+
     uint32_t addr = (uint32_t)((c->block_size * block));
     uint8_t cmd_buffer[4];
     uint8_t in_buffer[4];
@@ -368,6 +429,48 @@ int LFS_ImplErase(const struct lfs_config *c, lfs_block_t block)
     cmd_buffer[3] = (uint8_t)(addr & 0x00FF);
 
     ret = LFS_WriteRead(cmd_buffer,in_buffer,4);
+    if(ret != 0)
+    {
+        tx_mutex_put(&g_mutex_spi);
+        return ret;
+    }
+
+    volatile uint32_t tempo = 1000;
+    while(tempo>0)tempo--;
+
+    while(1)
+    {
+        uint8_t st = 0;
+        ret = LFS_ReadStatus(&st);
+        if(ret != 0)
+        {
+           tx_mutex_put(&g_mutex_spi);
+           return ret;
+        }
+        if((st & 0x02) == 0x00)
+        {
+           tx_mutex_put(&g_mutex_spi);
+           return 0;
+        }
+    }
+    return 0;
+}
+
+int LFS_ChipErase(void)
+{
+    int ret = 0;
+    tx_mutex_get(&g_mutex_spi,TX_WAIT_FOREVER);
+    ret = LFS_WriteEnable();
+    if(ret != 0)
+    {
+        tx_mutex_put(&g_mutex_spi);
+        return ret;
+    }
+
+    uint8_t cmd_buffer[1];
+    uint8_t in_buffer[1];
+    cmd_buffer[0] = 0xC7;
+    ret = LFS_WriteRead(cmd_buffer,in_buffer,1);
     if(ret != 0)
     {
         tx_mutex_put(&g_mutex_spi);

@@ -14,13 +14,14 @@
 
 extern const char dir_payloads[];
 extern const char dir_events[];
+extern const char dir_json[];
 extern const char dir_firmware[];
 
 extern lfs_t lfs;
 extern bool_t lfs_init_success;
 
 
-int LFS_Init(void);
+int LFS_Init(bool_t format);
 int LFS_ParseFolders(char *dir);
 int LFS_DeInit(void);
 int LFS_ImplRead(const struct lfs_config *c, lfs_block_t block,

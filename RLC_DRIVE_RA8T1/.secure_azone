@@ -165,6 +165,10 @@
             <slot name="IRQ20" secure="true"/>
             <slot name="IRQ21" secure="true"/>
             <slot name="IRQ22" secure="true"/>
+            <slot name="IRQ23" secure="true"/>
+            <slot name="IRQ24" secure="true"/>
+            <slot name="IRQ25" secure="true"/>
+            <slot name="IRQ26" secure="true"/>
         </peripheral>
     </partition>
 </azone>

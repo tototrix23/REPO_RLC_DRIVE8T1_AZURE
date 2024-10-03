@@ -674,8 +674,10 @@ return_t auto_mode_process(void)
                 ret_cplx = poster_change_to_position(AUTO_ENRH,ptr->panels.index+1);
                 CHECK_STOP_REQUEST();
                 if(ret_cplx.code != X_RET_OK)
+                {
+                    LOG_E(LOG_STD,"error %d",ret_cplx.code);
                     MOTOR_SET_ERROR_EVENT_AND_RETURN(MOTOR_AUTO_MODE,ret_cplx.code);
-
+                }
 
                 delay_ms(500);
                 poster_comp(AUTO_ENRH,ptr->panels.index+1);
@@ -689,8 +691,10 @@ return_t auto_mode_process(void)
                 ret_cplx = poster_change_to_position(AUTO_ENRL,ptr->panels.index-1);
                 CHECK_STOP_REQUEST();
                 if(ret_cplx.code != X_RET_OK)
+                {
+                    LOG_E(LOG_STD,"error %d",ret_cplx.code);
                     MOTOR_SET_ERROR_EVENT_AND_RETURN(MOTOR_AUTO_MODE,ret_cplx.code);
-
+                }
                 delay_ms(500);
                 poster_comp(AUTO_ENRL,ptr->panels.index-1);
 

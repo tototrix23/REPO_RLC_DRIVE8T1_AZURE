@@ -29,9 +29,16 @@ void motor_check_fault_pins(void)
     R_IOPORT_PinRead(&g_ioport_ctrl, IO_MOT1_FAULT,&mot1_fault );
     R_IOPORT_PinRead(&g_ioport_ctrl, IO_MOT2_FAULT,&mot2_fault );
     if(mot1_fault == 0)
+    {
+        LOG_E(LOG_STD,"mot1_fault");
         motor_error_sources_set_driversH();
+    }
+
     if(mot2_fault == 0)
+    {
+        LOG_E(LOG_STD,"mot1_fault");
         motor_error_sources_set_driversL();
+    }
 }
 
 bool_t drive_stop_request(void)
@@ -49,6 +56,8 @@ bool_t drive_stop_request(void)
    }
    else if(motor_error_sources_is_error() == TRUE)
    {
+       motor_error_sources_t src = motor_error_sources_get_snapshot();
+       LOG_E(LOG_STD,"error sources %d",src.flags);
        motor_profil_t *ptr = &motors_instance.profil;
        sequence_result_t sequence_result;
        motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);

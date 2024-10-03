@@ -1,8 +1,9 @@
 #include "log_thread.h"
 #include "_lib_impl_cust/impl_log/impl_log.h"
 #include <files/lfs_impl.h>
-#include <files/json_file.h>
+#include <files/mqtt_file.h>
 #include <rtc/rtc.h>
+#include <modem/serial.h>
 
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
@@ -18,103 +19,138 @@ void log_thread_entry(void)
     log_t *ptr = 0x00;
     while (1)
     {
-        volatile uint32_t status = tx_queue_receive(&g_queue_log, &ptr, TX_NO_WAIT);//TX_WAIT_FOREVER
+        volatile uint32_t status = tx_queue_receive(&g_queue_log, &ptr, TX_NO_WAIT);
         if(status == TX_SUCCESS)
         {
 
             impl_log_write(ptr->mode,ptr->color,ptr->module, 0x00, ptr->func, ptr->line, ptr->text);
             free(ptr);
         }
-        //tx_thread_sleep (1);
+        tx_thread_sleep (1);
 
 
-        json_file_t *ptr_json = 0x00;
-        status = tx_queue_receive(&g_queue_json, &ptr_json, TX_NO_WAIT);
-        if(status == TX_SUCCESS)
+
+        // Récupération de la RTC pour vérifier si un timestamp correcte est disponible dans le système.
+        st_rtc_t r = rtc_get();
+        // Récupération du numéro de série pour vérifier si ce dernier a bien été récupéré dans le modem.
+        st_serials_t ser = serials_get();
+
+        // Si tout est OK.
+        if(r.configured == TRUE && strlen(ser.serial)>0)
         {
-            lfs_dir_t dir;
-            bool_t dir_opened = FALSE;
-            int err_open_dir = 0x00;
-            char *path;
+            json_file_t *ptr_json = 0x00;
+            // Tentative de lecture d'une entrée dans la FIFO en RAM.
+            status = tx_queue_receive(&g_queue_json, &ptr_json, TX_NO_WAIT);
 
-            switch(ptr_json->type)
+            // Si une entrée est disponible.
+            if(status == TX_SUCCESS)
             {
-                case FILE_TYPE_PAYLOAD:
-                    path = (char*)dir_payloads;
-                    err_open_dir = lfs_dir_open(&lfs,&dir,dir_payloads);
-                    if(err_open_dir == 0x00)
-                    {
-                        dir_opened = TRUE;
-                    }
-                    break;
+                // Récupération du mutex donnant accès à la mémoire FLASH.
+                tx_mutex_get(&g_flash_mutex,TX_WAIT_FOREVER);
 
-                case FILE_TYPE_EVENT:
-                    path = (char*)dir_events;
-                    err_open_dir = lfs_dir_open(&lfs,&dir,dir_events);
-                    if(err_open_dir == 0x00)
-                    {
-                        dir_opened = TRUE;
-                    }
-                    break;
+                lfs_dir_t dir;
+                bool_t dir_opened = FALSE;
+                int err = 0x00;
+                char *path;
 
-                default:
-                    break;
-            }
+                path = (char*)dir_json;
 
-            if(dir_opened == TRUE)
-            {
-                lfs_file_t file;
-                st_rtc_t rtc_ts = rtc_get();
-
-                char filename[32];
-                char temp_timestamp[16];
-                sprintf(filename,"%s/pay_",path);
-                sprintf(temp_timestamp,"%lu",rtc_ts.time_ms);
-                strcat(filename,temp_timestamp);
-                //strcat(filename,"pay_%lu",rtc_ts.time_ms);
-                strcat(filename,".json");
-
-                volatile count = 0;
-
-
-                int err_open = lfs_file_open(&lfs, &file, filename, LFS_O_RDWR | LFS_O_CREAT | LFS_O_EXCL);
-                if(err_open == 0x00)
+                // Ouverture du dossier JSON
+                err = lfs_dir_open(&lfs,&dir,dir_json);
+                if(err == 0x00)
                 {
-                    lfs_size_t length = strlen(ptr_json->ptr_data);
+                    dir_opened = TRUE;
+                }
 
-                    lfs_ssize_t s = lfs_file_write(&lfs, &file,ptr_json->ptr_data,length);
-                    if(s<0)
+                // Si le dossier est bien présent et s'il est ouvert.
+                if(dir_opened == TRUE)
+                {
+                    lfs_file_t file;
+
+                    // Lecture de la RTC.
+                    st_rtc_t rtc_ts = rtc_get();
+
+                    // Correction du timestamp de l'entrée si nécessaire (si crée avant qu'un timestamp soit connnu).
+                    if(ptr_json->rtc.configured == FALSE)
                     {
-                        LOG_E(LOG_STD,"Error writing file %s  -> code %d",filename,s);
+                        ptr_json->rtc.time_ms = rtc_ts.time_ms-ptr_json->rtc.time_ms;
                     }
-                    else
+
+
+                    // Allocation d'un buffer de travail.
+                    char *ptr_full = malloc(1024);
+                    if(ptr_full != 0x00)
                     {
-                        volatile int err = lfs_file_sync(&lfs, &file);
-                        volatile int i=0;
+                        // RAZ du buffer
+                        memset(ptr_full,0x00,1024);
+                        // Création du flux MQTT.
+                        json_create_full_mqtt_publish(ptr_full,ptr_json);
+                        // Création du nom de fichier.
+                        char filename[32];
+                        memset(filename,0x00,sizeof(filename));
+                        char temp_timestamp[16];
+                        sprintf(filename,"%s/",path);
+                        sprintf(temp_timestamp,"%llu",rtc_ts.time_ms);
+                        strcat(filename,temp_timestamp);
+                        strcat(filename,".json");
+
+                        // Création du fichier.
+                        err = lfs_file_open(&lfs, &file, filename, LFS_O_RDWR | LFS_O_CREAT);
+                        // Si création OK.
+                        if(err == 0x00)
+                        {
+                            // Calcul de nombre de caractère dans le flux à copier.
+                            volatile lfs_size_t length = strlen(ptr_full);
+                            // Copie du flux.
+                            lfs_ssize_t s = lfs_file_write(&lfs, &file,ptr_full,length);
+                            if(s<0)
+                            {
+                                LOG_E(LOG_STD,"Error writing file %s  -> code %d",filename,s);
+                            }
+                            else
+                            {
+                                lfs_file_sync(&lfs, &file);
+                            }
+                            // Fermeture du fichier.
+                            lfs_file_close(&lfs, &file);
+                            LOG_I(LOG_STD,"Success creating file %s",filename);
+
+                            // Enregistrement du timestamp dans les attributs du fichier.
+                            err = lfs_setattr(&lfs, filename,
+                                    0, &rtc_ts.time_ms, sizeof(uint64_t));
+
+                            if(err == 0x00)
+                            {
+
+                            }
+                            else
+                            {
+                                LOG_E(LOG_STD,"Error writing attributes");
+                            }
+                        }
+                        else
+                        {
+                            LOG_E(LOG_STD,"Error creating file %s",filename);
+                        }
+                        // Fermeture du dossier.
+                        lfs_dir_close(&lfs,&dir);
+                        // Libération de la mémoire allouée pour le contenu MQTT.
+                        free(ptr_full);
                     }
-                    lfs_file_close(&lfs, &file);
-                    LOG_I(LOG_STD,"Success creating file %s",filename);
                 }
                 else
                 {
-                    LOG_E(LOG_STD,"Error creating file %s",filename);
+                    LOG_E(LOG_STD,"Error opening directory");
                 }
 
-                lfs_dir_close(&lfs,&dir);
+                // Liberation de la zone mémoire allouée au texte.
+                free(ptr_json->ptr_data);
+                // Liberation de la zone mémoire allouée à la structure.
+                free(ptr_json);
+                // Libération du mutex de la FLASH externe.
+                tx_mutex_put(&g_flash_mutex);
             }
-            else
-            {
-                LOG_E(LOG_STD,"Error opening directory");
-            }
-
-
-
-            // Liberation de la zone mémoire allouée au texte
-            free(ptr_json->ptr_data);
-            // Liberation de la zone mémoire allouée à la structure
-            free(ptr_json);
         }
         tx_thread_sleep (1);
-
     }
 }
