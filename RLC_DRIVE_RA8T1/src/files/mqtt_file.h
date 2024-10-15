@@ -38,8 +38,11 @@ return_t json_file_add_to_queue(char *topic,char *ptr);
 return_t json_create_full_mqtt_publish(char *ptr_full,json_file_t *json_descriptor);
 
 
-
+return_t mqtt_publish_event(uint16_t code);
 return_t mqtt_publish_temperature_humidity(void);
-
-
+return_t mqtt_publish_poster_count(void);
+return_t mqtt_publish_battery_detected(void);
+return_t mqtt_publish_scrolling_enabled(void);
+return_t mqtt_publish_lighting_enabled(void);
+return_t mqtt_publish_motor_status(void);
 #endif /* FILES_MQTT_FILE_H_ */

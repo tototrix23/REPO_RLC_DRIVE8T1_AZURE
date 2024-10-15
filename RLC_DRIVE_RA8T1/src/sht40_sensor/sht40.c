@@ -19,13 +19,16 @@ return_t sht40_init(void)
 }
 
 
-return_t sht40_read(float *temp,float *rh)
+return_t sht40_read(st_sensor_t *data)
 {
     return_t ret = X_RET_OK;
     fsp_err_t err;
     volatile uint32_t  timeout_ms;
     uint8_t g_i2c_tx_buffer[2];
     uint8_t g_i2c_rx_buffer[6];
+
+    memset(data,0x00,sizeof(st_sensor_t));
+
     err = R_SCI_B_I2C_Open(&g_i2c_sensor_ctrl, &g_i2c_sensor_cfg);
     if(err != FSP_SUCCESS)
         return -1;
@@ -76,8 +79,9 @@ return_t sht40_read(float *temp,float *rh)
     float t = (float)(-45.0 + 175.0 * (float)t_ticks/65535.0);
     uint16_t rh_ticks = (uint16_t)(g_i2c_rx_buffer[3] * 256 + g_i2c_rx_buffer[4]);
     float r = (float)(-6.0 + 125.0 * (float)rh_ticks/65535.0);
-    *temp = t;
-    *rh = r;
+    data->temperature = t;
+    data->humidity = r;
+    data->valid = TRUE;
 
     R_SCI_B_I2C_Close(&g_i2c_sensor_ctrl);
     return ret;

@@ -69,6 +69,11 @@
 
 #define F_RET_COMMS_OUT_TIMEOUT              -11200
 #define F_RET_COMMS_OUT_BAD_RESPONSE         -11201
+#define F_RET_COMMS_MQTT_LTE_NOT_CONNECTED   -11202
+#define F_RET_COMMS_MQTT_BROK_NOT_CONNECTED  -11203
+#define F_RET_COMMS_MQTT_TIMEOUT             -11204
+#define F_RET_COMMS_MQTT_GENERIC             -11205
+
 
 #define F_RET_QUEUE_RECEIVE                  -11300
 #define F_RET_RTC_NOT_CONFIGURED             -11301

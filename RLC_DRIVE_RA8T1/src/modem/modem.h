@@ -11,8 +11,13 @@
 #include <_core/c_common.h>
 
 
+
+
+
+
+
 return_t modem_init(void);
-return_t modem_get_datetime(void);
-return_t modem_get_serials(void);
+return_t modem_process_send(TX_QUEUE *queue,char *type,char *data_tx,char **data_rx,uint8_t retry,uint32_t timeout_ms);
+
 return_t modem_send_mqtt_publish(char *type,char *data);
 #endif /* MODEM_MODEM_H_ */

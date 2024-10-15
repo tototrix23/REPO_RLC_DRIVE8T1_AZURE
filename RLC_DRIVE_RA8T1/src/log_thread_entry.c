@@ -35,9 +35,13 @@ void log_thread_entry(void)
         // Récupération du numéro de série pour vérifier si ce dernier a bien été récupéré dans le modem.
         st_serials_t ser = serials_get();
 
+
+
         // Si tout est OK.
         if(r.configured == TRUE && strlen(ser.serial)>0)
         {
+            bool_t error_flash = FALSE;
+
             json_file_t *ptr_json = 0x00;
             // Tentative de lecture d'une entrée dans la FIFO en RAM.
             status = tx_queue_receive(&g_queue_json, &ptr_json, TX_NO_WAIT);
@@ -95,6 +99,7 @@ void log_thread_entry(void)
                         strcat(filename,".json");
 
                         // Création du fichier.
+                        rtc_ts = rtc_get();
                         err = lfs_file_open(&lfs, &file, filename, LFS_O_RDWR | LFS_O_CREAT);
                         // Si création OK.
                         if(err == 0x00)
@@ -130,12 +135,23 @@ void log_thread_entry(void)
                         }
                         else
                         {
-                            LOG_E(LOG_STD,"Error creating file %s",filename);
+                            LOG_E(LOG_STD,"Error creating file %s with code %d",filename,err);
+                            if(err == LFS_ERR_CORRUPT || err == LFS_ERR_NAMETOOLONG)
+                            {
+                                error_flash = TRUE;
+                            }
                         }
                         // Fermeture du dossier.
                         lfs_dir_close(&lfs,&dir);
                         // Libération de la mémoire allouée pour le contenu MQTT.
                         free(ptr_full);
+
+                        // Traitement spécifique pour formatter la mémoire si une erreur indique une corruption
+                        if(error_flash)
+                        {
+                            LOG_E(LOG_STD,"Format FLASH memory");
+                            LFS_Init(TRUE);
+                        }
                     }
                 }
                 else

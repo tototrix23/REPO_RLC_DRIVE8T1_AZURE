@@ -7,6 +7,7 @@
 
 
 #include "exchanged_data.h"
+#include <files/mqtt_file.h>
 
 st_data_t exchanged_data;
 
@@ -16,29 +17,35 @@ void exchanged_data_init(void)
 }
 
 
-void exchdat_set_temperature_humidity(float temp,float hum)
+void exchdat_set_sensor(st_sensor_t sensor_data)
 {
+    static st_sensor_t save_sensor;
+
 	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
-	exchanged_data.temperature = temp;
-	exchanged_data.humidity = hum;
+	memcpy(&exchanged_data.sensor_data,&sensor_data,sizeof(st_sensor_t));
+
+	if((save_sensor.valid != sensor_data.valid) ||
+	   ((fabs(sensor_data.temperature-save_sensor.temperature) > 3.0f) || (fabs(sensor_data.humidity-save_sensor.humidity) > 5.0f))
+	   )
+	{
+	    memcpy(&save_sensor,&sensor_data,sizeof(st_sensor_t));
+	    LOG_D(LOG_STD,"mqtt json temperature/humidity");
+	    mqtt_publish_temperature_humidity();
+	}
 	tx_mutex_put(&g_exchanged_data_mutex);
 }
-float exchdat_get_temperature(void)
+
+
+st_sensor_t exchdat_get_sensor(void)
 {
-	float value;
+    st_sensor_t data;
 	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
-	value = exchanged_data.temperature;
+	memcpy(&data,&exchanged_data.sensor_data,sizeof(st_sensor_t));
 	tx_mutex_put(&g_exchanged_data_mutex);
-	return value;
+	return data;
 }
-float exchdat_get_humidity(void)
-{
-	float value;
-	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
-	value = exchanged_data.humidity;
-	tx_mutex_put(&g_exchanged_data_mutex);
-	return value;
-}
+
+
 void exchdat_set_system_status(st_system_status_t status)
 {
 	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
@@ -67,17 +74,26 @@ motor_type_t exchdat_get_motor_type(void)
 	tx_mutex_put(&g_exchanged_data_mutex);
 	return value;
 }
-void exchdat_set_panels(uint8_t panels)
+void exchdat_set_poster_count(uint8_t poster_count)
 {
 	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
-	exchanged_data.panels = panels;
+	bool_t data_changed = FALSE;
+	if(exchanged_data.poster_count != poster_count)
+	{
+	    data_changed = TRUE;
+	}
+	exchanged_data.poster_count = poster_count;
+	if(data_changed==TRUE)
+    {
+	    mqtt_publish_poster_count();
+    }
 	tx_mutex_put(&g_exchanged_data_mutex);
 }
-uint8_t exchdat_get_panels(void)
+uint8_t exchdat_get_poster_count(void)
 {
 	uint8_t value;
 	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
-	value = exchanged_data.panels;
+	value = exchanged_data.poster_count;
 	tx_mutex_put(&g_exchanged_data_mutex);
 	return value;
 }
@@ -123,32 +139,32 @@ bool_t exchdat_get_relay_activated(void)
 	tx_mutex_put(&g_exchanged_data_mutex);
 	return value;
 }
-void exchdat_set_scrolling_timestamped(bool_t timestamped)
+void exchdat_set_scrolling_enabled(bool_t enabled)
 {
 	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
-	exchanged_data.scrolling_timestamped = timestamped;
+	exchanged_data.scrolling_enabled = enabled;
 	tx_mutex_put(&g_exchanged_data_mutex);
 }
-bool_t exchdat_get_scrolling_timestamped(void)
+bool_t exchdat_get_scrolling_enabled(void)
 {
 	bool_t value;
 	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
-	value = exchanged_data.scrolling_timestamped;
+	value = exchanged_data.scrolling_enabled;
 	tx_mutex_put(&g_exchanged_data_mutex);
 	return value;
 }
-void exchdat_set_lighting_timestamped(bool_t timestamped)
+void exchdat_set_lighting_enabled(bool_t enabled)
 {
 	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
-	exchanged_data.lighting_timestamped = timestamped;
+	exchanged_data.lighting_enabled = enabled;
 	tx_mutex_put(&g_exchanged_data_mutex);
 }
 
-bool_t exchdat_get_lighting_timestamped(void)
+bool_t exchdat_get_lighting_enabled(void)
 {
 	bool_t value;
 	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
-	value = exchanged_data.lighting_timestamped;
+	value = exchanged_data.lighting_enabled;
 	tx_mutex_put(&g_exchanged_data_mutex);
 	return value;
 }
@@ -212,7 +228,16 @@ float exchdat_get_battery_voltage(void)
 void exchdat_set_battery_detected(bool_t detected)
 {
 	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
+	bool_t data_changed = FALSE;
+    if(exchanged_data.battery_detected != detected)
+    {
+        data_changed = TRUE;
+    }
 	exchanged_data.battery_detected = detected;
+	if(data_changed == TRUE)
+	{
+	    mqtt_publish_battery_detected();
+	}
 	tx_mutex_put(&g_exchanged_data_mutex);
 }
 bool_t exchdat_get_battery_detected(void)

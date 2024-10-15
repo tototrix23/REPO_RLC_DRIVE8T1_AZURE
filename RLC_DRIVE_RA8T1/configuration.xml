@@ -118,7 +118,7 @@
     </config>
     <config id="config.bsp.ra">
       <property id="config.bsp.common.main" value="0x1000"/>
-      <property id="config.bsp.common.heap" value="0x4000"/>
+      <property id="config.bsp.common.heap" value="0x8000"/>
       <property id="config.bsp.common.vcc" value="3300"/>
       <property id="config.bsp.common.checking" value="config.bsp.common.checking.disabled"/>
       <property id="config.bsp.common.assert" value="config.bsp.common.assert.none"/>
@@ -1333,6 +1333,29 @@
       <property id="rtos.threadx.object.mutex.symbol" value="g_flash_mutex"/>
       <property id="rtos.threadx.object.mutex.inherit" value="rtos.threadx.object.mutex.inherit.enabled"/>
     </object>
+    <object id="rtos.threadx.object.queue.151021261">
+      <property id="rtos.threadx.object.queue.name" value="New Queue"/>
+      <property id="rtos.threadx.object.queue.symbol" value="g_queue_modem_msg_generic"/>
+      <property id="rtos.threadx.object.queue.msg_size" value="1"/>
+      <property id="rtos.threadx.object.queue.queue_size" value="20"/>
+    </object>
+    <object id="rtos.threadx.object.queue.816377582">
+      <property id="rtos.threadx.object.queue.name" value="New Queue"/>
+      <property id="rtos.threadx.object.queue.symbol" value="g_queue_modem_msg_mqtt_publish"/>
+      <property id="rtos.threadx.object.queue.msg_size" value="1"/>
+      <property id="rtos.threadx.object.queue.queue_size" value="20"/>
+    </object>
+    <object id="rtos.threadx.object.queue.650310171">
+      <property id="rtos.threadx.object.queue.name" value="New Queue"/>
+      <property id="rtos.threadx.object.queue.symbol" value="g_queue_modem_msg_mqtt_subscribe"/>
+      <property id="rtos.threadx.object.queue.msg_size" value="1"/>
+      <property id="rtos.threadx.object.queue.queue_size" value="20"/>
+    </object>
+    <object id="rtos.threadx.object.mutex.1506972598">
+      <property id="rtos.threadx.object.mutex.name" value="UartTx Mutex"/>
+      <property id="rtos.threadx.object.mutex.symbol" value="g_mutex_uarttx_modem"/>
+      <property id="rtos.threadx.object.mutex.inherit" value="rtos.threadx.object.mutex.inherit.enabled"/>
+    </object>
     <context id="_hal.0">
       <stack module="module.driver.ioport_on_ioport.0"/>
       <stack module="module.middleware.rm_threadx_port.0"/>
@@ -1418,6 +1441,22 @@
       <property id="rtos.threadx.thread.autostart" value="rtos.threadx.thread.autostart.disabled"/>
       <property id="rtos.threadx.thread.timeslice" value="1"/>
       <stack module="module.driver.uart_on_sci_b_uart.1190653222"/>
+    </context>
+    <context id="rtos.threadx.thread.1854636873">
+      <property id="_symbol" value="mqtt_publish_thread"/>
+      <property id="rtos.threadx.thread.name" value="MQTT publish Thread"/>
+      <property id="rtos.threadx.thread.stack" value="16384"/>
+      <property id="rtos.threadx.thread.priority" value="3"/>
+      <property id="rtos.threadx.thread.autostart" value="rtos.threadx.thread.autostart.disabled"/>
+      <property id="rtos.threadx.thread.timeslice" value="1"/>
+    </context>
+    <context id="rtos.threadx.thread.1207060177">
+      <property id="_symbol" value="mqtt_subscribe_thread"/>
+      <property id="rtos.threadx.thread.name" value="MQTT subscribe Thread"/>
+      <property id="rtos.threadx.thread.stack" value="2048"/>
+      <property id="rtos.threadx.thread.priority" value="3"/>
+      <property id="rtos.threadx.thread.autostart" value="rtos.threadx.thread.autostart.disabled"/>
+      <property id="rtos.threadx.thread.timeslice" value="1"/>
     </context>
     <config id="config.driver.flash_hp">
       <property id="config.driver.flash_hp.param_checking_enable" value="config.flash_hp.param_checking_enable.bsp"/>

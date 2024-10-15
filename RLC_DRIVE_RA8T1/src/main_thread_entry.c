@@ -54,6 +54,7 @@ void main_thread_entry(void)
     i_time_init(&i_time_interface_t,impl_time_init, impl_time_update);
     h_time_init(&i_time_interface_t);
 
+    delay_ms(5000);
     LOG_I(LOG_STD,"Main thread start");
 
 
@@ -68,11 +69,10 @@ void main_thread_entry(void)
 
 
     rtc_init();
-    rtc_set(0);
 
     LFS_Init(FALSE);
     LFS_ParseFolders("/");
-    LFS_ParseFolders((char*)dir_payloads);
+    //LFS_ParseFolders((char*)dir_payloads);
     LFS_ParseFolders((char*)dir_json);
 
 
@@ -156,6 +156,12 @@ void main_thread_entry(void)
 
 
 
+     /*char *test_json = malloc(64);
+     sprintf(test_json,"TEST\0");
+
+     json_file_add_to_queue("TEST",test_json);*/
+
+
 
 
     /* TODO: add your own code here */
@@ -168,6 +174,13 @@ void main_thread_entry(void)
         if(elasped == TRUE)
         {
             h_time_update(&ts);
+
+            st_sensor_t sensor_data;
+            sht40_read(&sensor_data);
+            exchdat_set_sensor(sensor_data);
+
+
+
             //bsp_io_level_t lvl;
             //R_IOPORT_PinRead(&g_ioport_ctrl, IO_VM_SWITCH_CMD,&lvl );
             //LOG_D(LOG_STD,"VM CMD %d",lvl);

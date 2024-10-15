@@ -62,6 +62,7 @@ int LFS_Init(bool_t format)
 
     int err = 0;
 
+    err = lfs_unmount(&lfs);
 
     if(format)
     {
@@ -91,10 +92,6 @@ int LFS_Init(bool_t format)
             return err;
         }
     }
-
-
-
-
 
     lfs_dir_t dir;
     err = lfs_dir_open(&lfs,&dir,dir_payloads);

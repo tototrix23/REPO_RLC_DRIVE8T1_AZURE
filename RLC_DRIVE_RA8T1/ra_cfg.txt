@@ -84,7 +84,7 @@ FSP Configuration
   RA8T1 event data
   RA Common
     Main stack size (bytes): 0x1000
-    Heap size (bytes): 0x4000
+    Heap size (bytes): 0x8000
     MCU Vcc (mV): 3300
     Parameter checking: Disabled
     Assert Failures: Return FSP_ERR_ASSERTION
@@ -1414,6 +1414,22 @@ FSP Configuration
       Interrupts: Transmit End Interrupt Priority: Priority 12
       Interrupts: Error Interrupt Priority: Priority 12
       
+  Thread "MQTT publish Thread"
+    Symbol: mqtt_publish_thread
+    Name: MQTT publish Thread
+    Stack size (bytes): 16384
+    Priority: 3
+    Auto start: Disabled
+    Time slicing interval (ticks): 1
+    
+  Thread "MQTT subscribe Thread"
+    Symbol: mqtt_subscribe_thread
+    Name: MQTT subscribe Thread
+    Stack size (bytes): 2048
+    Priority: 3
+    Auto start: Disabled
+    Time slicing interval (ticks): 1
+    
   Object "g_queue_log Queue"
     Name: Log Queue
     Symbol: g_queue_log
@@ -1474,5 +1490,28 @@ FSP Configuration
   Object "g_flash_mutex Mutex"
     Name: Flash Mutex
     Symbol: g_flash_mutex
+    Priority inheritance: Enabled
+    
+  Object "g_queue_modem_msg_generic Queue"
+    Name: New Queue
+    Symbol: g_queue_modem_msg_generic
+    Message Size (Words): 1
+    Queue Size (Bytes): 20
+    
+  Object "g_queue_modem_msg_mqtt_publish Queue"
+    Name: New Queue
+    Symbol: g_queue_modem_msg_mqtt_publish
+    Message Size (Words): 1
+    Queue Size (Bytes): 20
+    
+  Object "g_queue_modem_msg_mqtt_subscribe Queue"
+    Name: New Queue
+    Symbol: g_queue_modem_msg_mqtt_subscribe
+    Message Size (Words): 1
+    Queue Size (Bytes): 20
+    
+  Object "g_mutex_uarttx_modem Mutex"
+    Name: UartTx Mutex
+    Symbol: g_mutex_uarttx_modem
     Priority inheritance: Enabled
     

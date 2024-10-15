@@ -22,7 +22,7 @@ typedef struct st_log_t
     uint8_t mode;
     uint8_t color;
     uint16_t line;
-    char module[16];
+    char module[32];
     char func[32];
     char text[64];
 }

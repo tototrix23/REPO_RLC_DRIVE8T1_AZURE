@@ -56,9 +56,9 @@ return_t json_create_full_mqtt_publish(char *ptr_full,json_file_t *json_descript
 
     st_serials_t s = serials_get();
     char buffer[64];
-    sprintf(buffer,"\"data/%s/%s\",",s.serial,json_descriptor->topic);
+    sprintf(buffer,"\"Mqtt/Datas/%s/%s\",",s.serial,json_descriptor->topic);
     strcat(ptr_full,buffer);
-    strcat(ptr_full,"\"quality_of_service\":2,");
+    strcat(ptr_full,"\"quality_of_service\":1,");
     strcat(ptr_full,"\"payload\":\"{");
     strcat(ptr_full,"\\\"timestamp_unix\\\":");
     sprintf(buffer,"%llu,",json_descriptor->rtc.time_ms);
@@ -74,31 +74,21 @@ return_t json_create_full_mqtt_publish(char *ptr_full,json_file_t *json_descript
 }
 
 
-return_t mqtt_publish_temperature_humidity(void)
+return_t mqtt_publish_event(uint16_t code)
 {
     return_t ret = X_RET_OK;
-
     char *payload = (char *)malloc(64);
-
-
     if(payload != 0x00)
     {
          memset(payload,0x00,64);
-         float temp = exchdat_get_temperature();
-         float hum = exchdat_get_humidity();
-         char buffer[32];
+         char buffer[8];
          sprintf(payload,"\\\"data\\\": {");
-         strcat(payload,"\\\"temperature\\\":");
-         sprintf(buffer,"%.02f",temp);
-         strcat(payload,buffer);
-         strcat(payload,",");
-
-         strcat(payload,"\\\"humidity\\\":");
-         sprintf(buffer,"%.02f",hum);
+         strcat(payload,"\\\"code\\\":");
+         sprintf(buffer,"%d",code);
          strcat(payload,buffer);
          strcat(payload,"}");
 
-         ret = json_file_add_to_queue("sensor", payload);
+         ret = json_file_add_to_queue("Events", payload);
          return ret;
     }
     else
@@ -108,3 +98,154 @@ return_t mqtt_publish_temperature_humidity(void)
     return ret;
 }
 
+return_t mqtt_publish_temperature_humidity(void)
+{
+    return_t ret = X_RET_OK;
+
+    char *payload = (char *)malloc(128);
+
+
+    if(payload != 0x00)
+    {
+         memset(payload,0x00,128);
+         st_sensor_t sensor_data = exchdat_get_sensor();
+         char buffer[32];
+         sprintf(payload,"\\\"data\\\": {");
+         strcat(payload,"\\\"temperature\\\":");
+         if(sensor_data.valid == TRUE){
+             sprintf(buffer,"%.02f",sensor_data.temperature);
+             strcat(payload,buffer);
+         }
+         else
+         {
+             strcat(payload,"null");
+         }
+         strcat(payload,",");
+         strcat(payload,"\\\"humidity\\\":");
+
+         if(sensor_data.valid == TRUE){
+             sprintf(buffer,"%.02f",sensor_data.humidity);
+             strcat(payload,buffer);
+         }
+         else
+         {
+             strcat(payload,"null");
+         }
+         strcat(payload,"}");
+
+         ret = json_file_add_to_queue("Sensor", payload);
+         return ret;
+    }
+    else
+    {
+        return X_RET_MEMORY_ALLOCATION;
+    }
+    return ret;
+}
+
+
+return_t mqtt_publish_poster_count(void)
+{
+    return_t ret = X_RET_OK;
+    char *payload = (char *)malloc(64);
+    if(payload != 0x00)
+    {
+        uint8_t count = exchdat_get_poster_count();
+        memset(payload,0x00,64);
+        char buffer[8];
+        sprintf(payload,"\\\"data\\\": {");
+        strcat(payload,"\\\"poster_count\\\":");
+        sprintf(buffer,"%d",count);
+        strcat(payload,buffer);
+        strcat(payload,"}");
+        ret = json_file_add_to_queue("PostersCount", payload);
+        return ret;
+    }
+    else
+    {
+        return X_RET_MEMORY_ALLOCATION;
+    }
+    return ret;
+}
+
+return_t mqtt_publish_battery_detected(void)
+{
+    return_t ret = X_RET_OK;
+    char *payload = (char *)malloc(64);
+    if(payload != 0x00)
+    {
+        bool_t detected = exchdat_get_battery_detected();
+        memset(payload,0x00,64);
+        char buffer[8];
+        sprintf(payload,"\\\"data\\\": {");
+        strcat(payload,"\\\"battery_detected\\\":");
+        if(detected)
+            strcat(payload,"true");
+        else
+            strcat(payload,"false");
+        strcat(payload,"}");
+        ret = json_file_add_to_queue("BatteryDetected", payload);
+        return ret;
+    }
+    else
+    {
+        return X_RET_MEMORY_ALLOCATION;
+    }
+    return ret;
+}
+
+return_t mqtt_publish_scrolling_enabled(void)
+{
+    return_t ret = X_RET_OK;
+    char *payload = (char *)malloc(64);
+    if(payload != 0x00)
+    {
+        bool_t enabled = exchdat_get_scrolling_enabled();
+        memset(payload,0x00,64);
+        sprintf(payload,"\\\"data\\\": {");
+        strcat(payload,"\\\"scrolling_enabled\\\":");
+        if(enabled)
+            strcat(payload,"true");
+        else
+            strcat(payload,"false");
+        strcat(payload,"}");
+        ret = json_file_add_to_queue("ScrollingEnabled", payload);
+        return ret;
+    }
+    else
+    {
+        return X_RET_MEMORY_ALLOCATION;
+    }
+    return ret;
+}
+
+return_t mqtt_publish_lighting_enabled(void)
+{
+    return_t ret = X_RET_OK;
+    char *payload = (char *)malloc(64);
+    if(payload != 0x00)
+    {
+        bool_t enabled = exchdat_get_lighting_enabled();
+        memset(payload,0x00,64);
+        sprintf(payload,"\\\"data\\\": {");
+        strcat(payload,"\\\"lighting_enabled\\\":");
+        if(enabled)
+            strcat(payload,"true");
+        else
+            strcat(payload,"false");
+        strcat(payload,"}");
+        ret = json_file_add_to_queue("LightingEnabled", payload);
+        return ret;
+    }
+    else
+    {
+        return X_RET_MEMORY_ALLOCATION;
+    }
+    return ret;
+}
+
+return_t mqtt_publish_motor_status(void)
+{
+    return_t ret = X_RET_OK;
+    return ret;
+}

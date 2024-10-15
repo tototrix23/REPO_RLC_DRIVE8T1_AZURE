@@ -14,7 +14,7 @@
 
 static return_t json_process_response_common(char *ptr);
 
-return_t json_process_get_datetime(char *ptr)
+return_t json_process_get_datetime(char *ptr,int *status_code)
 {
     return_t ret = X_RET_OK;
 
@@ -27,6 +27,28 @@ return_t json_process_get_datetime(char *ptr)
     if(ptr_json == NULL)
     {
         ret = F_RET_JSON_FIND_OBJECT;
+        goto end;
+    }
+
+    cJSON *json_status = cJSON_GetObjectItemCaseSensitive(json_data, "status_code");
+    if(json_status == NULL)
+    {
+        ret = F_RET_JSON_FIND_OBJECT;
+        goto end;
+    }
+
+    if(cJSON_IsNumber(json_status))
+    {
+        *status_code = json_status->valueint;
+        if(json_status->valueint != 0)
+        {
+            ret = F_RET_JSON_RESPONSE_ERROR;
+            goto end;
+        }
+    }
+    else
+    {
+        ret = F_RET_JSON_BAD_TYPE;
         goto end;
     }
 
@@ -55,7 +77,7 @@ return_t json_process_get_datetime(char *ptr)
     return ret;
 }
 
-return_t json_process_get_serials(char *ptr)
+return_t json_process_get_serials(char *ptr,int *status_code)
 {
     return_t ret = X_RET_OK;
 
@@ -71,13 +93,32 @@ return_t json_process_get_serials(char *ptr)
         goto end;
     }
 
-    st_serials_t s;
-    memset(&s,0x00,sizeof(st_serials_t));
 
+    cJSON *json_status = cJSON_GetObjectItemCaseSensitive(json_data, "status_code");
+    if(json_status == NULL)
+    {
+        ret = F_RET_JSON_FIND_OBJECT;
+        goto end;
+    }
 
-
+    if(cJSON_IsNumber(json_status))
+    {
+        *status_code = json_status->valueint;
+        if(json_status->valueint != 0)
+        {
+            ret = F_RET_JSON_RESPONSE_ERROR;
+            goto end;
+        }
+    }
+    else
+    {
+        ret = F_RET_JSON_BAD_TYPE;
+        goto end;
+    }
 
     // Récupération du serial (IMEI)
+    st_serials_t s;
+    memset(&s,0x00,sizeof(st_serials_t));
     cJSON *json_var = cJSON_GetObjectItemCaseSensitive(json_data, "serial");
     if(json_var == NULL)
     {

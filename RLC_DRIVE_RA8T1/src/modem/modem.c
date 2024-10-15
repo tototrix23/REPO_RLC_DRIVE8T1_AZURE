@@ -46,10 +46,11 @@ rx_info_t modem_rx_info;
 bool_t modem_tx_in_progress = FALSE;
 bool_t modem_rx_in_progress = FALSE;
 
-
 void modem_rx_clear(void);
 void modem_send(char *data);
+
 return_t modem_verify_received_json_type(char *type);
+return_t modem_verify_received_json_type2(char *type,char *data);
 return_t modem_process_outgoing(char *type,char *data,uint8_t retry,uint32_t timeout_ms);
 return_t process_unsolicited_rx(void);
 
@@ -86,6 +87,42 @@ void modem_send(char *data)
         delay_ms(1);
 }
 
+
+return_t modem_verify_received_json_type2(char *type,char *data)
+{
+    return_t ret = X_RET_OK;
+    const cJSON *json_type = NULL;
+    cJSON *ptr_json = cJSON_Parse(data);
+    if(ptr_json == NULL)
+    {
+        ret = F_RET_JSON_PARSE;
+        goto end;
+    }
+    json_type = cJSON_GetObjectItemCaseSensitive(ptr_json, "type");
+    if(ptr_json == NULL)
+    {
+        ret = F_RET_JSON_FIND_OBJECT;
+        goto end;
+    }
+
+    if(!cJSON_IsString(json_type))
+    {
+        ret = X_RET_ERR_GENERIC;
+        goto end;
+    }
+
+    if(strcmp(json_type->valuestring,type) != 0x0)
+    {
+        ret = F_RET_JSON_BAD_TYPE;
+        goto end;
+    }
+
+
+    end:
+    cJSON_Delete(ptr_json);
+    return ret;
+}
+
 return_t modem_verify_received_json_type(char *type)
 {
     return_t ret = X_RET_OK;
@@ -120,6 +157,94 @@ return_t modem_verify_received_json_type(char *type)
     cJSON_Delete(ptr_json);
     return ret;
 }
+
+return_t modem_process_send(TX_QUEUE *queue,char *type,char *data_tx,char **data_rx,uint8_t retry,uint32_t timeout_ms)
+{
+    return_t ret = X_RET_OK;
+    tx_mutex_get(&g_mutex_uarttx_modem,TX_WAIT_FOREVER);
+    c_timespan_t ts;
+    h_time_update(&ts);
+    uint8_t r=0;
+    bool_t finished = FALSE;
+    bool_t rx_error = FALSE;
+    bool_t rx_finished = FALSE;
+
+    //tx_queue_flush(queue);
+    do
+    {
+        modem_rx_clear();
+        modem_send(data_tx);
+        modem_send("\r\n");
+
+        h_time_update(&ts);
+        rx_error = FALSE;
+        rx_finished = FALSE;
+        do
+        {
+            volatile uint32_t status = tx_queue_receive(queue, data_rx, TX_NO_WAIT);
+            if(status == TX_SUCCESS)
+            {
+                if(modem_verify_received_json_type2(type,*data_rx) != X_RET_OK)
+                {
+                    free(*data_rx);
+
+                    /*r++;
+                    if(r>=retry)
+                    {
+                        ret = F_RET_COMMS_OUT_TIMEOUT;
+                        goto end;
+                    }
+                    else
+                    {
+                        rx_finished = TRUE;
+                    }*/
+                }
+                else
+                {
+                    rx_finished = TRUE;
+                    rx_error = FALSE;
+                }
+            }
+            tx_thread_sleep (1);
+
+            bool_t elasped = FALSE;
+            h_time_is_elapsed_ms(&ts, timeout_ms, &elasped);
+
+            if(elasped)
+            {
+                h_time_update(&ts);
+                r++;
+                if(r>=retry)
+                {
+                    ret = F_RET_COMMS_OUT_TIMEOUT;
+                    goto end;
+                }
+                else
+                {
+                    rx_finished = TRUE;
+                }
+            }
+        }while(rx_finished == FALSE);
+
+        if(rx_error == TRUE)
+        {
+            rx_error = FALSE;
+            tx_thread_sleep (10);
+        }
+        else
+        {
+            finished = TRUE;
+        }
+    }while(finished == FALSE);
+
+
+    //g_mutex_uarttx_modem
+    end:
+    tx_mutex_put(&g_mutex_uarttx_modem);
+    return ret;
+}
+
+
 
 return_t modem_process_outgoing(char *type,char *data,uint8_t retry,uint32_t timeout_ms)
 {
@@ -201,68 +326,7 @@ return_t modem_process_outgoing(char *type,char *data,uint8_t retry,uint32_t tim
 }
 
 
-return_t modem_get_datetime(void)
-{
-    return_t ret = X_RET_OK;
-    char tx_array[128];
-    memset(tx_array,0x00,sizeof(tx_array));
-    strcpy(tx_array,"{\"type\": \"get_datetime\",\"data\":null }\r\n");
 
-    ret =   modem_process_outgoing("get_datetime",tx_array,2,1000);
-    if(ret != X_RET_OK)
-    {
-        LOG_E(LOG_STD,"get datetime %d",ret);
-        goto end;
-    }
-
-
-    // Traitement de la réponse
-    ret = json_process_get_datetime(modem_rx_array);
-    if(ret == X_RET_OK)
-    {
-    }
-    else
-    {
-        LOG_E(LOG_STD,"get datetime %d",ret);
-    }
-    end:
-    modem_rx_clear();
-    modem_tx_in_progress = FALSE;
-    return ret;
-}
-
-return_t modem_get_serials(void)
-{
-    return_t ret = X_RET_OK;
-
-    char tx_array[128];
-    memset(tx_array,0x00,sizeof(tx_array));
-    strcpy(tx_array,"{\"type\": \"get_identification\",\"data\":null }\r\n");
-
-    ret =   modem_process_outgoing("get_identification",tx_array,2,1000);
-    if(ret != X_RET_OK)
-    {
-        LOG_E(LOG_STD,"Get modem data %d",ret);
-        goto end;
-    }
-
-    // Traitement de la réponse
-    ret = json_process_get_serials(modem_rx_array);
-
-    if(ret == X_RET_OK)
-    {
-        LOG_D(LOG_STD,"Get modem serials");
-    }
-    else
-    {
-        LOG_E(LOG_STD,"Get modem serials %d",ret);
-    }
-
-    end:
-    modem_rx_clear();
-    modem_tx_in_progress = FALSE;
-    return ret;
-}
 
 
 return_t modem_send_mqtt_publish(char *type,char *data)
@@ -331,7 +395,7 @@ return_t process_unsolicited_rx(void)
 }
 
 
-void modem_callback(uart_callback_args_t *p_args)
+/*void modem_callback(uart_callback_args_t *p_args)
 {
     static char end_pattern[2];
 
@@ -361,6 +425,67 @@ void modem_callback(uart_callback_args_t *p_args)
         else
         {
             modem_rx_info.code = X_RET_CONTAINER_FULL;
+        }
+    }
+    else if(UART_EVENT_TX_DATA_EMPTY == p_args->event)
+    {
+        modem_tx_info.in_progress = FALSE;
+        modem_tx_info.code = X_RET_OK;
+    }
+    else if((UART_EVENT_ERR_PARITY == p_args->event || UART_EVENT_ERR_FRAMING == p_args->event ||
+            UART_EVENT_ERR_OVERFLOW == p_args->event || UART_EVENT_BREAK_DETECT == p_args->event)
+            )
+    {
+        modem_tx_info.in_progress = FALSE;
+        modem_tx_info.code = X_RET_ERR_GENERIC;
+    }
+    else
+    {
+
+    }
+}
+*/
+
+
+void modem_callback(uart_callback_args_t *p_args)
+{
+    static char end_pattern[2];
+
+    if(UART_EVENT_RX_CHAR == p_args->event)
+    {
+        modem_rx_info.in_progress = TRUE;
+        if(modem_rx_index < (RX_MAX_CHAR-1))
+        {
+            modem_rx_array[modem_rx_index++] = (char)p_args->data;
+            modem_rx_info.code = X_RET_OK;
+
+            end_pattern[0] = end_pattern[1];
+            end_pattern[1] = (char)p_args->data;
+
+            if(end_pattern[0] == '\r' && end_pattern[1] == '\n')
+            {
+                modem_rx_array[modem_rx_index++] = 0x00;
+
+                uint16_t str_size = modem_rx_index;
+
+                char *ptr_malloc = malloc(str_size);
+                if(ptr_malloc != 0x00)
+                {
+                    memcpy(ptr_malloc,modem_rx_array,str_size);
+                    tx_queue_send(&g_queue_modem_msg_generic, &ptr_malloc, TX_NO_WAIT);
+                }
+
+                ptr_malloc = malloc(str_size);
+                if(ptr_malloc != 0x00)
+                {
+                    memcpy(ptr_malloc,modem_rx_array,str_size);
+                    tx_queue_send(&g_queue_modem_msg_mqtt_publish, &ptr_malloc, TX_NO_WAIT);
+                }
+            }
+        }
+        else
+        {
+            modem_rx_clear();
         }
     }
     else if(UART_EVENT_TX_DATA_EMPTY == p_args->event)

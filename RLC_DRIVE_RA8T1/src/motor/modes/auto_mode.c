@@ -658,7 +658,7 @@ return_t auto_mode_process(void)
     init_phase = FALSE;
 
     ptr->panels.count = count;
-    exchdat_set_panels(ptr->panels.count);
+    exchdat_set_poster_count(ptr->panels.count);
     ptr->panels.index = count-1;
     direction = AUTO_ENRL;
     positions_process();
