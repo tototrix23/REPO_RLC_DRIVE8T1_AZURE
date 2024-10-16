@@ -24,6 +24,8 @@
 #include <files/mqtt_file.h>
 #include <exchanged_data/exchanged_data.h>
 
+#include <flash/flash.h>
+
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -34,11 +36,15 @@ extern TX_THREAD motors_thread;
 extern TX_THREAD modem_thread;
 i_time_t i_time_interface_t;
 
+static FX_MEDIA g_fx_media0;
+static uint8_t g_fx_media0_media_memory[G_FX_MEDIA0_MEDIA_MEMORY_SIZE];
 
 /*h_drv8323s_t drv_mot1;
 i_spi_t interface_mot1;
 h_drv8323s_t drv_mot2;
 i_spi_t interface_mot2;*/
+
+
 
 /* Main Thread entry function */
 void main_thread_entry(void)
@@ -49,6 +55,18 @@ void main_thread_entry(void)
     i_log.write_i = impl_log_write_i;
     i_log.write_w = impl_log_write_w;
 
+
+    fx_system_initialize();
+    UINT fx_ret_val = FX_SUCCESS;
+        /* Initialize LevelX system */
+    fx_ret_val = lx_nor_flash_initialize();
+
+    UINT status = fx_media_open(&g_fx_media0,
+                                       "&g_fx_media0",
+                                       RM_FILEX_LEVELX_NOR_DeviceDriver,
+                                       (void *) &g_rm_filex_levelx_nor1_instance,
+                                       g_fx_media0_media_memory,
+                                       G_FX_MEDIA0_MEDIA_MEMORY_SIZE);
 
     // Configuration de l'interface de gestion du temps
     i_time_init(&i_time_interface_t,impl_time_init, impl_time_update);

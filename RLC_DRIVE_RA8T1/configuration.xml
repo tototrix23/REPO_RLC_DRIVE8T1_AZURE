@@ -169,7 +169,7 @@
     <node id="board.clock.i3cclk.source" option="board.clock.i3cclk.source.disabled"/>
     <node id="board.clock.uck.source" option="board.clock.uck.source.disabled"/>
     <node id="board.clock.u60ck.source" option="board.clock.u60ck.source.disabled"/>
-    <node id="board.clock.octaspiclk.source" option="board.clock.octaspiclk.source.disabled"/>
+    <node id="board.clock.octaspiclk.source" option="board.clock.octaspiclk.source.pll1p"/>
     <node id="board.clock.cpuclk.div" option="board.clock.cpuclk.div.2"/>
     <node id="board.clock.iclk.div" option="board.clock.iclk.div.2"/>
     <node id="board.clock.pclka.div" option="board.clock.pclka.div.4"/>
@@ -319,6 +319,26 @@
     <component apiversion="" class="HAL Drivers" condition="" group="all" subgroup="r_sci_b_i2c" variant="" vendor="Renesas" version="5.3.0">
       <description>SCI_B I2C Master Interface</description>
       <originalPack>Renesas.RA.5.3.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="HAL Drivers" condition="" group="all" subgroup="r_ospi_b" variant="" vendor="Renesas" version="5.3.0">
+      <description>Octa Serial Peripheral Interface Flash</description>
+      <originalPack>Renesas.RA.5.3.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="Middleware" condition="" group="all" subgroup="rm_levelx_nor_spi" variant="" vendor="Renesas" version="5.3.0">
+      <description>LevelX NOR SPI Port</description>
+      <originalPack>Renesas.RA.5.3.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="Middleware" condition="" group="all" subgroup="rm_filex_levelx_nor" variant="" vendor="Renesas" version="5.3.0">
+      <description>FileX LevelX NOR I/O Interface for RA</description>
+      <originalPack>Renesas.RA.5.3.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="Azure" condition="" group="FileX" subgroup="fx" variant="" vendor="Microsoft" version="6.2.1+fsp.5.3.0">
+      <description>Azure RTOS FileX</description>
+      <originalPack>Microsoft.FileX.6.2.1+fsp.5.3.0.pack</originalPack>
+    </component>
+    <component apiversion="" class="Azure" condition="" group="LevelX" subgroup="lx" variant="" vendor="Microsoft" version="6.2.1+fsp.5.3.0">
+      <description>Azure RTOS LevelX</description>
+      <originalPack>Microsoft.LevelX.6.2.1+fsp.5.3.0.pack</originalPack>
     </component>
   </raComponentSelection>
   <raElcConfiguration/>
@@ -1271,6 +1291,78 @@
       <property id="module.driver.uart.tei_ipl" value="board.icu.common.irq.priority12"/>
       <property id="module.driver.uart.eri_ipl" value="board.icu.common.irq.priority12"/>
     </module>
+    <module id="module.azure.fx.levelx_nor.433539240">
+      <property id="module.azure.fx.name" value="g_fx_media0"/>
+      <property id="module.azure.fx.volume_name" value="Volume 1"/>
+      <property id="module.azure.fx.fat_count" value="1"/>
+      <property id="module.azure.fx.dir_count" value="256"/>
+      <property id="module.azure.fx.hidden_sectors" value="0"/>
+      <property id="module.azure.fx.total_sectors" value="57337"/>
+      <property id="module.azure.fx.cluster_size" value="1"/>
+      <property id="module.azure.fx.volume_serial_number" value="12345"/>
+      <property id="module.azure.fx.boundary_unit" value="128"/>
+      <property id="module.azure.fx.media_size" value="512"/>
+    </module>
+    <module id="module.middleware.rm_filex_levelx_nor.596061770">
+      <property id="module.middleware.rm_filex_levelx_nor.name" value="g_rm_filex_levelx_nor0"/>
+      <property id="module.middleware.rm_filex_levelx_nor.callback" value="g_rm_filex_levelx_nor_0_callback"/>
+      <property id="module.middleware.rm_filex_levelx_nor.nor_name" value="g_rm_filex_levelx_nor_0"/>
+    </module>
+    <module id="module.azure.lx.nor.spi.1166828688">
+      <property id="module.azure.lx.nor.spi.name" value="g_lx_nor0"/>
+      <property id="module.azure.lx.nor.spi.callback" value="g_lx_nor0_busy_callback"/>
+    </module>
+    <module id="module.middleware.rm_levelx_nor_spi.714822984">
+      <property id="module.middleware.rm_levelx_nor_spi.name" value="g_rm_levelx_nor_spi0"/>
+      <property id="module.middleware.rm_levelx_nor_spi.address_offset" value="0"/>
+      <property id="module.middleware.rm_levelx_nor_spi.size" value="33554432"/>
+      <property id="module.middleware.rm_levelx_nor_spi.poll_status_count" value="0xFFFFFFFF"/>
+    </module>
+    <module id="module.driver.ospi_on_ospi_b.1222984678">
+      <property id="module.driver.ospi_b.name" value="g_ospi0"/>
+      <property id="module.driver.ospi_b.channel" value="0"/>
+      <property id="module.driver.ospi_b.spi_protocol" value="module.driver.ospi_b.protocol_mode.protocol_1S_1S_1S"/>
+      <property id="module.driver.ospi_b.address_bytes" value="module.driver.ospi_b.address_bytes.address_bytes_4"/>
+      <property id="module.driver.ospi_b.write_status_bit" value="0"/>
+      <property id="module.driver.ospi_b.write_enable_bit" value="1"/>
+      <property id="module.driver.ospi_b.sector_erase_size" value="4096"/>
+      <property id="module.driver.ospi_b.block_erase_size" value="262144"/>
+      <property id="module.driver.ospi_b.spi_page_program_command" value="0x12"/>
+      <property id="module.driver.ospi_b.spi_read_command" value="0x13"/>
+      <property id="module.driver.ospi_b.spi_write_enable_command" value="0x06"/>
+      <property id="module.driver.ospi_b.spi_status_command" value="0x05"/>
+      <property id="module.driver.ospi_b.sector_erase_command" value="0x2121"/>
+      <property id="module.driver.ospi_b.block_erase_command" value="0xDCDC"/>
+      <property id="module.driver.ospi_b.chip_erase_command" value="0x6060"/>
+      <property id="module.driver.ospi_b.default_mem_read_dummy_cycles" value="0"/>
+      <property id="module.driver.ospi_b.default_status_read_dummy_cycles" value="0"/>
+      <property id="module.driver.ospi_b.command_set_table" value=""/>
+      <property id="module.driver.ospi_b.command_set_table_length" value="0"/>
+      <property id="module.driver.ospi_b.high_speed_protocol" value="module.driver.ospi_b.protocol_mode.protocol_8D_8D_8D"/>
+      <property id="module.driver.ospi_b.high_speed_command_length" value="module.driver.opi.high_speed_command_length.2"/>
+      <property id="module.driver.ospi_b.data_latch_delay_setting" value="0x08"/>
+      <property id="module.driver.ospi_b.auto_callibration_address" value="0x00"/>
+      <property id="module.driver.ospi_b.high_speed_page_program_command" value="0x1212"/>
+      <property id="module.driver.ospi_b.high_speed_read_command" value="0xEEEE"/>
+      <property id="module.driver.ospi_b.high_speed_write_enable_command" value="0x0606"/>
+      <property id="module.driver.ospi_b.high_speed_status_command" value="0x0505"/>
+      <property id="module.driver.ospi_b.high_speed_sector_erase_command" value="0"/>
+      <property id="module.driver.ospi_b.high_speed_block_erase_command" value="0"/>
+      <property id="module.driver.ospi_b.high_speed_chip_erase_command" value="0"/>
+      <property id="module.driver.ospi_b.mem_read_dummy_cycles" value="20"/>
+      <property id="module.driver.ospi_b.status_read_dummy_cycles" value="3"/>
+      <property id="module.driver.ospi_b.command_interval_clocks" value="module.driver.ospi_b.command_interval_clocks.clocks_2"/>
+      <property id="module.driver.ospi_b.pull_up_timing" value="module.driver.ospi_b.pull_up_timing.clocks_5"/>
+      <property id="module.driver.ospi_b.pull_down_timing" value="module.driver.ospi_b.pull_down_timing.clocks_3"/>
+      <property id="module.driver.ospi_b.xip.enter_code" value="0"/>
+      <property id="module.driver.ospi_b.xip.exit_code" value="0"/>
+      <property id="module.driver.ospi_b.dotf.name" value="g_ospi_dotf"/>
+      <property id="module.driver.ospi_b.dotf.key" value="g_ospi_dotf_key"/>
+      <property id="module.driver.ospi_b.dotf.iv" value="g_ospi_dotf_iv"/>
+      <property id="module.driver.ospi_b.dotf.aes_key_length" value="config.driver.dotf.aes_key_length.128"/>
+      <property id="module.driver.ospi_b.dotf.start_address" value="0x90000000"/>
+      <property id="module.driver.ospi_b.dotf.end_address" value="0x90001FFF"/>
+    </module>
     <object id="rtos.threadx.object.queue.146954789">
       <property id="rtos.threadx.object.queue.name" value="Log Queue"/>
       <property id="rtos.threadx.object.queue.symbol" value="g_queue_log"/>
@@ -1373,6 +1465,15 @@
         <stack module="module.driver.flash_on_flash_hp.255943238" requires="module.middleware.rm_vee_flash.requires.flash"/>
       </stack>
       <stack module="module.driver.i2c_on_sci_b_i2c.1305472037"/>
+      <stack module="module.azure.fx.levelx_nor.433539240">
+        <stack module="module.middleware.rm_filex_levelx_nor.596061770" requires="module.azure.fx.requires.rm_filex_levelx_nor">
+          <stack module="module.azure.lx.nor.spi.1166828688" requires="module.middleware.rm_filex_levelx_nor.requires.lx_nor">
+            <stack module="module.middleware.rm_levelx_nor_spi.714822984" requires="module.azure.lx.nor.requires.lx_nor_spi">
+              <stack module="module.driver.ospi_on_ospi_b.1222984678" requires="module.middleware.rm_levelx_nor_spi.requires.spi"/>
+            </stack>
+          </stack>
+        </stack>
+      </stack>
     </context>
     <context id="rtos.threadx.thread.1290712810">
       <property id="_symbol" value="main_thread"/>
@@ -1466,6 +1567,49 @@
     <config id="config.middleware.motor_120_degree">
       <property id="config.middleware.motor_120_degree.param_checking_enable" value="config.middleware.motor_120_degree.param_checking_enable.bsp"/>
     </config>
+    <config id="config.driver.ospi_b">
+      <property id="config.driver.ospi_b.param_checking_enable" value="config.driver.ospi_b.param_checking_enable.bsp"/>
+      <property id="config.driver.ospi_b.dmac_support" value="config.driver.ospi_b.dmac_support.disabled"/>
+      <property id="config.driver.ospi_b.autocalibration_support" value="config.driver.ospi_b.autocalibration_support.disabled"/>
+      <property id="config.driver.ospi_b.prefetch_function" value="config.driver.ospi_b.prefetch_function.enabled"/>
+      <property id="config.driver.ospi_b.combination_function" value="config.driver.ospi_b.combination_function.64_BYTE"/>
+      <property id="config.driver.ospi_b.xip_support" value="config.driver.ospi_b.xip_support.disabled"/>
+      <property id="config.driver.ospi_b.dotf_support" value="config.driver.ospi_b.dotf_support.disabled"/>
+    </config>
+    <config id="config.azure.fx">
+      <property id="config.azure.fx.error_checking" value="config.azure.fx.error_checking.enabled"/>
+      <property id="config.azure.fx.max_long_name_len" value=""/>
+      <property id="config.azure.fx.max_last_name_len" value=""/>
+      <property id="config.azure.fx.max_sector_cache" value=""/>
+      <property id="config.azure.fx.fat_map_size" value=""/>
+      <property id="config.azure.fx.max_fat_cache" value=""/>
+      <property id="config.azure.fx.update_rate_in_seconds" value=""/>
+      <property id="config.azure.fx.no_timer" value="config.azure.fx.no_timer.disabled"/>
+      <property id="config.azure.fx.single_thread" value="config.azure.fx.single_thread.disabled"/>
+      <property id="config.azure.fx.standalone" value="config.azure.fx.standalone.disabled"/>
+      <property id="config.azure.fx.dont_update_open_files" value="config.azure.fx.dont_update_open_files.disabled"/>
+      <property id="config.azure.fx.media_search_cache" value="config.azure.fx.media_search_cache.enabled"/>
+      <property id="config.azure.fx.direct_data_read_cache_fill" value="config.azure.fx.direct_data_read_cache_fill.enabled"/>
+      <property id="config.azure.fx.media_statistics" value="config.azure.fx.media_statistics.enabled"/>
+      <property id="config.azure.fx.single_open_legacy" value="config.azure.fx.single_open_legacy.disabled"/>
+      <property id="config.azure.fx.rename_path_inherit" value="config.azure.fx.rename_path_inherit.disabled"/>
+      <property id="config.azure.fx.no_local_path" value="config.azure.fx.no_local_path.disabled"/>
+      <property id="config.azure.fx.lba_64bit" value="config.azure.fx.lba_64bit.disabled"/>
+      <property id="config.azure.fx.cache" value="config.azure.fx.cache.enabled"/>
+      <property id="config.azure.fx.file_close" value="config.azure.fx.file_close.enabled"/>
+      <property id="config.azure.fx.fast_close" value="config.azure.fx.fast_close.enabled"/>
+      <property id="config.azure.fx.force_memory_operation" value="config.azure.fx.force_memory_operation.enabled"/>
+      <property id="config.azure.fx.build_options" value="config.azure.fx.build_options.enabled"/>
+      <property id="config.azure.fx.one_line_function" value="config.azure.fx.one_line_function.enabled"/>
+      <property id="config.azure.fx.fat_entry_refresh" value="config.azure.fx.fat_entry_refresh.enabled"/>
+      <property id="config.azure.fx.consecutive_detect" value="config.azure.fx.consecutive_detect.enabled"/>
+      <property id="config.azure.fx.fault_tolerant_service" value="config.azure.fx.fault_tolerant_service.disabled"/>
+      <property id="config.azure.fx.fault_tolerant_data" value="config.azure.fx.fault_tolerant_data.disabled"/>
+      <property id="config.azure.fx.fault_tolerant" value="config.azure.fx.fault_tolerant.disabled"/>
+      <property id="config.azure.fx.fault_tolerant_boot_index" value=""/>
+      <property id="config.azure.fx.ex_fat" value="config.azure.fx.ex_fat.disabled"/>
+    </config>
+    <config id="config.azure.fx.stub"/>
     <config id="config.driver.adc">
       <property id="config.driver.adc.param_checking_enable" value="config.driver.adc.param_checking_enable.bsp"/>
     </config>
@@ -1513,6 +1657,11 @@
     <config id="config.driver.icu">
       <property id="config.driver.icu.param_checking_enable" value="config.driver.icu.param_checking_enable.bsp"/>
     </config>
+    <config id="config.middleware.rm_levelx_nor_spi">
+      <property id="config.middleware.rm_levelx_nor_spi.param_checking_enable" value="config.middleware.rm_levelx_nor_spi.param_checking_enable.bsp"/>
+      <property id="config.middleware.rm_levelx_nor_spi.write_verify_enable" value="config.middleware.rm_levelx_nor_spi.write_verify_enable.disabled"/>
+      <property id="config.middleware.rm_levelx_nor_spi.page_buffer_size" value="8192"/>
+    </config>
     <config id="config.driver.sci_b_i2c">
       <property id="config.driver.sci_b_i2c.param_checking_enable" value="config.driver.sci_b_i2c.param_checking_enable.bsp"/>
       <property id="config.driver.sci_b_i2c.dtc_enable" value="config.driver.sci_b_i2c.dtc_enable.disabled"/>
@@ -1529,6 +1678,20 @@
     <config id="config.driver.dtc">
       <property id="config.driver.dtc.param_checking_enable" value="config.driver.dtc.param_checking_enable.bsp"/>
       <property id="config.driver.dtc.vector_table" value=".fsp_dtc_vector_table"/>
+    </config>
+    <config id="config.middleware.rm_filex_levelx_nor">
+      <property id="config.middleware.rm_filex_levelx_nor.param_checking_enable" value="config.middleware.rm_filex_levelx_nor.param_checking_enable.bsp"/>
+    </config>
+    <config id="config.azure.lx">
+      <property id="config.azure.lx.direct_read" value="config.azure.lx.direct_read.enabled"/>
+      <property id="config.azure.lx.free_sector_data_verify" value="config.azure.lx.free_sector_data_verify.enabled"/>
+      <property id="config.azure.lx.nand_sector_mapping_cache_size" value=""/>
+      <property id="config.azure.lx.nand_flash_direct_mapping_cache" value="config.azure.lx.nand_flash_direct_mapping_cache.disabled"/>
+      <property id="config.azure.lx.nor_disable_extended_cache" value="config.azure.lx.nor_disable_extended_cache.enabled"/>
+      <property id="config.azure.lx.nor_extended_cache_size" value=""/>
+      <property id="config.azure.lx.nor_sector_mapping_cache_size" value=""/>
+      <property id="config.azure.lx.thread_safe" value="config.azure.lx.thread_safe.enabled"/>
+      <property id="config.azure.lx.standalone" value="config.azure.lx.standalone.disabled"/>
     </config>
     <config id="config.threadx.thread">
       <property id="config.azure.tx.custom_tx_user" value=""/>

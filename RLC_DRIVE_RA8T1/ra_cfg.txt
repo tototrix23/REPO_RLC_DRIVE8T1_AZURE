@@ -123,7 +123,7 @@ FSP Configuration
     I3CCLK Disabled
     UCK Disabled
     U60CK Disabled
-    OCTASPICLK Disabled
+    OCTASPICLK Src: PLL1P
     CPUCLK Div /2
     ICLK Div /2
     PCLKA Div /4
@@ -398,6 +398,67 @@ FSP Configuration
     DTC on Transmission and Reception: Disabled
     10-bit slave addressing: Disabled
     
+  Module "Azure RTOS FileX on LevelX NOR"
+    Error Checking: Enabled (default)
+    Common: Max Long Name Len: 
+    Common: Max Last Name Len: 
+    Common: Max Sector Cache: 
+    Common: Fat Map Size: 
+    Common: Max Fat Cache: 
+    Threading: Update Rate (Seconds): 
+    Threading: No Timer: Disabled (default)
+    Threading: Single Thread: Disabled (default)
+    Threading: Standalone: Disabled (default)
+    Extra Features: Don't Update Open Files: Disabled (default)
+    Extra Features: Media Search Cache: Enabled (default)
+    Extra Features: Direct Data Read Cache Fill: Enabled (default)
+    Extra Features: Media Statistics: Enabled (default)
+    Extra Features: Single Open Legacy: Disabled (default)
+    Extra Features: Rename Path Inherit: Disabled (default)
+    Extra Features: No Local Path: Disabled (default)
+    Extra Features: 64-bit LBA: Disabled (default)
+    Extra Features: Cache: Enabled (default)
+    Extra Features: File Close: Enabled (default)
+    Extra Features: Fast Close: Enabled (default)
+    Extra Features: Force Memory Operation: Enabled (default)
+    Extra Features: Build Options: Enabled (default)
+    Extra Features: One Line Function: Enabled (default)
+    Extra Features: FAT Entry Refresh: Enabled (default)
+    Extra Features: Consecutive Detect: Enabled (default)
+    Fault Tolerant: Fault Tolerant Service: Disabled (default)
+    Fault Tolerant: Fault Tolerant Data: Disabled (default)
+    Fault Tolerant: Fault Tolerant: Disabled (default)
+    Fault Tolerant: Fault Tolerant Boot Index: 
+    Extra Features: Enable exFAT: Disabled (default)
+    
+  Module "FileX I/O (rm_filex_levelx_nor)"
+    Parameter Checking: Default (BSP)
+    
+  Module "Azure RTOS LevelX NOR on SPI Memory"
+    NOR: Direct Read: Enabled (default)
+    NOR: Free Sector Data Verify: Enabled
+    NAND: Sector Mapping Cache Size: 
+    NAND: Flash Direct Mapping Cache: Disabled (default)
+    NOR: Extended Cache: Enabled (default)
+    NOR: Extended Cache Size: 
+    NOR: Sector Mapping Cache Size: 
+    Thread Safe: Enabled
+    Standalone Mode: Disabled (default)
+    
+  Module "LevelX NOR Port (rm_levelx_nor_spi)"
+    Parameter Checking: Default (BSP)
+    Write Verify: Disabled
+    Page Buffer Size (bytes): 8192
+    
+  Module "OSPI Flash (r_ospi_b)"
+    Parameter Checking: Default (BSP)
+    DMAC Support: Disable
+    Autocalibration Support: Disable
+    Memory-mapping Support: Prefetch Function: Enable
+    Memory-mapping Support: Combination Function: 64 Byte
+    Memory-mapping Support: XiP Support: Disable
+    DOTF Support: Disable
+    
   Azure RTOS ThreadX
     General: Custom tx_user.h: 
     General: Error Checking: Enabled
@@ -593,6 +654,78 @@ FSP Configuration
       Interrupt Priority Level: Priority 12
       RX Interrupt Priority Level [Only used when DTC is enabled]: Disabled
       
+    Instance "g_fx_media0 Azure RTOS FileX on LevelX NOR"
+      Name: g_fx_media0
+      Volume Name: Volume 1
+      Number of FATs: 1
+      Directory Entries: 256
+      Hidden Sectors: 0
+      Total Sectors: 57337
+      Sectors per Cluster: 1
+      Volume Serial Number (exFAT only): 12345
+      Boundary Unit (exFAT only): 128
+      Working media memory size: 512
+      
+      Instance "g_rm_filex_levelx_nor0 FileX I/O (rm_filex_levelx_nor)"
+        Name: g_rm_filex_levelx_nor0
+        Callback: g_rm_filex_levelx_nor_0_callback
+        LevelX NOR Name (String): g_rm_filex_levelx_nor_0
+        
+        Instance "Azure RTOS LevelX NOR on SPI Memory"
+          Name: g_lx_nor0
+          Busy Callback: rm_filex_levelx_nor_spi_callback
+          
+          Instance "g_rm_levelx_nor_spi0 LevelX NOR Port (rm_levelx_nor_spi)"
+            Name: g_rm_levelx_nor_spi0
+            Memory Start Adress Offset (bytes): 0
+            Memory Size (bytes): 33554432
+            Poll Status Count: 0xFFFFFFFF
+            
+            Instance "g_ospi0 OSPI Flash (r_ospi_b)"
+              General: Name: g_ospi0
+              General: Channel: 0
+              General: Initial Protocol Mode: SPI (1S-1S-1S)
+              General: Initial Address Bytes: 4
+              General: Write Status Bit: 0
+              General: Write Enable Bit: 1
+              General: Sector Erase Size: 4096
+              General: Block Erase Size: 262144
+              Defaults: Command Definitions: Page Program Command: 0x12
+              Defaults: Command Definitions: Read Command: 0x13
+              Defaults: Command Definitions: Write Enable Command: 0x06
+              Defaults: Command Definitions: Status Command: 0x05
+              Defaults: Erase Command Definitions: Sector Erase Command: 0x2121
+              Defaults: Erase Command Definitions: Block Erase Command: 0xDCDC
+              Defaults: Erase Command Definitions: Chip Erase Command: 0x6060
+              Defaults: Dummy Cycles: Memory Read Dummy Cycles: 0
+              Defaults: Dummy Cycles: Status Read Dummy Cycles: 0
+              General: Command Set Table: 
+              General: Command Set Table Length: 0
+              High-speed Mode: Protocol: Dual data rate OPI (8D-8D-8D)
+              High-speed Mode: Command Length Bytes: 2
+              High-speed Mode: Auto-Calibration: Data latching delay: 0x08
+              High-speed Mode: Auto-Calibration: Auto-Calibration Address: 0x00
+              High-speed Mode: Command Definitions: Page Program Command: 0x1212
+              High-speed Mode: Command Definitions: Dual Read Command: 0xEEEE
+              High-speed Mode: Command Definitions: Write Enable Command: 0x0606
+              High-speed Mode: Command Definitions: Status Command: 0x0505
+              High-speed Mode: Command Definitions: Sector Erase Command: 0
+              High-speed Mode: Command Definitions: Block Erase Command: 0
+              High-speed Mode: Command Definitions: Chip Erase Command: 0
+              High-speed Mode: Memory Read Dummy Cycles: 20
+              High-speed Mode: Status Read Dummy Cycles: 3
+              Chip Select Timing Setting: Command Interval: 2
+              Chip Select Timing Setting: Pull-up Timing: No Extension
+              Chip Select Timing Setting: Pull-down Timing: No Extension
+              XiP Mode: XiP Enter Code: 0
+              XiP Mode: XiP Exit Code: 0
+              DOTF: Name: g_ospi_dotf
+              DOTF: AES Key: g_ospi_dotf_key
+              DOTF: AES IV: g_ospi_dotf_iv
+              DOTF: AES Key Length: 128
+              DOTF: Decryption start address: 0x90000000
+              DOTF: Decryption end address: 0x90001FFF
+              
   Thread "Main Thread"
     Symbol: main_thread
     Name: Main Thread

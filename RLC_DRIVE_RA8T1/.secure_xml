@@ -49,7 +49,7 @@
     <node id="board.clock.i3cclk.source" option="board.clock.i3cclk.source.disabled"/>
     <node id="board.clock.uck.source" option="board.clock.uck.source.disabled"/>
     <node id="board.clock.u60ck.source" option="board.clock.u60ck.source.disabled"/>
-    <node id="board.clock.octaspiclk.source" option="board.clock.octaspiclk.source.disabled"/>
+    <node id="board.clock.octaspiclk.source" option="board.clock.octaspiclk.source.pll1p"/>
     <node id="board.clock.cpuclk.div" option="board.clock.cpuclk.div.2"/>
     <node id="board.clock.iclk.div" option="board.clock.iclk.div.2"/>
     <node id="board.clock.pclka.div" option="board.clock.pclka.div.4"/>
@@ -114,18 +114,18 @@
       <configSetting altId="adc1.an122.p812" configurationId="adc1.an122" isUsedByDriver="true"/>
       <configSetting altId="cgc.extal.p212" configurationId="cgc.extal"/>
       <configSetting altId="dac120.da0.p014" configurationId="dac120.da0"/>
-      <configSetting altId="gpt12.gtioc12a.p802" configurationId="gpt12.gtioc12a"/>
-      <configSetting altId="gpt12.gtioc12b.p803" configurationId="gpt12.gtioc12b"/>
-      <configSetting altId="gpt4.gtioc4a.p610" configurationId="gpt4.gtioc4a"/>
-      <configSetting altId="gpt4.gtioc4b.p611" configurationId="gpt4.gtioc4b"/>
-      <configSetting altId="gpt5.gtioc5a.p115" configurationId="gpt5.gtioc5a"/>
-      <configSetting altId="gpt5.gtioc5b.p609" configurationId="gpt5.gtioc5b"/>
-      <configSetting altId="gpt6.gtioc6a.p601" configurationId="gpt6.gtioc6a"/>
-      <configSetting altId="gpt6.gtioc6b.p600" configurationId="gpt6.gtioc6b"/>
-      <configSetting altId="gpt7.gtioc7a.p603" configurationId="gpt7.gtioc7a"/>
-      <configSetting altId="gpt7.gtioc7b.p602" configurationId="gpt7.gtioc7b"/>
-      <configSetting altId="gpt8.gtioc8a.p605" configurationId="gpt8.gtioc8a"/>
-      <configSetting altId="gpt8.gtioc8b.p604" configurationId="gpt8.gtioc8b"/>
+      <configSetting altId="gpt12.gtioc12a.p802" configurationId="gpt12.gtioc12a" isUsedByDriver="true"/>
+      <configSetting altId="gpt12.gtioc12b.p803" configurationId="gpt12.gtioc12b" isUsedByDriver="true"/>
+      <configSetting altId="gpt4.gtioc4a.p610" configurationId="gpt4.gtioc4a" isUsedByDriver="true"/>
+      <configSetting altId="gpt4.gtioc4b.p611" configurationId="gpt4.gtioc4b" isUsedByDriver="true"/>
+      <configSetting altId="gpt5.gtioc5a.p115" configurationId="gpt5.gtioc5a" isUsedByDriver="true"/>
+      <configSetting altId="gpt5.gtioc5b.p609" configurationId="gpt5.gtioc5b" isUsedByDriver="true"/>
+      <configSetting altId="gpt6.gtioc6a.p601" configurationId="gpt6.gtioc6a" isUsedByDriver="true"/>
+      <configSetting altId="gpt6.gtioc6b.p600" configurationId="gpt6.gtioc6b" isUsedByDriver="true"/>
+      <configSetting altId="gpt7.gtioc7a.p603" configurationId="gpt7.gtioc7a" isUsedByDriver="true"/>
+      <configSetting altId="gpt7.gtioc7b.p602" configurationId="gpt7.gtioc7b" isUsedByDriver="true"/>
+      <configSetting altId="gpt8.gtioc8a.p605" configurationId="gpt8.gtioc8a" isUsedByDriver="true"/>
+      <configSetting altId="gpt8.gtioc8b.p604" configurationId="gpt8.gtioc8b" isUsedByDriver="true"/>
       <configSetting altId="gpt_poegc.gtetrgc.p213" configurationId="gpt_poegc.gtetrgc"/>
       <configSetting altId="irq0.irq0.p105" configurationId="irq0.irq0" isUsedByDriver="true"/>
       <configSetting altId="irq1.irq1.p104" configurationId="irq1.irq1" isUsedByDriver="true"/>
