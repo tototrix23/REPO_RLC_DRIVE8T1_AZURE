@@ -5,11 +5,13 @@
  *      Author: Christophe
  */
 #include <stdio.h>
+#include <hal_data.h>
+#include "common_data.h"
+#include <adc/adc.h>
 #include <files/mqtt_file.h>
 #include <exchanged_data/exchanged_data.h>
 #include <modem/serial.h>
-#include <hal_data.h>
-#include "common_data.h"
+
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -76,11 +78,12 @@ return_t json_create_full_mqtt_publish(char *ptr_full,json_file_t *json_descript
 
 return_t mqtt_publish_event(uint16_t code)
 {
+    const uint16_t malloc_size = 128;
     return_t ret = X_RET_OK;
-    char *payload = (char *)malloc(64);
+    char *payload = (char *)malloc(malloc_size);
     if(payload != 0x00)
     {
-         memset(payload,0x00,64);
+         memset(payload,0x00,malloc_size);
          char buffer[8];
          sprintf(payload,"\\\"data\\\": {");
          strcat(payload,"\\\"code\\\":");
@@ -100,14 +103,14 @@ return_t mqtt_publish_event(uint16_t code)
 
 return_t mqtt_publish_temperature_humidity(void)
 {
+    const uint16_t malloc_size = 128;
     return_t ret = X_RET_OK;
-
-    char *payload = (char *)malloc(128);
+    char *payload = (char *)malloc(malloc_size);
 
 
     if(payload != 0x00)
     {
-         memset(payload,0x00,128);
+         memset(payload,0x00,malloc_size);
          st_sensor_t sensor_data = exchdat_get_sensor();
          char buffer[32];
          sprintf(payload,"\\\"data\\\": {");
@@ -146,12 +149,13 @@ return_t mqtt_publish_temperature_humidity(void)
 
 return_t mqtt_publish_poster_count(void)
 {
+    const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
-    char *payload = (char *)malloc(64);
+    char *payload = (char *)malloc(malloc_size);
     if(payload != 0x00)
     {
+        memset(payload,0x00,malloc_size);
         uint8_t count = exchdat_get_poster_count();
-        memset(payload,0x00,64);
         char buffer[8];
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"poster_count\\\":");
@@ -170,13 +174,13 @@ return_t mqtt_publish_poster_count(void)
 
 return_t mqtt_publish_battery_detected(void)
 {
+    const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
-    char *payload = (char *)malloc(64);
+    char *payload = (char *)malloc(malloc_size);
     if(payload != 0x00)
     {
+        memset(payload,0x00,malloc_size);
         bool_t detected = exchdat_get_battery_detected();
-        memset(payload,0x00,64);
-        char buffer[8];
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"battery_detected\\\":");
         if(detected)
@@ -196,12 +200,13 @@ return_t mqtt_publish_battery_detected(void)
 
 return_t mqtt_publish_scrolling_enabled(void)
 {
+    const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
-    char *payload = (char *)malloc(64);
+    char *payload = (char *)malloc(malloc_size);
     if(payload != 0x00)
     {
+        memset(payload,0x00,malloc_size);
         bool_t enabled = exchdat_get_scrolling_enabled();
-        memset(payload,0x00,64);
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"scrolling_enabled\\\":");
         if(enabled)
@@ -221,12 +226,13 @@ return_t mqtt_publish_scrolling_enabled(void)
 
 return_t mqtt_publish_lighting_enabled(void)
 {
+    const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
-    char *payload = (char *)malloc(64);
+    char *payload = (char *)malloc(malloc_size);
     if(payload != 0x00)
     {
+        memset(payload,0x00,malloc_size);
         bool_t enabled = exchdat_get_lighting_enabled();
-        memset(payload,0x00,64);
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"lighting_enabled\\\":");
         if(enabled)
@@ -246,6 +252,169 @@ return_t mqtt_publish_lighting_enabled(void)
 
 return_t mqtt_publish_motor_status(void)
 {
+    const uint16_t malloc_size = 256;
     return_t ret = X_RET_OK;
+    char *payload = (char *)malloc(malloc_size);
+    if(payload != 0x00)
+    {
+        memset(payload,0x00,malloc_size);
+        char buffer[8];
+        st_system_motor_status_t status = exchdat_get_motor_status();
+        sprintf(payload,"\\\"data\\\": {");
+
+        strcat(payload,"\\\"error_lvl1\\\":");
+        sprintf(buffer,"%d",status.error_lvl1.value);
+        strcat(payload,buffer);
+        strcat(payload,",");
+
+        strcat(payload,"\\\"error_lvl1_motor_high_status1\\\":");
+        sprintf(buffer,"%d",status.error_lvl1_motorH.status1.value);
+        strcat(payload,buffer);
+        strcat(payload,",");
+
+        strcat(payload,"\\\"error_lvl1_motor_high_status2\\\":");
+        sprintf(buffer,"%d",status.error_lvl1_motorH.status2.value);
+        strcat(payload,buffer);
+        strcat(payload,",");
+
+        strcat(payload,"\\\"error_lvl1_motor_low_status1\\\":");
+        sprintf(buffer,"%d",status.error_lvl1_motorL.status1.value);
+        strcat(payload,buffer);
+        strcat(payload,",");
+
+        strcat(payload,"\\\"error_lvl1_motor_low_status2\\\":");
+        sprintf(buffer,"%d",status.error_lvl1_motorL.status2.value);
+        strcat(payload,buffer);
+        strcat(payload,",");
+
+        strcat(payload,"\\\"error_lvl2\\\":");
+        sprintf(buffer,"%d",status.error_lvl2.value);
+        strcat(payload,buffer);
+        strcat(payload,",");
+
+        strcat(payload,"\\\"error_lvl3\\\":");
+        sprintf(buffer,"%d",status.error_lvl3.value);
+        strcat(payload,buffer);
+
+        strcat(payload,"}");
+        ret = json_file_add_to_queue("MotorStatus", payload);
+        return ret;
+    }
+    else
+    {
+        return X_RET_MEMORY_ALLOCATION;
+    }
     return ret;
 }
+
+return_t mqtt_publish_voltages(void)
+{
+    const uint16_t malloc_size = 64;
+    return_t ret = X_RET_OK;
+    char *payload = (char *)malloc(malloc_size);
+    if(payload != 0x00)
+    {
+        char buffer[16];
+        st_adc_t adc_snapshot;
+        adc_get_snapshot(&adc_snapshot);
+
+        float f_vin = (float)(adc_snapshot.vin / 1000.0f);
+        float f_vbatt = (float)(adc_snapshot.vbatt / 1000.0f);
+
+        memset(payload,0x00,malloc_size);
+        sprintf(payload,"\\\"data\\\": {");
+        strcat(payload,"\\\"main_voltage\\\":");
+        sprintf(buffer,"%.02f",f_vin);
+        strcat(payload,buffer);
+        strcat(payload,",");
+
+        strcat(payload,"\\\"battery_voltage\\\":");
+        sprintf(buffer,"%.02f",f_vbatt);
+        strcat(payload,buffer);
+
+        strcat(payload,"}");
+        ret = json_file_add_to_queue("Voltages", payload);
+        return ret;
+    }
+    else
+    {
+        return X_RET_MEMORY_ALLOCATION;
+    }
+    return ret;
+}
+
+return_t mqtt_publish_motor_type(void)
+{
+    const uint16_t malloc_size = 64;
+    return_t ret = X_RET_OK;
+    char *payload = (char *)malloc(malloc_size);
+    if(payload != 0x00)
+    {
+        memset(payload,0x00,malloc_size);
+        motor_type_t type = exchdat_get_motor_type();
+        char buffer[8];
+        sprintf(payload,"\\\"data\\\": {");
+        strcat(payload,"\\\"motor_type\\\":");
+        sprintf(buffer,"%d",type);
+        strcat(payload,buffer);
+        strcat(payload,"}");
+        ret = json_file_add_to_queue("MotorType", payload);
+        return ret;
+    }
+    else
+    {
+        return X_RET_MEMORY_ALLOCATION;
+    }
+    return ret;
+}
+
+return_t mqtt_publish_board_version(void)
+{
+    const uint16_t malloc_size = 64;
+    return_t ret = X_RET_OK;
+    char *payload = (char *)malloc(malloc_size);
+    if(payload != 0x00)
+    {
+        memset(payload,0x00,malloc_size);
+        uint8_t version = exchdat_get_board_version();
+        char buffer[8];
+        sprintf(payload,"\\\"data\\\": {");
+        strcat(payload,"\\\"board_version\\\":");
+        sprintf(buffer,"%d",version);
+        strcat(payload,buffer);
+        strcat(payload,"}");
+        ret = json_file_add_to_queue("DriveBoardVersion", payload);
+        return ret;
+    }
+    else
+    {
+        return X_RET_MEMORY_ALLOCATION;
+    }
+    return ret;
+}
+
+return_t mqtt_publish_firmware(void)
+{
+    const uint16_t malloc_size = 64;
+    return_t ret = X_RET_OK;
+    char *payload = (char *)malloc(malloc_size);
+    if(payload != 0x00)
+    {
+        memset(payload,0x00,malloc_size);
+        char* firmware = exchdat_get_firmware();
+        char buffer[8];
+        sprintf(payload,"\\\"data\\\": {");
+        strcat(payload,"\\\"firmware_version\\\":\\\"");
+        sprintf(buffer,"%s",firmware);
+        strcat(payload,buffer);
+        strcat(payload,"\\\"}");
+        ret = json_file_add_to_queue("FirmwareDriveVersion", payload);
+        return ret;
+    }
+    else
+    {
+        return X_RET_MEMORY_ALLOCATION;
+    }
+    return ret;
+}
+

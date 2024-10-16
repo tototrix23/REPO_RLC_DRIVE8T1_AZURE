@@ -11,9 +11,9 @@
 #include <motor/modes/manual_mode.h>
 #include <motor/modes/auto_mode.h>
 #include <motor/drive_process/drive_sequence.h>
-#include <system_status/system_status.h>
 #include <exchanged_data/exchanged_data.h>
 #include <motor/errors/motor_error_sources.h>
+#include <status/motor_status.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -83,11 +83,11 @@ return_t set_drive_mode(drive_mode_t mode)
         // Permet d'executer certaines actions
         if(mode == MOTOR_MANUAL_MODE)
         {
-            system_status_clear_motor();
+            motor_status_clear();
         }
 
 
-        if(system_status_check_error() == TRUE)
+        if(motor_status_check_error() == TRUE)
             mode = MOTOR_ERROR_MODE;
 
 

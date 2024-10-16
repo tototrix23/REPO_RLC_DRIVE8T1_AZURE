@@ -7,9 +7,9 @@
 #include <_core/c_timespan/c_timespan.h>
 #include <_hal/h_time/h_time.h>
 #include "vee.h"
-#include <system_status/system_status.h>
 #include <exchanged_data/exchanged_data.h>
 #include <return_codes.h>
+#include <status/motor_status.h>
 
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
@@ -17,7 +17,7 @@
 #define LOG_MODULE    "vee"
 
 #define VEE_PATTERN_SIZE  8
-const char vee_pattern_ref[VEE_PATTERN_SIZE] = "VEE0003";
+const char vee_pattern_ref[VEE_PATTERN_SIZE] = "VEE0004";
 // Declaration des varibles à entretenir dans l'EEPROM virtuelle
 static char vee_pattern[VEE_PATTERN_SIZE];
 
@@ -52,9 +52,9 @@ vee_var_st vee_var_array[EEPROM_VAR_COUNT] =
   .mutex = NULL
  },
  {
-  .id = EEPROM_SYSTEM_STATUS,
-  .ptr_data = &exchanged_data.system_status,
-  .size = sizeof(st_system_status_t),
+  .id = EEPROM_MOTOR_STATUS,
+  .ptr_data = &exchanged_data.motor_status,
+  .size = sizeof(st_system_motor_status_t),
   .mutex = &g_exchanged_data_mutex
  }
 };

@@ -7,4 +7,4 @@
 
 #include "config.h"
 
-const char firmware[10] = "v0.1_beta";
+const char drive_firmware[10] = "v0.1_beta";

@@ -42,7 +42,7 @@
 // FIRMWARE
 //
 //========================================================================
-extern const char firmware[10];
+extern const char drive_firmware[10];
 
 #define FW_CHECK_PARAM_ENABLE     1
 

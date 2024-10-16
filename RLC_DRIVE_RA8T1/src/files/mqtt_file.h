@@ -45,4 +45,8 @@ return_t mqtt_publish_battery_detected(void);
 return_t mqtt_publish_scrolling_enabled(void);
 return_t mqtt_publish_lighting_enabled(void);
 return_t mqtt_publish_motor_status(void);
+return_t mqtt_publish_voltages(void);
+return_t mqtt_publish_motor_type(void);
+return_t mqtt_publish_board_version(void);
+return_t mqtt_publish_firmware(void);
 #endif /* FILES_MQTT_FILE_H_ */

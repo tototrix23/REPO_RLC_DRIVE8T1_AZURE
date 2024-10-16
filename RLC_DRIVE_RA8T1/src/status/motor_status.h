@@ -5,8 +5,8 @@
  *      Author: Ch.Leclercq
  */
 
-#ifndef SYSTEM_STATUS_SYSTEM_STATUS_H_
-#define SYSTEM_STATUS_SYSTEM_STATUS_H_
+#ifndef STATUS_MOTOR_STATUS_H_
+#define STATUS_MOTOR_STATUS_H_
 
 #include <stdint.h>
 #include <hal_data.h>
@@ -72,19 +72,12 @@ typedef struct st_system_motor_status_t
 }st_system_motor_status_t;
 
 
-typedef struct st_system_status_t
-{
-    st_system_motor_status_t motor;
-}st_system_status_t;
 
+void motor_status_init(void);
+void motor_status_set(st_system_motor_status_t new_status);
+st_system_motor_status_t motor_status_get(void);
+void motor_status_clear(void);
+bool_t motor_status_check_error(void);
 
-
-void system_status_init(void);
-void system_status_set_motor(st_system_motor_status_t *ptr_value);
-st_system_status_t system_status_get(void);
-void system_status_clear_all(void);
-void system_status_clear_motor(void);
-bool_t system_status_check_error(void);
-
-#endif /* SYSTEM_STATUS_SYSTEM_STATUS_H_ */
+#endif /* STATUS_MOTOR_STATUS_H_ */
 

@@ -7,6 +7,7 @@
 
 
 #include "exchanged_data.h"
+#include <_config_compiler/config.h>
 #include <files/mqtt_file.h>
 
 st_data_t exchanged_data;
@@ -14,7 +15,38 @@ st_data_t exchanged_data;
 void exchanged_data_init(void)
 {
 	memset(&exchanged_data,0x00,sizeof(st_data_t));
+
+	exchdat_set_firmware((char*)drive_firmware);
+	exchdat_set_board_version(0);
 }
+
+
+
+void exchdat_set_motor_status(st_system_motor_status_t status)
+{
+    tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
+    bool_t changed = FALSE;
+    if(memcmp(&exchanged_data.motor_status,&status,sizeof(st_system_motor_status_t)) != 0x0)
+    {
+        changed = TRUE;
+    }
+    memcpy(&exchanged_data.motor_status,&status,sizeof(st_system_motor_status_t));
+    if(changed == TRUE)
+    {
+        mqtt_publish_motor_status();
+    }
+    tx_mutex_put(&g_exchanged_data_mutex);
+}
+
+st_system_motor_status_t exchdat_get_motor_status(void)
+{
+    st_system_motor_status_t st;
+    tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
+    memcpy(&st,&exchanged_data.motor_status,sizeof(st_system_motor_status_t));
+    tx_mutex_put(&g_exchanged_data_mutex);
+    return st;
+}
+
 
 
 void exchdat_set_sensor(st_sensor_t sensor_data)
@@ -46,24 +78,20 @@ st_sensor_t exchdat_get_sensor(void)
 }
 
 
-void exchdat_set_system_status(st_system_status_t status)
-{
-	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
-	exchanged_data.system_status = status;
-	tx_mutex_put(&g_exchanged_data_mutex);
-}
-st_system_status_t exchdat_get_system_status(void)
-{
-    st_system_status_t value;
-	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
-	value = exchanged_data.system_status;
-	tx_mutex_put(&g_exchanged_data_mutex);
-	return value;
-}
+
 void exchdat_set_motor_type(motor_type_t type)
 {
 	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
+	bool_t data_changed = FALSE;
+    if(exchanged_data.motor_type != type)
+    {
+        data_changed = TRUE;
+    }
 	exchanged_data.motor_type = type;
+	if(data_changed == TRUE)
+	{
+	    mqtt_publish_motor_type();
+	}
 	tx_mutex_put(&g_exchanged_data_mutex);
 }
 motor_type_t exchdat_get_motor_type(void)
@@ -199,10 +227,17 @@ uint64_t exchdat_get_lighting_id(void)
 }
 void exchdat_set_main_voltage(float voltage)
 {
+    volatile float v_save=0.0f;
 	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
 	exchanged_data.main_voltage = voltage;
+	if(fabs(v_save-voltage) > 0.2f)
+	{
+	    v_save = voltage;
+	    mqtt_publish_voltages();
+	}
 	tx_mutex_put(&g_exchanged_data_mutex);
 }
+
 float exchdat_get_main_voltage(void)
 {
 	float value;
@@ -213,10 +248,17 @@ float exchdat_get_main_voltage(void)
 }
 void exchdat_set_battery_voltage(float voltage)
 {
+    volatile float v_save=0;
 	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
 	exchanged_data.battery_voltage = voltage;
+	if(fabs(v_save-voltage) > 0.2f)
+    {
+        v_save = voltage;
+        mqtt_publish_voltages();
+    }
 	tx_mutex_put(&g_exchanged_data_mutex);
 }
+
 float exchdat_get_battery_voltage(void)
 {
 	float value;
@@ -253,6 +295,7 @@ void exchdat_set_board_version(uint8_t version)
 {
 	tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
 	exchanged_data.board_version = version;
+
 	tx_mutex_put(&g_exchanged_data_mutex);
 }
 
@@ -263,4 +306,23 @@ uint8_t exchdat_get_board_version(void)
 	value = exchanged_data.board_version;
 	tx_mutex_put(&g_exchanged_data_mutex);
 	return value;
+}
+
+
+void exchdat_set_firmware(char *firmware)
+{
+    tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
+    if(strcmp(exchanged_data.firmware,firmware) != 0x00){
+        strcpy(exchanged_data.firmware,firmware);
+        mqtt_publish_firmware();
+    }
+    tx_mutex_put(&g_exchanged_data_mutex);
+}
+
+char* exchdat_get_firmware(void)
+{
+    tx_mutex_get(&g_exchanged_data_mutex,TX_WAIT_FOREVER);
+    char *ptr = exchanged_data.firmware;
+    tx_mutex_put(&g_exchanged_data_mutex);
+    return ptr;
 }

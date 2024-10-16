@@ -603,7 +603,7 @@ return_t error_mode_process(void)
     // Dans ce cas seul le mode manuel peut acquitter le défaut et il n'est pas souhaitable de relancer
     // la procédure de vérification
     // On passe directement dans la boucle erreur
-    if(system_status_check_error() == TRUE)
+    if(motor_status_check_error() == TRUE)
     {
         LOG_E(LOG_STD,"System already in error");
         error_loop();
@@ -620,7 +620,7 @@ return_t error_mode_process(void)
     {
         LOG_E(LOG_STD,"Check motors level1 NOK")
         error_log_results(&sys_mot);
-        system_status_set_motor(&sys_mot);
+        motor_status_set(sys_mot);
         error_loop();
         CHECK_STOP_REQUEST();
     }
@@ -636,7 +636,7 @@ return_t error_mode_process(void)
     if(motor_check_process_error_sources(&sys_mot) != X_RET_OK)
     {
        error_log_results(&sys_mot);
-       system_status_set_motor(&sys_mot);
+       motor_status_set(sys_mot);
        error_loop();
        CHECK_STOP_REQUEST();
     }
@@ -661,7 +661,7 @@ return_t error_mode_process(void)
     if(motor_check_process_error_sources(&sys_mot) != X_RET_OK)
     {
        error_log_results(&sys_mot);
-       system_status_set_motor(&sys_mot);
+       motor_status_set(sys_mot);
        error_loop();
        CHECK_STOP_REQUEST();
     }
@@ -681,7 +681,7 @@ return_t error_mode_process(void)
              sys_mot.error_lvl2.bits.unknown = TRUE;
     }
 
-    system_status_set_motor(&sys_mot);
+    motor_status_set(sys_mot);
 
     if(sys_mot.error_lvl1.value == 0x00 &&
            sys_mot.error_lvl2.value == 0x00)
@@ -695,7 +695,7 @@ return_t error_mode_process(void)
         {
            sys_mot.error_lvl1.bits.overcurrent_vm = TRUE;
            error_log_results(&sys_mot);
-           system_status_set_motor(&sys_mot);
+           motor_status_set(sys_mot);
            error_loop();
            CHECK_STOP_REQUEST();
         }
@@ -731,7 +731,7 @@ return_t error_mode_process(void)
                  else if(retcplx.fsp_motorH_error_code != 0x00)
                      sys_mot.error_lvl2.bits.unknown = TRUE;
             }
-            system_status_set_motor(&sys_mot);
+            motor_status_set(sys_mot);
         }
         else
         {
@@ -753,7 +753,7 @@ return_t error_mode_process(void)
         {
            sys_mot.error_lvl1.bits.overcurrent_vm = TRUE;
            error_log_results(&sys_mot);
-           system_status_set_motor(&sys_mot);
+           motor_status_set(sys_mot);
            error_loop();
            CHECK_STOP_REQUEST();
         }
@@ -796,7 +796,7 @@ return_t error_mode_process(void)
                  else if(retcplx.fsp_motorH_error_code != 0x00)
                      sys_mot.error_lvl2.bits.unknown = TRUE;
             }
-            system_status_set_motor(&sys_mot);
+            motor_status_set(sys_mot);
         }
         else
         {
@@ -805,12 +805,12 @@ return_t error_mode_process(void)
     }
 
     CHECK_STOP_REQUEST();
-    system_status_set_motor(&sys_mot);
+    motor_status_set(sys_mot);
     if(sys_mot.error_lvl1.value == 0x00 &&
        sys_mot.error_lvl2.value == 0x00 &&
        sys_mot.error_lvl3.value == 0x00)
     {
-        system_status_set_motor(&sys_mot);
+        motor_status_set(sys_mot);
         LOG_W(LOG_STD,"No error detected -> starting init mode");
         CHECK_STOP_REQUEST();
         drive_control.running = FALSE;

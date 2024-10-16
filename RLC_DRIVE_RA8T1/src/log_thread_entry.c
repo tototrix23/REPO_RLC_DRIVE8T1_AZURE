@@ -130,7 +130,7 @@ void log_thread_entry(void)
                             }
                             else
                             {
-                                LOG_E(LOG_STD,"Error writing attributes");
+                                LOG_E(LOG_STD,"Error writing attributes %d",err);
                             }
                         }
                         else

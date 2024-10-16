@@ -9,9 +9,9 @@
 #include <motor/motor.h>
 #include <motor/drive_process/drive_sequence.h>
 #include <motor/config_spi/config_spi.h>
-#include <system_status/system_status.h>
 #include <adc/adc.h>
 #include <return_codes.h>
+#include <status/motor_status.h>
 
 
 return_t motor_check_process_error_sources(st_system_motor_status_t *sys_mot)

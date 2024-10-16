@@ -12,8 +12,8 @@
 #include <hal_data.h>
 #include <_core/c_common.h>
 #include <return_codes.h>
-#include <system_status/system_status.h>
 #include <motor/errors/motor_error_sources.h>
+#include <status/motor_status.h>
 
 #define CHECK_STOP_REQUEST()              {\
                                           if(drive_stop_request())\

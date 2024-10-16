@@ -8,10 +8,10 @@
 #include <motor/motor.h>
 #include <motor/drive_process/drive_process.h>
 #include <motor/drive_process/drive_sequence.h>
-#include <system_status/system_status.h>
 #include <motor/config_spi/config_spi.h>
 #include <motor/check/motor_check.h>
 #include <motor/errors/motor_error_sources.h>
+#include <status/motor_status.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -64,7 +64,7 @@ void motors_thread_entry(void)
 
     // Analyse du status dans la VEE
     // Si le process moteur est déjà en défault alors on passe directement en mode MOTOR_ERROR_MODE
-    if(system_status_check_error() == TRUE)
+    if(motor_status_check_error() == TRUE)
     {
         // On ouvre le FSP à cette occasion car sinon la stack moteur n'est pas configurée.
         // Elle est configurée normalement dans la fonction "motor_check"

@@ -10,15 +10,15 @@
 
 #include <stdint.h>
 #include <_core/c_common.h>
-#include <system_status/system_status.h>
 #include <motor/motor_type.h>
 #include <motor/drive_mode.h>
 #include <sht40_sensor/sht40.h>
+#include <status/motor_status.h>
 
 typedef struct st_data_t
 {
    st_sensor_t sensor_data;
-   st_system_status_t system_status;
+   st_system_motor_status_t motor_status;
    motor_type_t motor_type;
    uint8_t poster_count;
    bool_t gps_sync;
@@ -32,6 +32,7 @@ typedef struct st_data_t
    float battery_voltage;
    bool_t battery_detected;
    uint8_t board_version;
+   char firmware[32];
 }st_data_t;
 
 extern st_data_t exchanged_data;
@@ -40,8 +41,8 @@ void exchdat_set_sensor(st_sensor_t sensor_data);
 st_sensor_t exchdat_get_sensor(void);
 
 
-void exchdat_set_system_status(st_system_status_t status);
-st_system_status_t exchdat_get_system_status(void);
+void exchdat_set_motor_status(st_system_motor_status_t status);
+st_system_motor_status_t exchdat_get_motor_status(void);
 
 void exchdat_set_motor_type(motor_type_t type);
 motor_type_t exchdat_get_motor_type(void);
@@ -81,6 +82,10 @@ bool_t exchdat_get_battery_detected(void);
 
 void exchdat_set_board_version(uint8_t version);
 uint8_t exchdat_get_board_version(void);
+
+void exchdat_set_firmware(char *firmware);
+char* exchdat_get_firmware(void);
+
 
 void exchanged_data_init(void);
 
