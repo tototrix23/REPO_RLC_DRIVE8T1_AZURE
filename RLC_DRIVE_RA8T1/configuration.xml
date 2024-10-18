@@ -402,7 +402,7 @@
       <property id="module.driver.spi.txi_ipl" value="board.icu.common.irq.priority12"/>
       <property id="module.driver.spi.tei_ipl" value="board.icu.common.irq.priority12"/>
       <property id="module.driver.spi.eri_ipl" value="board.icu.common.irq.priority12"/>
-      <property id="module.driver.spi.bitrate" value="10000000"/>
+      <property id="module.driver.spi.bitrate" value="30000000"/>
     </module>
     <module id="module.driver.transfer_on_dtc.1713807630">
       <property id="module.driver.transfer.name" value="g_transfer0"/>
@@ -440,11 +440,11 @@
       <property id="module.driver.spi.bit_order" value="module.driver.spi.bit_order.bit_order_msb_first"/>
       <property id="module.driver.spi.clock_source" value="module.driver.spi.clock_source.pclk"/>
       <property id="module.driver.spi.p_callback" value="sci_b_spi_callback_drivers"/>
-      <property id="module.driver.spi.rxi_ipl" value="board.icu.common.irq.priority12"/>
-      <property id="module.driver.spi.txi_ipl" value="board.icu.common.irq.priority12"/>
+      <property id="module.driver.spi.rxi_ipl" value="board.icu.common.irq.priority5"/>
+      <property id="module.driver.spi.txi_ipl" value="board.icu.common.irq.priority5"/>
       <property id="module.driver.spi.tei_ipl" value="board.icu.common.irq.priority12"/>
       <property id="module.driver.spi.eri_ipl" value="board.icu.common.irq.priority12"/>
-      <property id="module.driver.spi.bitrate" value="1000000"/>
+      <property id="module.driver.spi.bitrate" value="30000000"/>
     </module>
     <module id="module.driver.transfer_on_dtc.207325813">
       <property id="module.driver.transfer.name" value="g_transfer2"/>
@@ -1478,7 +1478,7 @@
     <context id="rtos.threadx.thread.1290712810">
       <property id="_symbol" value="main_thread"/>
       <property id="rtos.threadx.thread.name" value="Main Thread"/>
-      <property id="rtos.threadx.thread.stack" value="4096"/>
+      <property id="rtos.threadx.thread.stack" value="8192"/>
       <property id="rtos.threadx.thread.priority" value="2"/>
       <property id="rtos.threadx.thread.autostart" value="rtos.threadx.thread.autostart.enabled"/>
       <property id="rtos.threadx.thread.timeslice" value="1"/>
@@ -1571,7 +1571,7 @@
       <property id="config.driver.ospi_b.param_checking_enable" value="config.driver.ospi_b.param_checking_enable.bsp"/>
       <property id="config.driver.ospi_b.dmac_support" value="config.driver.ospi_b.dmac_support.disabled"/>
       <property id="config.driver.ospi_b.autocalibration_support" value="config.driver.ospi_b.autocalibration_support.disabled"/>
-      <property id="config.driver.ospi_b.prefetch_function" value="config.driver.ospi_b.prefetch_function.enabled"/>
+      <property id="config.driver.ospi_b.prefetch_function" value="config.driver.ospi_b.prefetch_function.disabled"/>
       <property id="config.driver.ospi_b.combination_function" value="config.driver.ospi_b.combination_function.64_BYTE"/>
       <property id="config.driver.ospi_b.xip_support" value="config.driver.ospi_b.xip_support.disabled"/>
       <property id="config.driver.ospi_b.dotf_support" value="config.driver.ospi_b.dotf_support.disabled"/>
@@ -1683,7 +1683,7 @@
       <property id="config.middleware.rm_filex_levelx_nor.param_checking_enable" value="config.middleware.rm_filex_levelx_nor.param_checking_enable.bsp"/>
     </config>
     <config id="config.azure.lx">
-      <property id="config.azure.lx.direct_read" value="config.azure.lx.direct_read.enabled"/>
+      <property id="config.azure.lx.direct_read" value="config.azure.lx.direct_read.disabled"/>
       <property id="config.azure.lx.free_sector_data_verify" value="config.azure.lx.free_sector_data_verify.enabled"/>
       <property id="config.azure.lx.nand_sector_mapping_cache_size" value=""/>
       <property id="config.azure.lx.nand_flash_direct_mapping_cache" value="config.azure.lx.nand_flash_direct_mapping_cache.disabled"/>

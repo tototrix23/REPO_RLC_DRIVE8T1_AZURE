@@ -5,9 +5,15 @@
  *      Author: Christophe
  */
 #include "flash.h"
+#include "hal_data.h"
+#include <_core/c_common.h>
+int flash_read_status(uint8_t *st);
+int flash_write_and_read(uint8_t *tx_b,uint8_t *rx_b,uint32_t count);
+int flash_write_enable(void);
+int flash_write_disable(void);
+int flash_write_align(ULONG flash_address, ULONG *source, ULONG words);
 
-
-
+ULONG spi_sector_buffer[4096];
 
 ospi_b_instance_ctrl_t g_ospi1_ctrl;
 
@@ -101,7 +107,7 @@ static const ospi_b_extended_cfg_t g_ospi1_extended_cfg =
 const spi_flash_cfg_t g_ospi1_cfg =
 { .spi_protocol = SPI_FLASH_PROTOCOL_1S_1S_1S,
   .read_mode = SPI_FLASH_READ_MODE_STANDARD, /* Unused by OSPI Flash */
-  .address_bytes = SPI_FLASH_ADDRESS_BYTES_4,
+  .address_bytes = SPI_FLASH_ADDRESS_BYTES_3,
   .dummy_clocks = SPI_FLASH_DUMMY_CLOCKS_DEFAULT, /* Unused by OSPI Flash */
   .page_program_address_lines = (spi_flash_data_lines_t) 0U, /* Unused by OSPI Flash */
   .page_size_bytes = 64,
@@ -137,16 +143,16 @@ rm_levelx_nor_spi_cfg_t g_rm_levelx_nor_spi1_cfg =
     .base_address       = BSP_FEATURE_OSPI_DEVICE_RA_NOT_DEFINED_START_ADDRESS,
 #else
   .p_lower_lvl = &g_ospi1,
-  .base_address = BSP_FEATURE_OSPI_B_DEVICE_0_START_ADDRESS,
+  .base_address = 0x00,//BSP_FEATURE_OSPI_B_DEVICE_0_START_ADDRESS,
 #endif
   .address_offset = 0,
-  .size = 33554432, .poll_status_count = 0xFFFFFFFF, .p_context = &g_rm_filex_levelx_nor1_ctrl, .p_callback =
+  .size = 4194304, .poll_status_count = 0xFFFFFFFF, .p_context = &g_rm_filex_levelx_nor1_ctrl, .p_callback =
           rm_filex_levelx_nor_spi_callback };
 #undef RA_NOT_DEFINED
 
 #ifndef LX_DIRECT_READ
 #define FSP_LX_READ_BUFFER_SIZE_WORDS (128U)
-ULONG g_rm_levelx_nor_spi0_read_buffer[FSP_LX_READ_BUFFER_SIZE_WORDS] =
+ULONG g_rm_levelx_nor_spi1_read_buffer[FSP_LX_READ_BUFFER_SIZE_WORDS] =
 { 0 };
 #endif
 
@@ -184,9 +190,9 @@ static UINT g_rm_levelx_nor_spi1_read(ULONG *flash_address, ULONG *destination, 
 static UINT g_rm_levelx_nor_spi1_read(ULONG *flash_address, ULONG *destination, ULONG words)
 {
     fsp_err_t err;
-
-    err = RM_LEVELX_NOR_SPI_Read (&g_rm_levelx_nor_spi1_ctrl, flash_address, destination, words);
-    if (FSP_SUCCESS != err)
+    //err = RM_LEVELX_NOR_SPI_Read (&g_rm_levelx_nor_spi1_ctrl, flash_address, destination, words);
+    err = flash_read(flash_address, destination, words);
+    if (err != 0x00)
     {
         return LX_ERROR;
     }
@@ -200,7 +206,8 @@ static UINT g_rm_levelx_nor_spi1_write(ULONG *flash_address, ULONG *source, ULON
 {
     fsp_err_t err;
 
-    err = RM_LEVELX_NOR_SPI_Write (&g_rm_levelx_nor_spi1_ctrl, flash_address, source, words);
+    //err = RM_LEVELX_NOR_SPI_Write (&g_rm_levelx_nor_spi1_ctrl, flash_address, source, words);
+    err = flash_write(flash_address, source, words);
     if (FSP_SUCCESS != err)
     {
         return LX_ERROR;
@@ -247,15 +254,16 @@ UINT g_rm_levelx_nor_spi1_initialize(LX_NOR_FLASH *p_nor_flash)
     g_rm_levelx_nor_spi1_cfg.p_lx_nor_flash = p_nor_flash;
 
     /* Open the rm_levelx_nor_spi driver */
-    err = RM_LEVELX_NOR_SPI_Open (&g_rm_levelx_nor_spi1_ctrl, &g_rm_levelx_nor_spi1_cfg);
+
+    /*err = R_SCI_B_SPI_Open(&g_sci_spi_lfs_ctrl, &g_sci_spi_lfs_cfg);
     if (FSP_SUCCESS != err)
     {
         return LX_ERROR;
-    }
+    }*/
 
 #ifndef LX_DIRECT_READ
     /** lx_nor_flash_sector_buffer is used only when LX_DIRECT_READ disabled */
-    p_nor_flash->lx_nor_flash_sector_buffer = g_rm_levelx_nor_spi1_ReadBuffer;
+    p_nor_flash->lx_nor_flash_sector_buffer = &spi_sector_buffer[0];
 #endif
 
     p_nor_flash->lx_nor_flash_driver_read = g_rm_levelx_nor_spi1_read;
@@ -264,13 +272,20 @@ UINT g_rm_levelx_nor_spi1_initialize(LX_NOR_FLASH *p_nor_flash)
     p_nor_flash->lx_nor_flash_driver_block_erased_verify = g_rm_levelx_nor_spi1_block_erased_verify;
     p_nor_flash->lx_nor_flash_driver_system_error = g_rm_levelx_nor_spi1_system_error;
 
+    err = RM_LEVELX_NOR_SPI_Open (&g_rm_levelx_nor_spi1_ctrl, &g_rm_levelx_nor_spi1_cfg);
+    if (FSP_SUCCESS != err)
+    {
+        return LX_ERROR;
+    }
+
     return LX_SUCCESS;
 }
 
 /* LevelX NOR instance "Driver Close" service */
 fsp_err_t g_rm_levelx_nor_spi1_close()
 {
-    return RM_LEVELX_NOR_SPI_Close (&g_rm_levelx_nor_spi1_ctrl);
+    //return RM_LEVELX_NOR_SPI_Close (&g_rm_levelx_nor_spi1_ctrl);
+    return R_SCI_B_SPI_Close(&g_sci_spi_lfs_ctrl);
 }
 LX_NOR_FLASH g_lx_nor1;
 rm_filex_levelx_nor_instance_ctrl_t g_rm_filex_levelx_nor1_ctrl;
@@ -308,3 +323,372 @@ void g_rm_filex_levelx_nor_0_callback(rm_filex_levelx_nor_callback_args_t *p_arg
 }
 
 
+volatile bool g_transfer_complete = false;
+
+void sci_b_spi_lfs_callback (spi_callback_args_t * p_args)
+{
+    if (SPI_EVENT_TRANSFER_COMPLETE == p_args->event)
+    {
+        g_transfer_complete = true;
+    }
+    else
+    {
+        volatile ULONG xxx = p_args->event;
+        xxx=0;
+        xxx=0;
+    }
+}
+
+
+int flash_read_status(uint8_t *st)
+{
+    int ret = 0;
+    uint8_t cmd_buffer[2];
+    uint8_t in_buffer[2];
+    cmd_buffer[0] = 0x05;
+    cmd_buffer[1] = 0xFF;
+
+    ret = flash_write_and_read(cmd_buffer,in_buffer,2);
+    if(ret != 0) return ret;
+    *st = in_buffer[1];
+    return 0;
+}
+
+int flash_write_and_read(uint8_t *tx_b,uint8_t *rx_b,uint32_t count)
+{
+    fsp_err_t err = FSP_SUCCESS;
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_FLASH_CS, BSP_IO_LEVEL_LOW);
+    g_transfer_complete = false;
+
+    err = R_SCI_B_SPI_WriteRead(&g_sci_spi_lfs_ctrl, tx_b,rx_b, count, SPI_BIT_WIDTH_8_BITS);
+    if(err != FSP_SUCCESS) goto error;
+    while (false == g_transfer_complete);
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_FLASH_CS, BSP_IO_LEVEL_HIGH);
+    return 0;
+
+    error:
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_FLASH_CS, BSP_IO_LEVEL_HIGH);
+    return -1;
+}
+
+int flash_write_enable(void)
+{
+    int ret = 0;
+    uint8_t cmd_buffer[1];
+    uint8_t in_buffer[1];
+    cmd_buffer[0] = 0x06;
+    ret = flash_write_and_read(cmd_buffer,in_buffer,1);
+    if(ret != 0) return ret;
+    return 0;
+}
+
+int flash_write_disable(void)
+{
+    int ret = 0;
+    uint8_t cmd_buffer[1];
+    uint8_t in_buffer[1];
+    cmd_buffer[0] = 0x04;
+    ret = flash_write_and_read(cmd_buffer,in_buffer,1);
+    if(ret != 0) return ret;
+    return 0;
+}
+
+int flash_read(ULONG *flash_address, ULONG *destination, ULONG words)
+{
+    fsp_err_t err = FSP_SUCCESS;
+    tx_mutex_get(&g_mutex_spi,TX_WAIT_FOREVER);
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_FLASH_CS, BSP_IO_LEVEL_LOW);
+    g_transfer_complete = false;
+
+    ULONG *dest = destination;
+    ULONG addr = (ULONG)flash_address;
+
+    uint8_t cmd_buffer[4];
+    cmd_buffer[0] = 0x03;
+    cmd_buffer[1] = (uint8_t)(addr>>16);
+    cmd_buffer[2] = (uint8_t)(addr>>8);
+    cmd_buffer[3] = (uint8_t)(addr & 0x00FF);
+
+
+    uint8_t tab[4];
+    ULONG i = 0;
+
+    err = R_SCI_B_SPI_Write(&g_sci_spi_lfs_ctrl, cmd_buffer, 4, SPI_BIT_WIDTH_8_BITS);
+    if(err != FSP_SUCCESS) goto error;
+    while (false == g_transfer_complete);
+    g_transfer_complete = false;
+    for(i=0;i<words;i++)
+    {
+        g_transfer_complete = false;
+        err = R_SCI_B_SPI_Read(&g_sci_spi_lfs_ctrl, tab, 4, SPI_BIT_WIDTH_8_BITS);
+        if(err != FSP_SUCCESS) goto error;
+        while (false == g_transfer_complete);
+
+        ULONG value = (ULONG)(tab[0]<<24);
+        value += (ULONG)(tab[1]<<16);
+        value += (ULONG)(tab[2]<<8);
+        value += (ULONG)(tab[3]);
+
+        *dest = value;
+        dest++;
+
+
+    }
+
+
+    g_transfer_complete = false;
+
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_FLASH_CS, BSP_IO_LEVEL_HIGH);
+    tx_mutex_put(&g_mutex_spi);
+    return 0;
+
+    error:
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_FLASH_CS, BSP_IO_LEVEL_HIGH);
+    tx_mutex_put(&g_mutex_spi);
+    return -1;
+}
+
+
+int flash_write(ULONG *flash_address, ULONG *source, ULONG words)
+{
+    int ret = 0;
+    tx_mutex_get(&g_mutex_spi,TX_WAIT_FOREVER);
+
+    fsp_err_t err = FSP_SUCCESS;
+
+    volatile uint8_t tab[4];
+    ULONG i = 0;
+
+    volatile ULONG addr = (ULONG)flash_address;
+    ULONG *src = source;
+
+    volatile ULONG words_operation = 0;
+    volatile ULONG words_count=0;
+    bool_t end = FALSE;
+    do
+    {
+        volatile ULONG sector_start = (addr + (words_count * 4))/4096;
+        volatile ULONG words_left = (words - words_count);
+
+        if(words_left > 64) words_operation = 64;
+        else words_operation = words_left;
+
+
+        volatile ULONG sector_end = (addr + (words_operation * 4))/4096;
+
+        if(sector_start != sector_end)
+        {
+             volatile ULONG stop = 0;
+             stop = 0;
+             stop = 1;
+             stop = 0;
+              stop = 1;
+
+        }
+        else
+        {
+            err = flash_write_align(addr,source+words_count,words_operation);
+            if(err != 0)
+            {
+                goto error;
+            }
+        }
+
+        addr += (words_operation*4);
+        words_count += words_operation;
+        if(words_count == words) end = TRUE;
+
+    }while(!end);
+
+    return 0;
+
+
+    error:
+
+    tx_mutex_put(&g_mutex_spi);
+    return -1;
+}
+
+
+int flash_write_align(ULONG flash_address, ULONG *source, ULONG words)
+{
+    int ret = 0;
+    ret = flash_write_enable();
+    if(ret != 0)
+    {
+        return ret;
+    }
+
+    fsp_err_t err = FSP_SUCCESS;
+
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_FLASH_CS, BSP_IO_LEVEL_LOW);
+    g_transfer_complete = false;
+
+    volatile uint8_t tab[4];
+    ULONG i = 0;
+
+    volatile ULONG addr = (ULONG)flash_address;
+    ULONG *src = source;
+
+    uint8_t cmd_buffer[4];
+
+    cmd_buffer[0] = 0x02;
+    cmd_buffer[1] = (uint8_t)(addr>>16);
+    cmd_buffer[2] = (uint8_t)(addr>>8);
+    cmd_buffer[3] = (uint8_t)(addr & 0x00FF);
+
+    err = R_SCI_B_SPI_Write(&g_sci_spi_lfs_ctrl, cmd_buffer, 4, SPI_BIT_WIDTH_8_BITS);
+    if(err != FSP_SUCCESS) goto error;
+    while (false == g_transfer_complete);
+    g_transfer_complete = false;
+
+    for(i=0;i<words;i++)
+    {
+
+        ULONG value = *src;
+        tab[0] = (uint8_t)(value>>24);
+        tab[1] = (uint8_t)(value>>16);
+        tab[2] = (uint8_t)(value>>8);
+        tab[3] = (uint8_t)(value & 0x000000FF);
+
+
+        g_transfer_complete = false;
+        err = R_SCI_B_SPI_Write(&g_sci_spi_lfs_ctrl, tab, 4, SPI_BIT_WIDTH_8_BITS);
+        if(err != FSP_SUCCESS) goto error;
+        __NOP();
+        __NOP();
+        while (false == g_transfer_complete);
+        g_transfer_complete = false;
+
+
+
+
+        src++;
+    }
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_FLASH_CS, BSP_IO_LEVEL_HIGH);
+    __NOP();
+    __NOP();
+
+    while(1)
+    {
+        uint8_t st = 0;
+        ret = flash_read_status(&st);
+        if(ret != 0)
+        {
+            return ret;
+        }
+        if((st & 0x02) == 0x00)
+        {
+            return 0;
+        }
+        __NOP();
+        __NOP();
+    }
+
+    error:
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_FLASH_CS, BSP_IO_LEVEL_HIGH);
+    return -1;
+}
+
+
+
+int flash_erase(ULONG block)
+{
+
+    int ret = 0;
+    tx_mutex_get(&g_mutex_spi,TX_WAIT_FOREVER);
+    ret = flash_write_enable();
+    if(ret != 0)
+    {
+        tx_mutex_put(&g_mutex_spi);
+        return ret;
+    }
+
+    ULONG addr = (ULONG)((block * 4096));
+    uint8_t cmd_buffer[4];
+    uint8_t in_buffer[4];
+
+    cmd_buffer[0] = 0x20;
+    cmd_buffer[1] = (uint8_t)(addr>>16);
+    cmd_buffer[2] = (uint8_t)(addr>>8);
+    cmd_buffer[3] = (uint8_t)(addr & 0x00FF);
+
+    ret = flash_write_and_read(cmd_buffer,in_buffer,4);
+    if(ret != 0)
+    {
+        tx_mutex_put(&g_mutex_spi);
+        return ret;
+    }
+
+    __NOP();
+    __NOP();
+
+    while(1)
+    {
+        uint8_t st = 0;
+        ret = flash_read_status(&st);
+        if(ret != 0)
+        {
+           tx_mutex_put(&g_mutex_spi);
+           return ret;
+        }
+        if((st & 0x02) == 0x00)
+        {
+           tx_mutex_put(&g_mutex_spi);
+           return 0;
+        }
+    }
+    return 0;
+}
+
+
+int flash_erase_chip(void)
+{
+    int ret = 0;
+    tx_mutex_get(&g_mutex_spi,TX_WAIT_FOREVER);
+    ret = flash_write_enable();
+    if(ret != 0)
+    {
+        tx_mutex_put(&g_mutex_spi);
+        return ret;
+    }
+
+    uint8_t cmd_buffer[1];
+    uint8_t in_buffer[1];
+    cmd_buffer[0] = 0xC7;
+    ret = flash_write_and_read(cmd_buffer,in_buffer,1);
+    if(ret != 0)
+    {
+        tx_mutex_put(&g_mutex_spi);
+        return ret;
+    }
+
+    volatile uint32_t tempo = 1000;
+    while(tempo>0)tempo--;
+
+    while(1)
+    {
+        uint8_t st = 0;
+        ret = flash_read_status(&st);
+        if(ret != 0)
+        {
+           tx_mutex_put(&g_mutex_spi);
+           return ret;
+        }
+        if((st & 0x02) == 0x00)
+        {
+           tx_mutex_put(&g_mutex_spi);
+           return 0;
+        }
+    }
+    return 0;
+}
+
+int flash_open(void)
+{
+    return R_SCI_B_SPI_Open(&g_sci_spi_lfs_ctrl, &g_sci_spi_lfs_cfg);
+}
+int flash_close(void)
+{
+    return R_SCI_B_SPI_Close(&g_sci_spi_lfs_ctrl);
+}

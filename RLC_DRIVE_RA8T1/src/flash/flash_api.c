@@ -5,7 +5,7 @@
  *      Author: Christophe
  */
 
-
+#include "hal_data.h"
 #include "bsp_api.h"
 #include "flash_api.h"
 
@@ -30,13 +30,20 @@ const spi_flash_api_t g_spi_b_on_spi_flash =
     .autoCalibrate  = R_SPI_B_AutoCalibrate,
 };
 
+static volatile bool g_transfer_complete = false;
+
+
 
 
 fsp_err_t R_SPI_B_Open(spi_flash_ctrl_t * const p_ctrl, spi_flash_cfg_t const * const p_cfg)
 {
     fsp_err_t ret = FSP_SUCCESS;
     ospi_b_instance_ctrl_t * p_instance_ctrl = (ospi_b_instance_ctrl_t *) p_ctrl;
-    p_instance_ctrl->open  = SPI_B_PRV_OPEN;
+    ret = R_SCI_B_SPI_Open(&g_sci_spi_lfs_ctrl, &g_sci_spi_lfs_cfg);
+    if(ret == FSP_SUCCESS)
+    {
+        p_instance_ctrl->open  = SPI_B_PRV_OPEN;
+    }
 
     return ret;
 }
@@ -44,8 +51,12 @@ fsp_err_t R_SPI_B_Open(spi_flash_ctrl_t * const p_ctrl, spi_flash_cfg_t const * 
 fsp_err_t R_SPI_B_Close(spi_flash_ctrl_t * const p_ctrl)
 {
     fsp_err_t ret = FSP_SUCCESS;
+    ospi_b_instance_ctrl_t * p_instance_ctrl = (ospi_b_instance_ctrl_t *) p_ctrl;
+    R_SCI_B_SPI_Close(&g_sci_spi_lfs_ctrl);
+    p_instance_ctrl->open = 0x0;
     return ret;
 }
+
 
 fsp_err_t R_SPI_B_DirectWrite(spi_flash_ctrl_t * const p_ctrl,
                                uint8_t const * const    p_src,

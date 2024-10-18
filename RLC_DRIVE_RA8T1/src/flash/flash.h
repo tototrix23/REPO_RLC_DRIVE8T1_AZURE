@@ -12,6 +12,8 @@
 #include "lx_api.h"
 #include "flash_api.h"
 
+
+
 extern LX_NOR_FLASH g_lx_nor1;
 extern const rm_filex_levelx_nor_instance_t g_rm_filex_levelx_nor1_instance;
 
@@ -22,5 +24,13 @@ extern const rm_filex_levelx_nor_cfg_t g_rm_filex_levelx_nor1_cfg;
 UINT g_rm_levelx_nor_spi1_initialize(LX_NOR_FLASH *p_nor_flash);
 fsp_err_t g_rm_levelx_nor_spi1_close();
 void g_rm_filex_levelx_nor_1_callback(rm_filex_levelx_nor_callback_args_t *p_args);
+
+
+int flash_read(ULONG *flash_address, ULONG *destination, ULONG words);
+int flash_write(ULONG *flash_address, ULONG *source, ULONG words);
+int flash_erase(ULONG block);
+int flash_erase_chip(void);
+int flash_open(void);
+int flash_close(void);
 
 #endif /* FLASH_FLASH_H_ */

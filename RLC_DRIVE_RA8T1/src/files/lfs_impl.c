@@ -48,7 +48,7 @@ const struct lfs_config cfg = {
 
 
 static volatile bool g_transfer_complete = false;
-
+/*
 void sci_b_spi_lfs_callback (spi_callback_args_t * p_args)
 {
     if (SPI_EVENT_TRANSFER_COMPLETE == p_args->event)
@@ -56,6 +56,7 @@ void sci_b_spi_lfs_callback (spi_callback_args_t * p_args)
         g_transfer_complete = true;
     }
 }
+*/
 
 int LFS_Init(bool_t format)
 {

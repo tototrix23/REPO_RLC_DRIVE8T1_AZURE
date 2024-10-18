@@ -435,7 +435,7 @@ FSP Configuration
     Parameter Checking: Default (BSP)
     
   Module "Azure RTOS LevelX NOR on SPI Memory"
-    NOR: Direct Read: Enabled (default)
+    NOR: Direct Read: Disabled
     NOR: Free Sector Data Verify: Enabled
     NAND: Sector Mapping Cache Size: 
     NAND: Flash Direct Mapping Cache: Disabled (default)
@@ -454,7 +454,7 @@ FSP Configuration
     Parameter Checking: Default (BSP)
     DMAC Support: Disable
     Autocalibration Support: Disable
-    Memory-mapping Support: Prefetch Function: Enable
+    Memory-mapping Support: Prefetch Function: Disable
     Memory-mapping Support: Combination Function: 64 Byte
     Memory-mapping Support: XiP Support: Disable
     DOTF Support: Disable
@@ -554,7 +554,7 @@ FSP Configuration
       Transmit Interrupt Priority: Priority 12
       Transmit End Interrupt Priority: Priority 12
       Error Interrupt Priority: Priority 12
-      Bitrate: 10000000
+      Bitrate: 30000000
       
       Instance "g_transfer0 Transfer (r_dtc) SCI9 TXI (Transmit data empty)"
         Name: g_transfer0
@@ -592,11 +592,11 @@ FSP Configuration
       Bit Order: MSB First
       Clock Source: PCLK
       Callback: sci_b_spi_callback_drivers
-      Receive Interrupt Priority: Priority 12
-      Transmit Interrupt Priority: Priority 12
+      Receive Interrupt Priority: Priority 5
+      Transmit Interrupt Priority: Priority 5
       Transmit End Interrupt Priority: Priority 12
       Error Interrupt Priority: Priority 12
-      Bitrate: 1000000
+      Bitrate: 30000000
       
       Instance "g_transfer2 Transfer (r_dtc) SCI9 TXI (Transmit data empty)"
         Name: g_transfer2
@@ -729,7 +729,7 @@ FSP Configuration
   Thread "Main Thread"
     Symbol: main_thread
     Name: Main Thread
-    Stack size (bytes): 4096
+    Stack size (bytes): 8192
     Priority: 2
     Auto start: Enabled
     Time slicing interval (ticks): 1

@@ -26,6 +26,9 @@
 
 #include <flash/flash.h>
 
+#define MEDIA_SECTOR_HEADS_VALUE (1U)
+#define MEDIA_SECTORS_PER_HEAD    (1U)
+
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -44,7 +47,7 @@ i_spi_t interface_mot1;
 h_drv8323s_t drv_mot2;
 i_spi_t interface_mot2;*/
 
-
+volatile ULONG tab[128];
 
 /* Main Thread entry function */
 void main_thread_entry(void)
@@ -56,17 +59,81 @@ void main_thread_entry(void)
     i_log.write_w = impl_log_write_w;
 
 
+    delay_ms(2000);
+
+
+
+    /*flash_open();
+    flash_erase_chip();
+    flash_close();*/
+/*
+    ULONG i=0;
+
+    for(i=0;i<128;i++)
+    {
+        tab[i]=i;
+    }
+
+    ULONG *ADDR = 0x200;
+    //*ADDR = 0x200;
+    flash_write(ADDR, tab, 128);
+
+    volatile ULONG tab_read[128];
+    flash_read(ADDR, tab_read, 128);
+
+    flash_close();*/
+
+
+
+
     fx_system_initialize();
     UINT fx_ret_val = FX_SUCCESS;
         /* Initialize LevelX system */
     fx_ret_val = lx_nor_flash_initialize();
 
-    UINT status = fx_media_open(&g_fx_media0,
+    volatile UINT status = fx_media_open(&g_fx_media0,
                                        "&g_fx_media0",
                                        RM_FILEX_LEVELX_NOR_DeviceDriver,
                                        (void *) &g_rm_filex_levelx_nor1_instance,
                                        g_fx_media0_media_memory,
                                        G_FX_MEDIA0_MEDIA_MEMORY_SIZE);
+
+
+
+
+    /*status = fx_media_format(&g_fx_media0,                              // Pointer to FileX media control block.
+                                             RM_FILEX_LEVELX_NOR_DeviceDriver,          // Driver entry
+                                             (void *) &g_rm_filex_levelx_nor1_instance,  // Pointer to LevelX NOR Driver
+                                             g_fx_media0_media_memory,                  // Media buffer pointer
+                                             G_FX_MEDIA0_MEDIA_MEMORY_SIZE,             // Media buffer size
+                                             (char *) G_FX_MEDIA0_VOLUME_NAME,          // Volume Name
+                                             G_FX_MEDIA0_NUMBER_OF_FATS,                // Number of FATs
+                                             G_FX_MEDIA0_DIRECTORY_ENTRIES,             // Directory Entries
+                                             G_FX_MEDIA0_HIDDEN_SECTORS,                // Hidden sectors
+                                             7168,//G_FX_MEDIA0_TOTAL_SECTORS,                 // Total sectors
+                                             G_FX_MEDIA0_BYTES_PER_SECTOR,              // Sector size
+                                             G_FX_MEDIA0_SECTORS_PER_CLUSTER,           // Sectors per cluster
+                                             0,                  // Heads (disk media)
+                                             0);                   // Sectors per track (disk media)
+
+
+    status = fx_media_open(&g_fx_media0,
+                           "&g_fx_media0",
+                           RM_FILEX_LEVELX_NOR_DeviceDriver,
+                           (void *) &g_rm_filex_levelx_nor1_instance,
+                           g_fx_media0_media_memory,
+                           G_FX_MEDIA0_MEDIA_MEMORY_SIZE);*/
+
+
+    UINT attributes;
+    volatile fsp_err_t fsp_err = fx_directory_attributes_read (&g_fx_media0, "/test_dir", &attributes);
+    fsp_err = fx_directory_attributes_read (&g_fx_media0, "/test_dir", &attributes);
+    fsp_err = fx_directory_attributes_read (&g_fx_media0, "/test_dir", &attributes);
+
+    fsp_err = fx_directory_create (&g_fx_media0, "/test_dir");
+
+    fsp_err = fx_directory_attributes_read (&g_fx_media0, "/test_dir", &attributes);
+
 
     // Configuration de l'interface de gestion du temps
     i_time_init(&i_time_interface_t,impl_time_init, impl_time_update);

@@ -13,6 +13,10 @@
 extern const spi_flash_api_t g_spi_b_on_spi_flash;
 
 
+
+
+
+
 fsp_err_t R_SPI_B_Open(spi_flash_ctrl_t * const p_ctrl, spi_flash_cfg_t const * const p_cfg);
 fsp_err_t R_SPI_B_Close(spi_flash_ctrl_t * const p_ctrl);
 fsp_err_t R_SPI_B_DirectWrite(spi_flash_ctrl_t * const p_ctrl,
