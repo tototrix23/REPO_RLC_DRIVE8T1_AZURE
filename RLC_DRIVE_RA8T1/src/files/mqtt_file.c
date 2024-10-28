@@ -11,7 +11,7 @@
 #include <files/mqtt_file.h>
 #include <exchanged_data/exchanged_data.h>
 #include <modem/serial.h>
-
+#include <my_malloc.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -22,7 +22,7 @@ return_t json_file_add_to_queue(char *topic,char *ptr)
 {
     ASSERT(ptr != 0x00);
 
-    json_file_t *ptr_st = (json_file_t*)malloc(sizeof(json_file_t));
+    json_file_t *ptr_st = (json_file_t*)MALLOC(sizeof(json_file_t));
     if(ptr != 0x00)
     {
         memset(ptr_st, 0, sizeof(json_file_t));
@@ -35,14 +35,13 @@ return_t json_file_add_to_queue(char *topic,char *ptr)
         if(status != TX_SUCCESS)
         {
             LOG_E(LOG_STD,"Error adding 'json_file_t' to queue");
-            free(ptr);
-            free(ptr_st);
+            FREE((void**)&ptr);
+            FREE((void**)&ptr_st);
             return X_RET_CONTAINER_FULL;
         }
     }
     else
     {
-        free(ptr);
         return X_RET_MEMORY_ALLOCATION;
     }
     return X_RET_OK;
@@ -80,7 +79,7 @@ return_t mqtt_publish_event(uint16_t code)
 {
     const uint16_t malloc_size = 128;
     return_t ret = X_RET_OK;
-    char *payload = (char *)malloc(malloc_size);
+    char *payload = (char *)MALLOC(malloc_size);
     if(payload != 0x00)
     {
          memset(payload,0x00,malloc_size);
@@ -105,7 +104,7 @@ return_t mqtt_publish_temperature_humidity(void)
 {
     const uint16_t malloc_size = 128;
     return_t ret = X_RET_OK;
-    char *payload = (char *)malloc(malloc_size);
+    char *payload = (char *)MALLOC(malloc_size);
 
 
     if(payload != 0x00)
@@ -151,7 +150,7 @@ return_t mqtt_publish_poster_count(void)
 {
     const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
-    char *payload = (char *)malloc(malloc_size);
+    char *payload = (char *)MALLOC(malloc_size);
     if(payload != 0x00)
     {
         memset(payload,0x00,malloc_size);
@@ -176,7 +175,7 @@ return_t mqtt_publish_battery_detected(void)
 {
     const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
-    char *payload = (char *)malloc(malloc_size);
+    char *payload = (char *)MALLOC(malloc_size);
     if(payload != 0x00)
     {
         memset(payload,0x00,malloc_size);
@@ -202,7 +201,7 @@ return_t mqtt_publish_scrolling_enabled(void)
 {
     const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
-    char *payload = (char *)malloc(malloc_size);
+    char *payload = (char *)MALLOC(malloc_size);
     if(payload != 0x00)
     {
         memset(payload,0x00,malloc_size);
@@ -228,7 +227,7 @@ return_t mqtt_publish_lighting_enabled(void)
 {
     const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
-    char *payload = (char *)malloc(malloc_size);
+    char *payload = (char *)MALLOC(malloc_size);
     if(payload != 0x00)
     {
         memset(payload,0x00,malloc_size);
@@ -254,7 +253,7 @@ return_t mqtt_publish_motor_status(void)
 {
     const uint16_t malloc_size = 256;
     return_t ret = X_RET_OK;
-    char *payload = (char *)malloc(malloc_size);
+    char *payload = (char *)MALLOC(malloc_size);
     if(payload != 0x00)
     {
         memset(payload,0x00,malloc_size);
@@ -311,7 +310,7 @@ return_t mqtt_publish_voltages(void)
 {
     const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
-    char *payload = (char *)malloc(malloc_size);
+    char *payload = (char *)MALLOC(malloc_size);
     if(payload != 0x00)
     {
         char buffer[16];
@@ -347,7 +346,7 @@ return_t mqtt_publish_motor_type(void)
 {
     const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
-    char *payload = (char *)malloc(malloc_size);
+    char *payload = (char *)MALLOC(malloc_size);
     if(payload != 0x00)
     {
         memset(payload,0x00,malloc_size);
@@ -372,7 +371,7 @@ return_t mqtt_publish_board_version(void)
 {
     const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
-    char *payload = (char *)malloc(malloc_size);
+    char *payload = (char *)MALLOC(malloc_size);
     if(payload != 0x00)
     {
         memset(payload,0x00,malloc_size);
@@ -397,7 +396,7 @@ return_t mqtt_publish_firmware(void)
 {
     const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
-    char *payload = (char *)malloc(malloc_size);
+    char *payload = (char *)MALLOC(malloc_size);
     if(payload != 0x00)
     {
         memset(payload,0x00,malloc_size);

@@ -1,7 +1,7 @@
 /.metadata/
 JLinkLog.log
 
-
+/RLC_DRIVE_RA8T1/.cache/*
 /RLC_DRIVE_RA8T1/Debug/*
 
 /RLC_DRIVE_RA8T1/ra_cfg/*

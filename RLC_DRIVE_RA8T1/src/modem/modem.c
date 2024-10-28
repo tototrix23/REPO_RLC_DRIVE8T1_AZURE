@@ -16,12 +16,13 @@
 #include <cJSON/JSON_process.h>
 #include <return_codes.h>
 #include <rtc/rtc.h>
-
+#include <my_malloc.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
 #define LOG_MODULE    "modem"
 
+volatile uint32_t modem_line = 0;
 
 typedef struct tx_info_t{
     bool_t in_progress;
@@ -186,7 +187,8 @@ return_t modem_process_send(TX_QUEUE *queue,char *type,char *data_tx,char **data
             {
                 if(modem_verify_received_json_type2(type,*data_rx) != X_RET_OK)
                 {
-                    free(*data_rx);
+                    FREE((void**)data_rx);
+
 
                     /*r++;
                     if(r>=retry)
@@ -451,54 +453,91 @@ void modem_callback(uart_callback_args_t *p_args)
 {
     static char end_pattern[2];
 
+    modem_line = __LINE__;
+
     if(UART_EVENT_RX_CHAR == p_args->event)
     {
+        modem_line = __LINE__;
         modem_rx_info.in_progress = TRUE;
         if(modem_rx_index < (RX_MAX_CHAR-1))
         {
+            modem_line = __LINE__;
             modem_rx_array[modem_rx_index++] = (char)p_args->data;
             modem_rx_info.code = X_RET_OK;
 
             end_pattern[0] = end_pattern[1];
             end_pattern[1] = (char)p_args->data;
-
+            modem_line = __LINE__;
             if(end_pattern[0] == '\r' && end_pattern[1] == '\n')
             {
+                modem_line = __LINE__;
                 modem_rx_array[modem_rx_index++] = 0x00;
-
+                modem_line = __LINE__;
                 uint16_t str_size = modem_rx_index;
-
-                char *ptr_malloc = malloc(str_size);
+                modem_line = __LINE__;
+                fsp_err_t err_fsp = FSP_SUCCESS;
+                modem_line = __LINE__;
+                char *ptr_malloc = MALLOC(str_size);
+                modem_line = __LINE__;
                 if(ptr_malloc != 0x00)
                 {
+                    modem_line = __LINE__;
                     memcpy(ptr_malloc,modem_rx_array,str_size);
-                    tx_queue_send(&g_queue_modem_msg_generic, &ptr_malloc, TX_NO_WAIT);
+                    modem_line = __LINE__;
+                    err_fsp = tx_queue_send(&g_queue_modem_msg_generic, &ptr_malloc, TX_NO_WAIT);
+                    modem_line = __LINE__;
+                    if(err_fsp != FSP_SUCCESS)
+                    {
+                        modem_line = __LINE__;
+                        FREE((void**)&ptr_malloc);
+                        modem_line = __LINE__;
+                    }
+                    modem_line = __LINE__;
                 }
 
-                ptr_malloc = malloc(str_size);
+
+                modem_line = __LINE__;
+                ptr_malloc = MALLOC(str_size);
+                modem_line = __LINE__;
                 if(ptr_malloc != 0x00)
                 {
+                    modem_line = __LINE__;
                     memcpy(ptr_malloc,modem_rx_array,str_size);
-                    tx_queue_send(&g_queue_modem_msg_mqtt_publish, &ptr_malloc, TX_NO_WAIT);
+                    modem_line = __LINE__;
+                    err_fsp = tx_queue_send(&g_queue_modem_msg_mqtt_publish, &ptr_malloc, TX_NO_WAIT);
+                    modem_line = __LINE__;
+                    if(err_fsp != FSP_SUCCESS)
+                    {
+                        modem_line = __LINE__;
+                        FREE((void**)&ptr_malloc);
+                        modem_line = __LINE__;
+                    }
                 }
+
             }
         }
         else
         {
+            modem_line = __LINE__;
             modem_rx_clear();
+            modem_line = __LINE__;
         }
     }
     else if(UART_EVENT_TX_DATA_EMPTY == p_args->event)
     {
+        modem_line = __LINE__;
         modem_tx_info.in_progress = FALSE;
         modem_tx_info.code = X_RET_OK;
+        modem_line = __LINE__;
     }
     else if((UART_EVENT_ERR_PARITY == p_args->event || UART_EVENT_ERR_FRAMING == p_args->event ||
             UART_EVENT_ERR_OVERFLOW == p_args->event || UART_EVENT_BREAK_DETECT == p_args->event)
             )
     {
+        modem_line = __LINE__;
         modem_tx_info.in_progress = FALSE;
         modem_tx_info.code = X_RET_ERR_GENERIC;
+        modem_line = __LINE__;
     }
     else
     {

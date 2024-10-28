@@ -22,9 +22,9 @@ typedef struct st_log_t
     uint8_t mode;
     uint8_t color;
     uint16_t line;
-    char module[32];
-    char func[32];
-    char text[64];
+    char module[48];
+    char func[48];
+    char text[128];
 }
 __attribute__((packed))      // Remove interfield padding.
 __attribute__((aligned(4)))  // Set alignment and add tail padding.

@@ -11,6 +11,7 @@
 #include <_target/t_delay.h>
 #include "impl_log.h"
 
+#include <my_malloc.h>
 
 
 void impl_log_init(void);
@@ -153,7 +154,7 @@ void impl_log_write(uint8_t mode,uint8_t color,char*module,  char* file,const ch
 void impl_log_write_e(uint8_t mode,char *module, char* s, char* file,const char* func, uint16_t line, va_list argp)
 {
     PARAMETER_NOT_USED(file);
-    log_t *ptr = (log_t*)malloc(sizeof(log_t));
+    log_t *ptr = (log_t*)MALLOC(sizeof(log_t));
     if(ptr != 0x00)
     {
         memset(ptr, 0, sizeof(log_t));
@@ -167,7 +168,7 @@ void impl_log_write_e(uint8_t mode,char *module, char* s, char* file,const char*
         uint32_t status = tx_queue_send(&g_queue_log, &ptr, TX_NO_WAIT);
         if(status != TX_SUCCESS)
         {
-            free(ptr);
+            FREE((void**)&ptr);
         }
     }
 }
@@ -175,7 +176,7 @@ void impl_log_write_e(uint8_t mode,char *module, char* s, char* file,const char*
 void impl_log_write_w(uint8_t mode,char *module, char* s, char* file,const char* func, uint16_t line, va_list argp)
 {
     PARAMETER_NOT_USED(file);
-    log_t *ptr = (log_t*)malloc(sizeof(log_t));
+    log_t *ptr = (log_t*)MALLOC(sizeof(log_t));
     if(ptr != 0x00)
     {
         memset(ptr, 0, sizeof(log_t));
@@ -189,7 +190,7 @@ void impl_log_write_w(uint8_t mode,char *module, char* s, char* file,const char*
         uint32_t status = tx_queue_send(&g_queue_log, &ptr, TX_NO_WAIT);
         if(status != TX_SUCCESS)
         {
-            free(ptr);
+            FREE((void**)&ptr);
         }
     }
 }
@@ -197,7 +198,7 @@ void impl_log_write_w(uint8_t mode,char *module, char* s, char* file,const char*
 void impl_log_write_i(uint8_t mode,char *module, char* s, char* file,const char* func, uint16_t line, va_list argp)
 {
     PARAMETER_NOT_USED(file);
-    log_t *ptr = (log_t*)malloc(sizeof(log_t));
+    log_t *ptr = (log_t*)MALLOC(sizeof(log_t));
     if(ptr != 0x00)
     {
         memset(ptr, 0, sizeof(log_t));
@@ -211,7 +212,7 @@ void impl_log_write_i(uint8_t mode,char *module, char* s, char* file,const char*
         uint32_t status = tx_queue_send(&g_queue_log, &ptr, TX_NO_WAIT);
         if(status != TX_SUCCESS)
         {
-            free(ptr);
+            FREE((void**)&ptr);
         }
     }
 }
@@ -219,7 +220,7 @@ void impl_log_write_i(uint8_t mode,char *module, char* s, char* file,const char*
 void impl_log_write_d(uint8_t mode,char *module, char* s, char* file,const char* func, uint16_t line, va_list argp)
 {
     PARAMETER_NOT_USED(file);
-    log_t *ptr = (log_t*)malloc(sizeof(log_t));
+    log_t *ptr = (log_t*)MALLOC(sizeof(log_t));
     if(ptr != 0x00)
     {
         memset(ptr, 0, sizeof(log_t));
@@ -233,7 +234,7 @@ void impl_log_write_d(uint8_t mode,char *module, char* s, char* file,const char*
         uint32_t status = tx_queue_send(&g_queue_log, &ptr, TX_NO_WAIT);
         if(status != TX_SUCCESS)
         {
-            free(ptr);
+            FREE((void**)&ptr);
         }
     }
     else

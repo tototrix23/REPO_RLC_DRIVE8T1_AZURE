@@ -72,11 +72,30 @@
 #define F_RET_COMMS_MQTT_LTE_NOT_CONNECTED   -11202
 #define F_RET_COMMS_MQTT_BROK_NOT_CONNECTED  -11203
 #define F_RET_COMMS_MQTT_TIMEOUT             -11204
-#define F_RET_COMMS_MQTT_GENERIC             -11205
+#define F_RET_COMMS_MQTT_BUSY                -11205
+#define F_RET_COMMS_MQTT_GENERIC             -11206
 
 
 #define F_RET_QUEUE_RECEIVE                  -11300
 #define F_RET_RTC_NOT_CONFIGURED             -11301
 
+#define F_RET_FS_INIT                        -11400
+#define F_RET_FS_INIT_MEDIA                  -11401
+#define F_RET_FS_FORMAT                      -11402
+#define F_RET_FS_READ_DIRECTORY              -11403
+#define F_RET_FS_CREATE_DIRECTORY            -11404
+#define F_RET_FS_CREATE_FILE                 -11405
+#define F_RET_FS_NO_MORE_ENTRIES             -11406
+#define F_RET_FS_NOT_FOUND                   -11407
+#define F_RET_FS_GENERIC                     -11408
+#define F_RET_FS_SET_DIRECTORY               -11409
+#define F_RET_FS_DELETE_DIRECTORY            -11410
+#define F_RET_FS_DELETE_FILE                 -11411
+#define F_RET_FS_CLOSE_FILE                  -11412
+#define F_RET_FS_OPEN_FILE                   -11413
+#define F_RET_FS_READ_FILE_EOF               -11414
+#define F_RET_FS_READ_FILE                   -11415
+#define F_RET_FS_WRITE_FILE                  -11416
+#define F_RET_FS_RENAME_FILE                 -11417
 
 #endif /* RETURN_CODES_H_ */

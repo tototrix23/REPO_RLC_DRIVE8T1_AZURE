@@ -83,8 +83,8 @@ FSP Configuration
     
   RA8T1 event data
   RA Common
-    Main stack size (bytes): 0x1000
-    Heap size (bytes): 0x8000
+    Main stack size (bytes): 0x4000
+    Heap size (bytes): 0x2000
     MCU Vcc (mV): 3300
     Parameter checking: Disabled
     Assert Failures: Return FSP_ERR_ASSERTION
@@ -345,10 +345,6 @@ FSP Configuration
     Parameter Checking: Default (BSP)
     DTC Support: Enabled
     
-  Module "Transfer (r_dtc)"
-    Parameter Checking: Default (BSP)
-    Linker section to keep DTC vector table: .fsp_dtc_vector_table
-    
   Module "Motor 120 degree control (rm_motor_120_degree)"
     Parameter Checking: Default (BSP)
     
@@ -398,7 +394,7 @@ FSP Configuration
     DTC on Transmission and Reception: Disabled
     10-bit slave addressing: Disabled
     
-  Module "Azure RTOS FileX on LevelX NOR"
+  Module "Azure RTOS FileX on Block Media"
     Error Checking: Enabled (default)
     Common: Max Long Name Len: 
     Common: Max Last Name Len: 
@@ -425,30 +421,17 @@ FSP Configuration
     Extra Features: One Line Function: Enabled (default)
     Extra Features: FAT Entry Refresh: Enabled (default)
     Extra Features: Consecutive Detect: Enabled (default)
-    Fault Tolerant: Fault Tolerant Service: Disabled (default)
-    Fault Tolerant: Fault Tolerant Data: Disabled (default)
-    Fault Tolerant: Fault Tolerant: Disabled (default)
+    Fault Tolerant: Fault Tolerant Service: Enabled
+    Fault Tolerant: Fault Tolerant Data: Enabled
+    Fault Tolerant: Fault Tolerant: Enabled
     Fault Tolerant: Fault Tolerant Boot Index: 
     Extra Features: Enable exFAT: Disabled (default)
     
-  Module "FileX I/O (rm_filex_levelx_nor)"
+  Module "FileX I/O (rm_filex_block_media)"
     Parameter Checking: Default (BSP)
     
-  Module "Azure RTOS LevelX NOR on SPI Memory"
-    NOR: Direct Read: Disabled
-    NOR: Free Sector Data Verify: Enabled
-    NAND: Sector Mapping Cache Size: 
-    NAND: Flash Direct Mapping Cache: Disabled (default)
-    NOR: Extended Cache: Enabled (default)
-    NOR: Extended Cache Size: 
-    NOR: Sector Mapping Cache Size: 
-    Thread Safe: Enabled
-    Standalone Mode: Disabled (default)
-    
-  Module "LevelX NOR Port (rm_levelx_nor_spi)"
+  Module "Block Media SPI Flash (rm_block_media_spi)"
     Parameter Checking: Default (BSP)
-    Write Verify: Disabled
-    Page Buffer Size (bytes): 8192
     
   Module "OSPI Flash (r_ospi_b)"
     Parameter Checking: Default (BSP)
@@ -458,6 +441,10 @@ FSP Configuration
     Memory-mapping Support: Combination Function: 64 Byte
     Memory-mapping Support: XiP Support: Disable
     DOTF Support: Disable
+    
+  Module "Transfer (r_dtc)"
+    Parameter Checking: Default (BSP)
+    Linker section to keep DTC vector table: .fsp_dtc_vector_table
     
   Azure RTOS ThreadX
     General: Custom tx_user.h: 
@@ -554,7 +541,7 @@ FSP Configuration
       Transmit Interrupt Priority: Priority 12
       Transmit End Interrupt Priority: Priority 12
       Error Interrupt Priority: Priority 12
-      Bitrate: 30000000
+      Bitrate: 1000000
       
       Instance "g_transfer0 Transfer (r_dtc) SCI9 TXI (Transmit data empty)"
         Name: g_transfer0
@@ -592,11 +579,11 @@ FSP Configuration
       Bit Order: MSB First
       Clock Source: PCLK
       Callback: sci_b_spi_callback_drivers
-      Receive Interrupt Priority: Priority 5
-      Transmit Interrupt Priority: Priority 5
+      Receive Interrupt Priority: Priority 12
+      Transmit Interrupt Priority: Priority 12
       Transmit End Interrupt Priority: Priority 12
       Error Interrupt Priority: Priority 12
-      Bitrate: 30000000
+      Bitrate: 1000000
       
       Instance "g_transfer2 Transfer (r_dtc) SCI9 TXI (Transmit data empty)"
         Name: g_transfer2
@@ -654,82 +641,80 @@ FSP Configuration
       Interrupt Priority Level: Priority 12
       RX Interrupt Priority Level [Only used when DTC is enabled]: Disabled
       
-    Instance "g_fx_media0 Azure RTOS FileX on LevelX NOR"
+    Instance "g_fx_media0 Azure RTOS FileX on Block Media"
       Name: g_fx_media0
       Volume Name: Volume 1
       Number of FATs: 1
       Directory Entries: 256
       Hidden Sectors: 0
-      Total Sectors: 57337
+      Total Sectors: 1024
+      Bytes per Sector: 4096
       Sectors per Cluster: 1
       Volume Serial Number (exFAT only): 12345
       Boundary Unit (exFAT only): 128
-      Working media memory size: 512
+      Working media memory size: 4096
       
-      Instance "g_rm_filex_levelx_nor0 FileX I/O (rm_filex_levelx_nor)"
-        Name: g_rm_filex_levelx_nor0
-        Callback: g_rm_filex_levelx_nor_0_callback
-        LevelX NOR Name (String): g_rm_filex_levelx_nor_0
+      Instance "g_rm_filex_block_media_0 FileX I/O (rm_filex_block_media)"
+        Name: g_rm_filex_block_media_0
+        Callback: g_rm_filex_block_media_0_callback
+        Partition Number: 0
         
-        Instance "Azure RTOS LevelX NOR on SPI Memory"
-          Name: g_lx_nor0
-          Busy Callback: rm_filex_levelx_nor_spi_callback
+        Instance "g_rm_block_media0 Block Media SPI Flash (rm_block_media_spi)"
+          Module Instance Name: g_rm_block_media0
+          Block size (bytes): 4096
+          Block count: 1024
+          Base Address: 0
+          Callback Function: rm_filex_block_media_memory_callback
           
-          Instance "g_rm_levelx_nor_spi0 LevelX NOR Port (rm_levelx_nor_spi)"
-            Name: g_rm_levelx_nor_spi0
-            Memory Start Adress Offset (bytes): 0
-            Memory Size (bytes): 33554432
-            Poll Status Count: 0xFFFFFFFF
+          Instance "g_ospi0 OSPI Flash (r_ospi_b)"
+            General: Name: g_ospi0
+            General: Channel: 0
+            General: Initial Protocol Mode: SPI (1S-1S-1S)
+            General: Initial Address Bytes: 4
+            General: Write Status Bit: 0
+            General: Write Enable Bit: 1
+            General: Sector Erase Size: 4096
+            General: Block Erase Size: 262144
+            Defaults: Command Definitions: Page Program Command: 0x12
+            Defaults: Command Definitions: Read Command: 0x13
+            Defaults: Command Definitions: Write Enable Command: 0x06
+            Defaults: Command Definitions: Status Command: 0x05
+            Defaults: Erase Command Definitions: Sector Erase Command: 0x2121
+            Defaults: Erase Command Definitions: Block Erase Command: 0xDCDC
+            Defaults: Erase Command Definitions: Chip Erase Command: 0x6060
+            Defaults: Dummy Cycles: Memory Read Dummy Cycles: 0
+            Defaults: Dummy Cycles: Status Read Dummy Cycles: 0
+            General: Command Set Table: 
+            General: Command Set Table Length: 0
+            High-speed Mode: Protocol: Dual data rate OPI (8D-8D-8D)
+            High-speed Mode: Command Length Bytes: 2
+            High-speed Mode: Auto-Calibration: Data latching delay: 0x08
+            High-speed Mode: Auto-Calibration: Auto-Calibration Address: 0x00
+            High-speed Mode: Command Definitions: Page Program Command: 0x1212
+            High-speed Mode: Command Definitions: Dual Read Command: 0xEEEE
+            High-speed Mode: Command Definitions: Write Enable Command: 0x0606
+            High-speed Mode: Command Definitions: Status Command: 0x0505
+            High-speed Mode: Command Definitions: Sector Erase Command: 0
+            High-speed Mode: Command Definitions: Block Erase Command: 0
+            High-speed Mode: Command Definitions: Chip Erase Command: 0
+            High-speed Mode: Memory Read Dummy Cycles: 20
+            High-speed Mode: Status Read Dummy Cycles: 3
+            Chip Select Timing Setting: Command Interval: 2
+            Chip Select Timing Setting: Pull-up Timing: No Extension
+            Chip Select Timing Setting: Pull-down Timing: No Extension
+            XiP Mode: XiP Enter Code: 0
+            XiP Mode: XiP Exit Code: 0
+            DOTF: Name: g_ospi_dotf
+            DOTF: AES Key: g_ospi_dotf_key
+            DOTF: AES IV: g_ospi_dotf_iv
+            DOTF: AES Key Length: 128
+            DOTF: Decryption start address: 0x90000000
+            DOTF: Decryption end address: 0x90001FFF
             
-            Instance "g_ospi0 OSPI Flash (r_ospi_b)"
-              General: Name: g_ospi0
-              General: Channel: 0
-              General: Initial Protocol Mode: SPI (1S-1S-1S)
-              General: Initial Address Bytes: 4
-              General: Write Status Bit: 0
-              General: Write Enable Bit: 1
-              General: Sector Erase Size: 4096
-              General: Block Erase Size: 262144
-              Defaults: Command Definitions: Page Program Command: 0x12
-              Defaults: Command Definitions: Read Command: 0x13
-              Defaults: Command Definitions: Write Enable Command: 0x06
-              Defaults: Command Definitions: Status Command: 0x05
-              Defaults: Erase Command Definitions: Sector Erase Command: 0x2121
-              Defaults: Erase Command Definitions: Block Erase Command: 0xDCDC
-              Defaults: Erase Command Definitions: Chip Erase Command: 0x6060
-              Defaults: Dummy Cycles: Memory Read Dummy Cycles: 0
-              Defaults: Dummy Cycles: Status Read Dummy Cycles: 0
-              General: Command Set Table: 
-              General: Command Set Table Length: 0
-              High-speed Mode: Protocol: Dual data rate OPI (8D-8D-8D)
-              High-speed Mode: Command Length Bytes: 2
-              High-speed Mode: Auto-Calibration: Data latching delay: 0x08
-              High-speed Mode: Auto-Calibration: Auto-Calibration Address: 0x00
-              High-speed Mode: Command Definitions: Page Program Command: 0x1212
-              High-speed Mode: Command Definitions: Dual Read Command: 0xEEEE
-              High-speed Mode: Command Definitions: Write Enable Command: 0x0606
-              High-speed Mode: Command Definitions: Status Command: 0x0505
-              High-speed Mode: Command Definitions: Sector Erase Command: 0
-              High-speed Mode: Command Definitions: Block Erase Command: 0
-              High-speed Mode: Command Definitions: Chip Erase Command: 0
-              High-speed Mode: Memory Read Dummy Cycles: 20
-              High-speed Mode: Status Read Dummy Cycles: 3
-              Chip Select Timing Setting: Command Interval: 2
-              Chip Select Timing Setting: Pull-up Timing: No Extension
-              Chip Select Timing Setting: Pull-down Timing: No Extension
-              XiP Mode: XiP Enter Code: 0
-              XiP Mode: XiP Exit Code: 0
-              DOTF: Name: g_ospi_dotf
-              DOTF: AES Key: g_ospi_dotf_key
-              DOTF: AES IV: g_ospi_dotf_iv
-              DOTF: AES Key Length: 128
-              DOTF: Decryption start address: 0x90000000
-              DOTF: Decryption end address: 0x90001FFF
-              
   Thread "Main Thread"
     Symbol: main_thread
     Name: Main Thread
-    Stack size (bytes): 8192
+    Stack size (bytes): 4096
     Priority: 2
     Auto start: Enabled
     Time slicing interval (ticks): 1
@@ -1516,10 +1501,10 @@ FSP Configuration
   Thread "Modem Thread"
     Symbol: modem_thread
     Name: Modem Thread
-    Stack size (bytes): 2048
-    Priority: 3
+    Stack size (bytes): 4096
+    Priority: 4
     Auto start: Disabled
-    Time slicing interval (ticks): 1
+    Time slicing interval (ticks): 2
     
     Instance "g_uart_modem UART (r_sci_b_uart)"
       General: Name: g_uart_modem
@@ -1550,18 +1535,18 @@ FSP Configuration
   Thread "MQTT publish Thread"
     Symbol: mqtt_publish_thread
     Name: MQTT publish Thread
-    Stack size (bytes): 16384
-    Priority: 3
+    Stack size (bytes): 4096
+    Priority: 4
     Auto start: Disabled
-    Time slicing interval (ticks): 1
+    Time slicing interval (ticks): 2
     
   Thread "MQTT subscribe Thread"
     Symbol: mqtt_subscribe_thread
     Name: MQTT subscribe Thread
-    Stack size (bytes): 2048
-    Priority: 3
+    Stack size (bytes): 4096
+    Priority: 4
     Auto start: Disabled
-    Time slicing interval (ticks): 1
+    Time slicing interval (ticks): 2
     
   Object "g_queue_log Queue"
     Name: Log Queue
@@ -1620,9 +1605,9 @@ FSP Configuration
     Symbol: g_modem_vars_mutex
     Priority inheritance: Enabled
     
-  Object "g_flash_mutex Mutex"
+  Object "g_flash_memory_mutex Mutex"
     Name: Flash Mutex
-    Symbol: g_flash_mutex
+    Symbol: g_flash_memory_mutex
     Priority inheritance: Enabled
     
   Object "g_queue_modem_msg_generic Queue"

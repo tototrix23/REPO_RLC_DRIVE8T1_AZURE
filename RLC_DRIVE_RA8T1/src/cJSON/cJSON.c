@@ -44,7 +44,7 @@
 #include <limits.h>
 #include <ctype.h>
 #include <float.h>
-
+#include <my_malloc.h>
 #ifdef ENABLE_LOCALES
 #include <locale.h>
 #endif

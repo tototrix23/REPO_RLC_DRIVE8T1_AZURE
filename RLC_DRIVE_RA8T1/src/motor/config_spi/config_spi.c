@@ -15,7 +15,7 @@ i_spi_t interface_mot2;
 
 return_t motor_config_spi_init(void)
 {
-  return_t ret = X_RET_OK;
+  volatile return_t ret = X_RET_OK;
 
   // Initialisation des interfaces SPI
   i_spi_init(&interface_mot1,&g_mutex_spi, spi_motor_open, spi_motor_close, spi_motor_read, spi_motor_write, spi_motor_mot1_cs_inactive, spi_motor_mot1_cs_active);

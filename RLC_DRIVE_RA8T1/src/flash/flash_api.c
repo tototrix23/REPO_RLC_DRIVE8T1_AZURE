@@ -30,8 +30,6 @@ const spi_flash_api_t g_spi_b_on_spi_flash =
     .autoCalibrate  = R_SPI_B_AutoCalibrate,
 };
 
-static volatile bool g_transfer_complete = false;
-
 
 
 
@@ -39,12 +37,12 @@ fsp_err_t R_SPI_B_Open(spi_flash_ctrl_t * const p_ctrl, spi_flash_cfg_t const * 
 {
     fsp_err_t ret = FSP_SUCCESS;
     ospi_b_instance_ctrl_t * p_instance_ctrl = (ospi_b_instance_ctrl_t *) p_ctrl;
-    ret = R_SCI_B_SPI_Open(&g_sci_spi_lfs_ctrl, &g_sci_spi_lfs_cfg);
+    /*ret = R_SCI_B_SPI_Open(&g_sci_spi_lfs_ctrl, &g_sci_spi_lfs_cfg);
     if(ret == FSP_SUCCESS)
     {
         p_instance_ctrl->open  = SPI_B_PRV_OPEN;
-    }
-
+    }*/
+    p_instance_ctrl->open  = SPI_B_PRV_OPEN;
     return ret;
 }
 
@@ -52,7 +50,7 @@ fsp_err_t R_SPI_B_Close(spi_flash_ctrl_t * const p_ctrl)
 {
     fsp_err_t ret = FSP_SUCCESS;
     ospi_b_instance_ctrl_t * p_instance_ctrl = (ospi_b_instance_ctrl_t *) p_ctrl;
-    R_SCI_B_SPI_Close(&g_sci_spi_lfs_ctrl);
+    //R_SCI_B_SPI_Close(&g_sci_spi_lfs_ctrl);
     p_instance_ctrl->open = 0x0;
     return ret;
 }
@@ -111,6 +109,7 @@ fsp_err_t R_SPI_B_Write(spi_flash_ctrl_t * const p_ctrl,
 fsp_err_t R_SPI_B_Erase(spi_flash_ctrl_t * const p_ctrl, uint8_t * const p_device_address, uint32_t byte_count)
 {
     fsp_err_t ret = FSP_SUCCESS;
+    volatile uint8_t x=0;
     return ret;
 }
 

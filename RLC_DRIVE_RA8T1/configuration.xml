@@ -117,8 +117,8 @@
       <property id="config.bsp.fsp.dcache" value="config.bsp.fsp.dcache.disabled"/>
     </config>
     <config id="config.bsp.ra">
-      <property id="config.bsp.common.main" value="0x1000"/>
-      <property id="config.bsp.common.heap" value="0x8000"/>
+      <property id="config.bsp.common.main" value="0x4000"/>
+      <property id="config.bsp.common.heap" value="0x2000"/>
       <property id="config.bsp.common.vcc" value="3300"/>
       <property id="config.bsp.common.checking" value="config.bsp.common.checking.disabled"/>
       <property id="config.bsp.common.assert" value="config.bsp.common.assert.none"/>
@@ -324,21 +324,13 @@
       <description>Octa Serial Peripheral Interface Flash</description>
       <originalPack>Renesas.RA.5.3.0.pack</originalPack>
     </component>
-    <component apiversion="" class="Middleware" condition="" group="all" subgroup="rm_levelx_nor_spi" variant="" vendor="Renesas" version="5.3.0">
-      <description>LevelX NOR SPI Port</description>
-      <originalPack>Renesas.RA.5.3.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="Middleware" condition="" group="all" subgroup="rm_filex_levelx_nor" variant="" vendor="Renesas" version="5.3.0">
-      <description>FileX LevelX NOR I/O Interface for RA</description>
-      <originalPack>Renesas.RA.5.3.0.pack</originalPack>
-    </component>
     <component apiversion="" class="Azure" condition="" group="FileX" subgroup="fx" variant="" vendor="Microsoft" version="6.2.1+fsp.5.3.0">
       <description>Azure RTOS FileX</description>
       <originalPack>Microsoft.FileX.6.2.1+fsp.5.3.0.pack</originalPack>
     </component>
-    <component apiversion="" class="Azure" condition="" group="LevelX" subgroup="lx" variant="" vendor="Microsoft" version="6.2.1+fsp.5.3.0">
-      <description>Azure RTOS LevelX</description>
-      <originalPack>Microsoft.LevelX.6.2.1+fsp.5.3.0.pack</originalPack>
+    <component apiversion="" class="Middleware" condition="" group="all" subgroup="rm_filex_block_media" variant="" vendor="Renesas" version="5.3.0">
+      <description>FileX Block Media I/O Interface for RA</description>
+      <originalPack>Renesas.RA.5.3.0.pack</originalPack>
     </component>
   </raComponentSelection>
   <raElcConfiguration/>
@@ -402,33 +394,7 @@
       <property id="module.driver.spi.txi_ipl" value="board.icu.common.irq.priority12"/>
       <property id="module.driver.spi.tei_ipl" value="board.icu.common.irq.priority12"/>
       <property id="module.driver.spi.eri_ipl" value="board.icu.common.irq.priority12"/>
-      <property id="module.driver.spi.bitrate" value="30000000"/>
-    </module>
-    <module id="module.driver.transfer_on_dtc.1713807630">
-      <property id="module.driver.transfer.name" value="g_transfer0"/>
-      <property id="module.driver.transfer.mode" value="module.driver.transfer.mode.mode_normal"/>
-      <property id="module.driver.transfer.size" value="module.driver.transfer.size.size_2_byte"/>
-      <property id="module.driver.transfer.dest_addr_mode" value="module.driver.transfer.dest_addr_mode.addr_mode_fixed"/>
-      <property id="module.driver.transfer.src_addr_mode" value="module.driver.transfer.src_addr_mode.addr_mode_fixed"/>
-      <property id="module.driver.transfer.repeat_area" value="module.driver.transfer.repeat_area.repeat_area_source"/>
-      <property id="module.driver.transfer.interrupt" value="module.driver.transfer.interrupt.interrupt_end"/>
-      <property id="module.driver.transfer.length" value="0"/>
-      <property id="module.driver.transfer.num_blocks" value="0"/>
-      <property id="module.driver.transfer.number_of_descriptors" value="1"/>
-      <property id="module.driver.transfer.activation_source" value="_disabled"/>
-    </module>
-    <module id="module.driver.transfer_on_dtc.1030161745">
-      <property id="module.driver.transfer.name" value="g_transfer1"/>
-      <property id="module.driver.transfer.mode" value="module.driver.transfer.mode.mode_normal"/>
-      <property id="module.driver.transfer.size" value="module.driver.transfer.size.size_2_byte"/>
-      <property id="module.driver.transfer.dest_addr_mode" value="module.driver.transfer.dest_addr_mode.addr_mode_fixed"/>
-      <property id="module.driver.transfer.src_addr_mode" value="module.driver.transfer.src_addr_mode.addr_mode_fixed"/>
-      <property id="module.driver.transfer.repeat_area" value="module.driver.transfer.repeat_area.repeat_area_source"/>
-      <property id="module.driver.transfer.interrupt" value="module.driver.transfer.interrupt.interrupt_end"/>
-      <property id="module.driver.transfer.length" value="0"/>
-      <property id="module.driver.transfer.num_blocks" value="0"/>
-      <property id="module.driver.transfer.number_of_descriptors" value="1"/>
-      <property id="module.driver.transfer.activation_source" value="_disabled"/>
+      <property id="module.driver.spi.bitrate" value="1000000"/>
     </module>
     <module id="module.driver.spi_on_sci_b_spi.1186514597">
       <property id="module.driver.spi.name" value="g_sci_spi_drivers"/>
@@ -440,37 +406,11 @@
       <property id="module.driver.spi.bit_order" value="module.driver.spi.bit_order.bit_order_msb_first"/>
       <property id="module.driver.spi.clock_source" value="module.driver.spi.clock_source.pclk"/>
       <property id="module.driver.spi.p_callback" value="sci_b_spi_callback_drivers"/>
-      <property id="module.driver.spi.rxi_ipl" value="board.icu.common.irq.priority5"/>
-      <property id="module.driver.spi.txi_ipl" value="board.icu.common.irq.priority5"/>
+      <property id="module.driver.spi.rxi_ipl" value="board.icu.common.irq.priority12"/>
+      <property id="module.driver.spi.txi_ipl" value="board.icu.common.irq.priority12"/>
       <property id="module.driver.spi.tei_ipl" value="board.icu.common.irq.priority12"/>
       <property id="module.driver.spi.eri_ipl" value="board.icu.common.irq.priority12"/>
-      <property id="module.driver.spi.bitrate" value="30000000"/>
-    </module>
-    <module id="module.driver.transfer_on_dtc.207325813">
-      <property id="module.driver.transfer.name" value="g_transfer2"/>
-      <property id="module.driver.transfer.mode" value="module.driver.transfer.mode.mode_normal"/>
-      <property id="module.driver.transfer.size" value="module.driver.transfer.size.size_2_byte"/>
-      <property id="module.driver.transfer.dest_addr_mode" value="module.driver.transfer.dest_addr_mode.addr_mode_fixed"/>
-      <property id="module.driver.transfer.src_addr_mode" value="module.driver.transfer.src_addr_mode.addr_mode_fixed"/>
-      <property id="module.driver.transfer.repeat_area" value="module.driver.transfer.repeat_area.repeat_area_source"/>
-      <property id="module.driver.transfer.interrupt" value="module.driver.transfer.interrupt.interrupt_end"/>
-      <property id="module.driver.transfer.length" value="0"/>
-      <property id="module.driver.transfer.num_blocks" value="0"/>
-      <property id="module.driver.transfer.number_of_descriptors" value="1"/>
-      <property id="module.driver.transfer.activation_source" value="_disabled"/>
-    </module>
-    <module id="module.driver.transfer_on_dtc.107088618">
-      <property id="module.driver.transfer.name" value="g_transfer3"/>
-      <property id="module.driver.transfer.mode" value="module.driver.transfer.mode.mode_normal"/>
-      <property id="module.driver.transfer.size" value="module.driver.transfer.size.size_2_byte"/>
-      <property id="module.driver.transfer.dest_addr_mode" value="module.driver.transfer.dest_addr_mode.addr_mode_fixed"/>
-      <property id="module.driver.transfer.src_addr_mode" value="module.driver.transfer.src_addr_mode.addr_mode_fixed"/>
-      <property id="module.driver.transfer.repeat_area" value="module.driver.transfer.repeat_area.repeat_area_source"/>
-      <property id="module.driver.transfer.interrupt" value="module.driver.transfer.interrupt.interrupt_end"/>
-      <property id="module.driver.transfer.length" value="0"/>
-      <property id="module.driver.transfer.num_blocks" value="0"/>
-      <property id="module.driver.transfer.number_of_descriptors" value="1"/>
-      <property id="module.driver.transfer.activation_source" value="_disabled"/>
+      <property id="module.driver.spi.bitrate" value="1000000"/>
     </module>
     <module id="module.middleware.motor_120_degree.1608577405">
       <property id="module.middleware.motor_120_degree.name" value="g_motor_120_degree0"/>
@@ -1291,34 +1231,32 @@
       <property id="module.driver.uart.tei_ipl" value="board.icu.common.irq.priority12"/>
       <property id="module.driver.uart.eri_ipl" value="board.icu.common.irq.priority12"/>
     </module>
-    <module id="module.azure.fx.levelx_nor.433539240">
+    <module id="module.azure.fx.block_media.380912320">
       <property id="module.azure.fx.name" value="g_fx_media0"/>
       <property id="module.azure.fx.volume_name" value="Volume 1"/>
       <property id="module.azure.fx.fat_count" value="1"/>
       <property id="module.azure.fx.dir_count" value="256"/>
       <property id="module.azure.fx.hidden_sectors" value="0"/>
-      <property id="module.azure.fx.total_sectors" value="57337"/>
+      <property id="module.azure.fx.total_sectors" value="1024"/>
+      <property id="module.azure.fx.sector_size" value="4096"/>
       <property id="module.azure.fx.cluster_size" value="1"/>
       <property id="module.azure.fx.volume_serial_number" value="12345"/>
       <property id="module.azure.fx.boundary_unit" value="128"/>
-      <property id="module.azure.fx.media_size" value="512"/>
+      <property id="module.azure.fx.media_size" value="4096"/>
     </module>
-    <module id="module.middleware.rm_filex_levelx_nor.596061770">
-      <property id="module.middleware.rm_filex_levelx_nor.name" value="g_rm_filex_levelx_nor0"/>
-      <property id="module.middleware.rm_filex_levelx_nor.callback" value="g_rm_filex_levelx_nor_0_callback"/>
-      <property id="module.middleware.rm_filex_levelx_nor.nor_name" value="g_rm_filex_levelx_nor_0"/>
+    <module id="module.middleware.rm_filex_block_media.1209611563">
+      <property id="module.middleware.rm_filex_block_media.name" value="g_rm_filex_block_media_0"/>
+      <property id="module.middleware.rm_filex_block_media.callback" value="g_rm_filex_block_media_0_callback"/>
+      <property id="module.middleware.rm_filex_block_media.partition" value="module.middleware.rm_filex_block_media.partition.0"/>
     </module>
-    <module id="module.azure.lx.nor.spi.1166828688">
-      <property id="module.azure.lx.nor.spi.name" value="g_lx_nor0"/>
-      <property id="module.azure.lx.nor.spi.callback" value="g_lx_nor0_busy_callback"/>
+    <module id="module.driver.rm_block_media_on_rm_block_media_spi.1612279809">
+      <property id="module.driver.rm_block_media.name" value="g_rm_block_media0"/>
+      <property id="module.driver.rm_block_media.block_size" value="4096"/>
+      <property id="module.driver.rm_block_media.block_count" value="1024"/>
+      <property id="module.driver.rm_block_media.base_address" value="0"/>
+      <property id="module.driver.rm_block_media.callback" value="NULL"/>
     </module>
-    <module id="module.middleware.rm_levelx_nor_spi.714822984">
-      <property id="module.middleware.rm_levelx_nor_spi.name" value="g_rm_levelx_nor_spi0"/>
-      <property id="module.middleware.rm_levelx_nor_spi.address_offset" value="0"/>
-      <property id="module.middleware.rm_levelx_nor_spi.size" value="33554432"/>
-      <property id="module.middleware.rm_levelx_nor_spi.poll_status_count" value="0xFFFFFFFF"/>
-    </module>
-    <module id="module.driver.ospi_on_ospi_b.1222984678">
+    <module id="module.driver.ospi_on_ospi_b.488309857">
       <property id="module.driver.ospi_b.name" value="g_ospi0"/>
       <property id="module.driver.ospi_b.channel" value="0"/>
       <property id="module.driver.ospi_b.spi_protocol" value="module.driver.ospi_b.protocol_mode.protocol_1S_1S_1S"/>
@@ -1362,6 +1300,58 @@
       <property id="module.driver.ospi_b.dotf.aes_key_length" value="config.driver.dotf.aes_key_length.128"/>
       <property id="module.driver.ospi_b.dotf.start_address" value="0x90000000"/>
       <property id="module.driver.ospi_b.dotf.end_address" value="0x90001FFF"/>
+    </module>
+    <module id="module.driver.transfer_on_dtc.701370996">
+      <property id="module.driver.transfer.name" value="g_transfer0"/>
+      <property id="module.driver.transfer.mode" value="module.driver.transfer.mode.mode_normal"/>
+      <property id="module.driver.transfer.size" value="module.driver.transfer.size.size_2_byte"/>
+      <property id="module.driver.transfer.dest_addr_mode" value="module.driver.transfer.dest_addr_mode.addr_mode_fixed"/>
+      <property id="module.driver.transfer.src_addr_mode" value="module.driver.transfer.src_addr_mode.addr_mode_fixed"/>
+      <property id="module.driver.transfer.repeat_area" value="module.driver.transfer.repeat_area.repeat_area_source"/>
+      <property id="module.driver.transfer.interrupt" value="module.driver.transfer.interrupt.interrupt_end"/>
+      <property id="module.driver.transfer.length" value="0"/>
+      <property id="module.driver.transfer.num_blocks" value="0"/>
+      <property id="module.driver.transfer.number_of_descriptors" value="1"/>
+      <property id="module.driver.transfer.activation_source" value="_disabled"/>
+    </module>
+    <module id="module.driver.transfer_on_dtc.803318375">
+      <property id="module.driver.transfer.name" value="g_transfer1"/>
+      <property id="module.driver.transfer.mode" value="module.driver.transfer.mode.mode_normal"/>
+      <property id="module.driver.transfer.size" value="module.driver.transfer.size.size_2_byte"/>
+      <property id="module.driver.transfer.dest_addr_mode" value="module.driver.transfer.dest_addr_mode.addr_mode_fixed"/>
+      <property id="module.driver.transfer.src_addr_mode" value="module.driver.transfer.src_addr_mode.addr_mode_fixed"/>
+      <property id="module.driver.transfer.repeat_area" value="module.driver.transfer.repeat_area.repeat_area_source"/>
+      <property id="module.driver.transfer.interrupt" value="module.driver.transfer.interrupt.interrupt_end"/>
+      <property id="module.driver.transfer.length" value="0"/>
+      <property id="module.driver.transfer.num_blocks" value="0"/>
+      <property id="module.driver.transfer.number_of_descriptors" value="1"/>
+      <property id="module.driver.transfer.activation_source" value="_disabled"/>
+    </module>
+    <module id="module.driver.transfer_on_dtc.505479211">
+      <property id="module.driver.transfer.name" value="g_transfer2"/>
+      <property id="module.driver.transfer.mode" value="module.driver.transfer.mode.mode_normal"/>
+      <property id="module.driver.transfer.size" value="module.driver.transfer.size.size_2_byte"/>
+      <property id="module.driver.transfer.dest_addr_mode" value="module.driver.transfer.dest_addr_mode.addr_mode_fixed"/>
+      <property id="module.driver.transfer.src_addr_mode" value="module.driver.transfer.src_addr_mode.addr_mode_fixed"/>
+      <property id="module.driver.transfer.repeat_area" value="module.driver.transfer.repeat_area.repeat_area_source"/>
+      <property id="module.driver.transfer.interrupt" value="module.driver.transfer.interrupt.interrupt_end"/>
+      <property id="module.driver.transfer.length" value="0"/>
+      <property id="module.driver.transfer.num_blocks" value="0"/>
+      <property id="module.driver.transfer.number_of_descriptors" value="1"/>
+      <property id="module.driver.transfer.activation_source" value="_disabled"/>
+    </module>
+    <module id="module.driver.transfer_on_dtc.1950417074">
+      <property id="module.driver.transfer.name" value="g_transfer3"/>
+      <property id="module.driver.transfer.mode" value="module.driver.transfer.mode.mode_normal"/>
+      <property id="module.driver.transfer.size" value="module.driver.transfer.size.size_2_byte"/>
+      <property id="module.driver.transfer.dest_addr_mode" value="module.driver.transfer.dest_addr_mode.addr_mode_fixed"/>
+      <property id="module.driver.transfer.src_addr_mode" value="module.driver.transfer.src_addr_mode.addr_mode_fixed"/>
+      <property id="module.driver.transfer.repeat_area" value="module.driver.transfer.repeat_area.repeat_area_source"/>
+      <property id="module.driver.transfer.interrupt" value="module.driver.transfer.interrupt.interrupt_end"/>
+      <property id="module.driver.transfer.length" value="0"/>
+      <property id="module.driver.transfer.num_blocks" value="0"/>
+      <property id="module.driver.transfer.number_of_descriptors" value="1"/>
+      <property id="module.driver.transfer.activation_source" value="_disabled"/>
     </module>
     <object id="rtos.threadx.object.queue.146954789">
       <property id="rtos.threadx.object.queue.name" value="Log Queue"/>
@@ -1422,7 +1412,7 @@
     </object>
     <object id="rtos.threadx.object.mutex.1041141080">
       <property id="rtos.threadx.object.mutex.name" value="Flash Mutex"/>
-      <property id="rtos.threadx.object.mutex.symbol" value="g_flash_mutex"/>
+      <property id="rtos.threadx.object.mutex.symbol" value="g_flash_memory_mutex"/>
       <property id="rtos.threadx.object.mutex.inherit" value="rtos.threadx.object.mutex.inherit.enabled"/>
     </object>
     <object id="rtos.threadx.object.queue.151021261">
@@ -1454,23 +1444,21 @@
       <stack module="module.driver.uart_on_sci_b_uart.1691588245"/>
       <stack module="module.driver.poeg_on_poeg.1425057404"/>
       <stack module="module.driver.spi_on_sci_b_spi.1036224718">
-        <stack module="module.driver.transfer_on_dtc.1713807630" requires="module.driver.spi_on_sci_b_spi.requires.transfer_tx"/>
-        <stack module="module.driver.transfer_on_dtc.1030161745" requires="module.driver.spi_on_sci_b_spi.requires.transfer_rx"/>
+        <stack module="module.driver.transfer_on_dtc.701370996" requires="module.driver.spi_on_sci_b_spi.requires.transfer_tx"/>
+        <stack module="module.driver.transfer_on_dtc.803318375" requires="module.driver.spi_on_sci_b_spi.requires.transfer_rx"/>
       </stack>
       <stack module="module.driver.spi_on_sci_b_spi.1186514597">
-        <stack module="module.driver.transfer_on_dtc.207325813" requires="module.driver.spi_on_sci_b_spi.requires.transfer_tx"/>
-        <stack module="module.driver.transfer_on_dtc.107088618" requires="module.driver.spi_on_sci_b_spi.requires.transfer_rx"/>
+        <stack module="module.driver.transfer_on_dtc.505479211" requires="module.driver.spi_on_sci_b_spi.requires.transfer_tx"/>
+        <stack module="module.driver.transfer_on_dtc.1950417074" requires="module.driver.spi_on_sci_b_spi.requires.transfer_rx"/>
       </stack>
       <stack module="module.middleware.rm_vee_flash.1590955227">
         <stack module="module.driver.flash_on_flash_hp.255943238" requires="module.middleware.rm_vee_flash.requires.flash"/>
       </stack>
       <stack module="module.driver.i2c_on_sci_b_i2c.1305472037"/>
-      <stack module="module.azure.fx.levelx_nor.433539240">
-        <stack module="module.middleware.rm_filex_levelx_nor.596061770" requires="module.azure.fx.requires.rm_filex_levelx_nor">
-          <stack module="module.azure.lx.nor.spi.1166828688" requires="module.middleware.rm_filex_levelx_nor.requires.lx_nor">
-            <stack module="module.middleware.rm_levelx_nor_spi.714822984" requires="module.azure.lx.nor.requires.lx_nor_spi">
-              <stack module="module.driver.ospi_on_ospi_b.1222984678" requires="module.middleware.rm_levelx_nor_spi.requires.spi"/>
-            </stack>
+      <stack module="module.azure.fx.block_media.380912320">
+        <stack module="module.middleware.rm_filex_block_media.1209611563" requires="module.azure.fx.requires.rm_filex_block_media">
+          <stack module="module.driver.rm_block_media_on_rm_block_media_spi.1612279809" requires="module.middleware.rm_filex_block_media.requires.block_media">
+            <stack module="module.driver.ospi_on_ospi_b.488309857" requires="module.driver.rm_block_media.requires.spi"/>
           </stack>
         </stack>
       </stack>
@@ -1478,7 +1466,7 @@
     <context id="rtos.threadx.thread.1290712810">
       <property id="_symbol" value="main_thread"/>
       <property id="rtos.threadx.thread.name" value="Main Thread"/>
-      <property id="rtos.threadx.thread.stack" value="8192"/>
+      <property id="rtos.threadx.thread.stack" value="4096"/>
       <property id="rtos.threadx.thread.priority" value="2"/>
       <property id="rtos.threadx.thread.autostart" value="rtos.threadx.thread.autostart.enabled"/>
       <property id="rtos.threadx.thread.timeslice" value="1"/>
@@ -1537,27 +1525,27 @@
     <context id="rtos.threadx.thread.1494092098">
       <property id="_symbol" value="modem_thread"/>
       <property id="rtos.threadx.thread.name" value="Modem Thread"/>
-      <property id="rtos.threadx.thread.stack" value="2048"/>
-      <property id="rtos.threadx.thread.priority" value="3"/>
+      <property id="rtos.threadx.thread.stack" value="4096"/>
+      <property id="rtos.threadx.thread.priority" value="4"/>
       <property id="rtos.threadx.thread.autostart" value="rtos.threadx.thread.autostart.disabled"/>
-      <property id="rtos.threadx.thread.timeslice" value="1"/>
+      <property id="rtos.threadx.thread.timeslice" value="2"/>
       <stack module="module.driver.uart_on_sci_b_uart.1190653222"/>
     </context>
     <context id="rtos.threadx.thread.1854636873">
       <property id="_symbol" value="mqtt_publish_thread"/>
       <property id="rtos.threadx.thread.name" value="MQTT publish Thread"/>
-      <property id="rtos.threadx.thread.stack" value="16384"/>
-      <property id="rtos.threadx.thread.priority" value="3"/>
+      <property id="rtos.threadx.thread.stack" value="4096"/>
+      <property id="rtos.threadx.thread.priority" value="4"/>
       <property id="rtos.threadx.thread.autostart" value="rtos.threadx.thread.autostart.disabled"/>
-      <property id="rtos.threadx.thread.timeslice" value="1"/>
+      <property id="rtos.threadx.thread.timeslice" value="2"/>
     </context>
     <context id="rtos.threadx.thread.1207060177">
       <property id="_symbol" value="mqtt_subscribe_thread"/>
       <property id="rtos.threadx.thread.name" value="MQTT subscribe Thread"/>
-      <property id="rtos.threadx.thread.stack" value="2048"/>
-      <property id="rtos.threadx.thread.priority" value="3"/>
+      <property id="rtos.threadx.thread.stack" value="4096"/>
+      <property id="rtos.threadx.thread.priority" value="4"/>
       <property id="rtos.threadx.thread.autostart" value="rtos.threadx.thread.autostart.disabled"/>
-      <property id="rtos.threadx.thread.timeslice" value="1"/>
+      <property id="rtos.threadx.thread.timeslice" value="2"/>
     </context>
     <config id="config.driver.flash_hp">
       <property id="config.driver.flash_hp.param_checking_enable" value="config.flash_hp.param_checking_enable.bsp"/>
@@ -1603,9 +1591,9 @@
       <property id="config.azure.fx.one_line_function" value="config.azure.fx.one_line_function.enabled"/>
       <property id="config.azure.fx.fat_entry_refresh" value="config.azure.fx.fat_entry_refresh.enabled"/>
       <property id="config.azure.fx.consecutive_detect" value="config.azure.fx.consecutive_detect.enabled"/>
-      <property id="config.azure.fx.fault_tolerant_service" value="config.azure.fx.fault_tolerant_service.disabled"/>
-      <property id="config.azure.fx.fault_tolerant_data" value="config.azure.fx.fault_tolerant_data.disabled"/>
-      <property id="config.azure.fx.fault_tolerant" value="config.azure.fx.fault_tolerant.disabled"/>
+      <property id="config.azure.fx.fault_tolerant_service" value="config.azure.fx.fault_tolerant_service.enabled"/>
+      <property id="config.azure.fx.fault_tolerant_data" value="config.azure.fx.fault_tolerant_data.enabled"/>
+      <property id="config.azure.fx.fault_tolerant" value="config.azure.fx.fault_tolerant.enabled"/>
       <property id="config.azure.fx.fault_tolerant_boot_index" value=""/>
       <property id="config.azure.fx.ex_fat" value="config.azure.fx.ex_fat.disabled"/>
     </config>
@@ -1643,6 +1631,9 @@
       <property id="config.driver.sci_b_spi.param_checking_enable" value="config.driver.sci_b_spi.param_checking_enable.bsp"/>
       <property id="config.driver.sci_b_spi.dtc_support_enable" value="config.driver.sci_b_spi.dtc_support_enable.enabled"/>
     </config>
+    <config id="config.middleware.rm_filex_block_media">
+      <property id="config.middleware.rm_filex_block_media.param_checking_enable" value="config.middleware.rm_filex_block_media.param_checking_enable.bsp"/>
+    </config>
     <config id="config.driver.gpt">
       <property id="config.driver.gpt.param_checking_enable" value="config.driver.gpt.param_checking_enable.bsp"/>
       <property id="config.driver.gpt.output_support_enable" value="config.driver.gpt.output_support_enable.enabled_extra"/>
@@ -1656,11 +1647,6 @@
     </config>
     <config id="config.driver.icu">
       <property id="config.driver.icu.param_checking_enable" value="config.driver.icu.param_checking_enable.bsp"/>
-    </config>
-    <config id="config.middleware.rm_levelx_nor_spi">
-      <property id="config.middleware.rm_levelx_nor_spi.param_checking_enable" value="config.middleware.rm_levelx_nor_spi.param_checking_enable.bsp"/>
-      <property id="config.middleware.rm_levelx_nor_spi.write_verify_enable" value="config.middleware.rm_levelx_nor_spi.write_verify_enable.disabled"/>
-      <property id="config.middleware.rm_levelx_nor_spi.page_buffer_size" value="8192"/>
     </config>
     <config id="config.driver.sci_b_i2c">
       <property id="config.driver.sci_b_i2c.param_checking_enable" value="config.driver.sci_b_i2c.param_checking_enable.bsp"/>
@@ -1678,20 +1664,6 @@
     <config id="config.driver.dtc">
       <property id="config.driver.dtc.param_checking_enable" value="config.driver.dtc.param_checking_enable.bsp"/>
       <property id="config.driver.dtc.vector_table" value=".fsp_dtc_vector_table"/>
-    </config>
-    <config id="config.middleware.rm_filex_levelx_nor">
-      <property id="config.middleware.rm_filex_levelx_nor.param_checking_enable" value="config.middleware.rm_filex_levelx_nor.param_checking_enable.bsp"/>
-    </config>
-    <config id="config.azure.lx">
-      <property id="config.azure.lx.direct_read" value="config.azure.lx.direct_read.disabled"/>
-      <property id="config.azure.lx.free_sector_data_verify" value="config.azure.lx.free_sector_data_verify.enabled"/>
-      <property id="config.azure.lx.nand_sector_mapping_cache_size" value=""/>
-      <property id="config.azure.lx.nand_flash_direct_mapping_cache" value="config.azure.lx.nand_flash_direct_mapping_cache.disabled"/>
-      <property id="config.azure.lx.nor_disable_extended_cache" value="config.azure.lx.nor_disable_extended_cache.enabled"/>
-      <property id="config.azure.lx.nor_extended_cache_size" value=""/>
-      <property id="config.azure.lx.nor_sector_mapping_cache_size" value=""/>
-      <property id="config.azure.lx.thread_safe" value="config.azure.lx.thread_safe.enabled"/>
-      <property id="config.azure.lx.standalone" value="config.azure.lx.standalone.disabled"/>
     </config>
     <config id="config.threadx.thread">
       <property id="config.azure.tx.custom_tx_user" value=""/>

@@ -5,6 +5,7 @@
 #include <hal_data.h>
 #include <_core/c_common.h>
 #include <_core/c_protected/c_protected.h>
+#include <_target/t_critical_section.h>
 #include <_interfaces/i_spi/i_spi.h>
 #include <_interfaces/i_time/i_time.h>
 #include <_hal/h_time/h_time.h>
@@ -14,8 +15,6 @@
 #include <_lib_impl_cust/impl_log/impl_log.h>
 #include <_lib_impl_cust/impl_spi_motors/impl_spi_motors.h>
 #include <rtc/rtc.h>
-#include <files/lfs/lfs.h>
-#include <files/lfs_impl.h>
 #include <remotectrl/remotectrl.h>
 #include <motor/motor.h>
 #include <motor/config_spi/config_spi.h>
@@ -24,8 +23,10 @@
 #include <files/mqtt_file.h>
 #include <exchanged_data/exchanged_data.h>
 
-#include <flash/flash.h>
-
+#include <flash/flash_stack.h>
+#include <flash/flash_routines.h>
+#include <time.h>
+#include <my_malloc.h>
 #define MEDIA_SECTOR_HEADS_VALUE (1U)
 #define MEDIA_SECTORS_PER_HEAD    (1U)
 
@@ -39,15 +40,80 @@ extern TX_THREAD motors_thread;
 extern TX_THREAD modem_thread;
 i_time_t i_time_interface_t;
 
-static FX_MEDIA g_fx_media0;
-static uint8_t g_fx_media0_media_memory[G_FX_MEDIA0_MEDIA_MEMORY_SIZE];
 
 /*h_drv8323s_t drv_mot1;
 i_spi_t interface_mot1;
 h_drv8323s_t drv_mot2;
 i_spi_t interface_mot2;*/
 
-volatile ULONG tab[128];
+//volatile uint8_t tab[4096];
+
+
+
+static char * current_heap_start = 0;
+static char * current_heap_limit = 0;
+
+void heap_init(void)
+{
+    extern char _Heap_Begin __asm("__HeapBase");  ///< Defined by the linker.
+
+    extern char _Heap_Limit __asm("__HeapLimit");
+
+    if(current_heap_start == 0)
+    {
+        current_heap_start = &_Heap_Begin;
+    }
+    if(current_heap_limit == 0)
+    {
+        current_heap_limit = &_Heap_Limit;
+    }
+
+
+    char *ptr = current_heap_start;
+    uint32_t i=0;
+    for(i=0;i<BSP_CFG_HEAP_BYTES;i++)
+    {
+        *ptr = 0x55;
+        ptr++;
+    }
+}
+
+uint32_t heap_usage(uint32_t *bytes,uint32_t *percent)
+{
+    T_CRITICAL_SECTION_DEFINE;
+    T_CRITICAL_SECTION_ENTER;
+    uint32_t ret = 0;
+
+    volatile char *ptr = (current_heap_limit-1);
+
+    char value;
+    do
+    {
+
+        value = *ptr;
+
+        if(ptr == current_heap_start)
+            break;
+        else
+            ptr--;
+
+        if(value != 0x55)
+            break;
+
+
+    }while(1);
+
+    volatile uint32_t s = ptr-current_heap_start;
+
+    uint32_t p = ((s*100))/BSP_CFG_HEAP_BYTES;
+    *percent = p;
+
+    *bytes = s;
+
+    T_CRITICAL_SECTION_EXIT;
+
+    return ret;
+}
 
 /* Main Thread entry function */
 void main_thread_entry(void)
@@ -58,8 +124,22 @@ void main_thread_entry(void)
     i_log.write_i = impl_log_write_i;
     i_log.write_w = impl_log_write_w;
 
+    heap_init();
 
-    delay_ms(2000);
+   /* volatile char* p = MALLOC(1024);
+    if(p != 0)
+    {
+        volatile uint8_t x = 0;
+        FREE(&p);
+        FREE(&p);
+    }
+
+
+
+    delay_ms(2000);*/
+
+
+
 
 
 
@@ -67,73 +147,11 @@ void main_thread_entry(void)
     flash_erase_chip();
     flash_close();*/
 /*
-    ULONG i=0;
-
-    for(i=0;i<128;i++)
-    {
-        tab[i]=i;
-    }
-
-    ULONG *ADDR = 0x200;
-    //*ADDR = 0x200;
-    flash_write(ADDR, tab, 128);
-
-    volatile ULONG tab_read[128];
-    flash_read(ADDR, tab_read, 128);
-
-    flash_close();*/
 
 
-
-
-    fx_system_initialize();
-    UINT fx_ret_val = FX_SUCCESS;
+    //fx_system_initialize();
+    volatile UINT fx_ret_val = FX_SUCCESS;
         /* Initialize LevelX system */
-    fx_ret_val = lx_nor_flash_initialize();
-
-    volatile UINT status = fx_media_open(&g_fx_media0,
-                                       "&g_fx_media0",
-                                       RM_FILEX_LEVELX_NOR_DeviceDriver,
-                                       (void *) &g_rm_filex_levelx_nor1_instance,
-                                       g_fx_media0_media_memory,
-                                       G_FX_MEDIA0_MEDIA_MEMORY_SIZE);
-
-
-
-
-    /*status = fx_media_format(&g_fx_media0,                              // Pointer to FileX media control block.
-                                             RM_FILEX_LEVELX_NOR_DeviceDriver,          // Driver entry
-                                             (void *) &g_rm_filex_levelx_nor1_instance,  // Pointer to LevelX NOR Driver
-                                             g_fx_media0_media_memory,                  // Media buffer pointer
-                                             G_FX_MEDIA0_MEDIA_MEMORY_SIZE,             // Media buffer size
-                                             (char *) G_FX_MEDIA0_VOLUME_NAME,          // Volume Name
-                                             G_FX_MEDIA0_NUMBER_OF_FATS,                // Number of FATs
-                                             G_FX_MEDIA0_DIRECTORY_ENTRIES,             // Directory Entries
-                                             G_FX_MEDIA0_HIDDEN_SECTORS,                // Hidden sectors
-                                             7168,//G_FX_MEDIA0_TOTAL_SECTORS,                 // Total sectors
-                                             G_FX_MEDIA0_BYTES_PER_SECTOR,              // Sector size
-                                             G_FX_MEDIA0_SECTORS_PER_CLUSTER,           // Sectors per cluster
-                                             0,                  // Heads (disk media)
-                                             0);                   // Sectors per track (disk media)
-
-
-    status = fx_media_open(&g_fx_media0,
-                           "&g_fx_media0",
-                           RM_FILEX_LEVELX_NOR_DeviceDriver,
-                           (void *) &g_rm_filex_levelx_nor1_instance,
-                           g_fx_media0_media_memory,
-                           G_FX_MEDIA0_MEDIA_MEMORY_SIZE);*/
-
-
-    UINT attributes;
-    volatile fsp_err_t fsp_err = fx_directory_attributes_read (&g_fx_media0, "/test_dir", &attributes);
-    fsp_err = fx_directory_attributes_read (&g_fx_media0, "/test_dir", &attributes);
-    fsp_err = fx_directory_attributes_read (&g_fx_media0, "/test_dir", &attributes);
-
-    fsp_err = fx_directory_create (&g_fx_media0, "/test_dir");
-
-    fsp_err = fx_directory_attributes_read (&g_fx_media0, "/test_dir", &attributes);
-
 
     // Configuration de l'interface de gestion du temps
     i_time_init(&i_time_interface_t,impl_time_init, impl_time_update);
@@ -144,54 +162,29 @@ void main_thread_entry(void)
 
 
 
-
-
-
-
-
-
-
-
-
     rtc_init();
-
-    LFS_Init(FALSE);
-    LFS_ParseFolders("/");
-    //LFS_ParseFolders((char*)dir_payloads);
-    LFS_ParseFolders((char*)dir_json);
-
-
-   /* lfs_dir_t dir;
-    int err = lfs_dir_open(&lfs,&dir,dir_json);
-
-    lfs_file_t file;
-    err = lfs_file_open(&lfs, &file, "/JSON/1727873142052.json", LFS_O_RDWR | LFS_O_CREAT );
-    if(err != 0)
+    /*fs_initialise_only_one_time();
+    ULONG flash_bytes_available;
+    ret = fs_open();
+    if(ret == X_RET_OK)
     {
-        LOG_E(LOG_STD,"ERROR");
-    }
-    lfs_file_close(&lfs, &file);
-    lfs_dir_close(&lfs,&dir);
 
-    LFS_ParseFolders((char*)dir_json);*/
-    /*char *ptr_data = malloc(200);
-    strcpy(ptr_data,"test rtc attr");
-    json_file_add_to_queue(FILE_TYPE_PAYLOAD,ptr_data);*/
+        fs_bytes_available(&flash_bytes_available);
+    }
+    fs_close();*/
 
 
 
     // Demarrage du Thread dédié aux LOGs
-    tx_thread_resume(&log_thread);
+    //tx_thread_resume(&log_thread);
     delay_ms(1000);
-    tx_thread_resume(&modem_thread);
+    //tx_thread_resume(&modem_thread);
 
     // Initialisation de la partie moteurs (partie logicielle)
     motor_structures_init();
     motor_init_type(MOTOR_TYPE_RM_ITOH_BRAKE);
 
     // Initialisation de la partie ADC
-
-
     ret = adc_init();
     if(ret != X_RET_OK){
         LOG_E(LOG_STD,"INIT ADC ERROR");}
@@ -206,65 +199,67 @@ void main_thread_entry(void)
 
 
 
-
     //exchdat_set_temperature_humidity(24.12f,45.78f);
     //mqtt_publish_temperature_humidity();
 
 
 
-    /*volatile float temperature,rh;
 
-    do
-    {
-        ret = sht40_read(&temperature,&rh);
-        if(ret != X_RET_OK)
-        {
-            LOG_E(LOG_STD,"error");
-        }
-        else
-        {
-            LOG_I(LOG_STD,"temp=%0.2f  rh=%0.2f",temperature,rh);
-        }
-        tx_thread_sleep(1000);
-    }while(1);*/
-
-    //tx_thread_resume(&motors_thread);
+    tx_thread_resume(&motors_thread);
 
 
     set_drive_mode(MOTOR_INIT_MODE);
 
 
 
-     c_timespan_t ts;
-     c_timespan_init(&ts);
-     h_time_update(&ts);
+    c_timespan_t ts_sensor;
+    c_timespan_init(&ts_sensor);
+    h_time_update(&ts_sensor);
 
 
-
-     /*char *test_json = malloc(64);
-     sprintf(test_json,"TEST\0");
-
-     json_file_add_to_queue("TEST",test_json);*/
-
-
+    c_timespan_t ts_adc;
+    c_timespan_init(&ts_adc);
+    h_time_update(&ts_adc);
 
 
     /* TODO: add your own code here */
     while (1)
     {
+
         remotectrl_process();
 
         bool_t elasped = FALSE;
-        h_time_is_elapsed_ms(&ts, 2000, &elasped);
+
+        h_time_is_elapsed_ms(&ts_sensor, 5000, &elasped);
+
         if(elasped == TRUE)
         {
-            h_time_update(&ts);
-
+            h_time_update(&ts_sensor);
             st_sensor_t sensor_data;
             sht40_read(&sensor_data);
             exchdat_set_sensor(sensor_data);
 
 
+            /*uint32_t bytes,percent;
+
+            heap_usage(&bytes,&percent);
+
+            LOG_D(LOG_STD,"%d bytes / %d percent",bytes,percent);*/
+
+            /*tx_mutex_get(&g_flash_memory_mutex,TX_WAIT_FOREVER);
+
+            ret = fs_open();
+
+            if(ret == X_RET_OK)
+            {
+
+                fs_bytes_available(&flash_bytes_available);
+
+            }
+
+            fs_close();
+
+            tx_mutex_put(&g_flash_memory_mutex);*/
 
             //bsp_io_level_t lvl;
             //R_IOPORT_PinRead(&g_ioport_ctrl, IO_VM_SWITCH_CMD,&lvl );
@@ -274,6 +269,28 @@ void main_thread_entry(void)
 
             //LOG_D(LOG_STD,"%lu mV / %lu mA / %lu mA /%lu mA",adc_snapshot.vin,adc_snapshot.iin,adc_snapshot.mot1_iu,adc_snapshot.mot1_iw);
         }
+
+
+        h_time_is_elapsed_ms(&ts_adc, 1000, &elasped);
+        if(elasped == TRUE)
+        {
+            h_time_update(&ts_adc);
+            st_adc_t adc_snap;
+
+            ret =  adc_get_snapshot(&adc_snap);
+            if(ret == X_RET_OK)
+            {
+                float vinf = (float)(adc_snap.vin/1000.0f);
+                float vbattf = (float)(adc_snap.vbatt/1000.0f);
+                exchdat_set_main_voltage(vinf);
+                exchdat_set_battery_voltage(vbattf);
+                bool_t batt_detected = FALSE;
+                if(vbattf > 5.0f)
+                    batt_detected = TRUE;
+                exchdat_set_battery_detected(batt_detected);
+            }
+        }
+
 
         /*if(motor_emergency_is_error())
         {
@@ -297,7 +314,6 @@ void main_thread_entry(void)
               }
 
         }*/
-
         tx_thread_sleep (1);
     }
 }

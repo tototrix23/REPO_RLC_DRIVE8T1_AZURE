@@ -277,7 +277,7 @@ fsp_err_t RM_MOTOR_120_DRIVER_Close (motor_120_driver_ctrl_t * const p_ctrl)
 #else                                  // MOTOR_120_DRIVER_CFG_SUPPORT_SHARED_ADC == 0
     if (p_extended_cfg->p_adc_instance != NULL)
     {
-        p_extended_cfg->p_adc_instance->p_api->close(p_extended_cfg->p_adc_instance->p_ctrl);
+        //p_extended_cfg->p_adc_instance->p_api->close(p_extended_cfg->p_adc_instance->p_ctrl);
     }
 #endif
 

@@ -64,6 +64,11 @@ void exchdat_set_sensor(st_sensor_t sensor_data)
 	    LOG_D(LOG_STD,"mqtt json temperature/humidity");
 	    mqtt_publish_temperature_humidity();
 	}
+
+	/*memcpy(&save_sensor,&sensor_data,sizeof(st_sensor_t));
+    LOG_D(LOG_STD,"mqtt json temperature/humidity");
+    mqtt_publish_temperature_humidity();*/
+
 	tx_mutex_put(&g_exchanged_data_mutex);
 }
 

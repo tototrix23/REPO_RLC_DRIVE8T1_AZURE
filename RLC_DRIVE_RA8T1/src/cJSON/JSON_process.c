@@ -21,8 +21,10 @@ return_t json_process_get_datetime(char *ptr,int *status_code)
     const cJSON *json_data = NULL;
     cJSON *ptr_json = cJSON_Parse(ptr);
     if(ptr_json == NULL)
-    	return F_RET_JSON_PARSE;
-
+    {
+    	ret = F_RET_JSON_PARSE;
+    	goto end;
+    }
     json_data = cJSON_GetObjectItemCaseSensitive(ptr_json, "data");
     if(ptr_json == NULL)
     {
@@ -84,7 +86,10 @@ return_t json_process_get_serials(char *ptr,int *status_code)
     const cJSON *json_data = NULL;
     cJSON *ptr_json = cJSON_Parse(ptr);
     if(ptr_json == NULL)
-    	return F_RET_JSON_PARSE;
+    {
+        ret = F_RET_JSON_PARSE;
+        goto end;
+    }
 
     json_data = cJSON_GetObjectItemCaseSensitive(ptr_json, "data");
     if(ptr_json == NULL)
@@ -154,7 +159,10 @@ return_t json_process_mqtt_publish(char *ptr,int *status_code)
     const cJSON *json_data = NULL;
     cJSON *ptr_json = cJSON_Parse(ptr);
     if(ptr_json == NULL)
-        return F_RET_JSON_PARSE;
+    {
+        ret = F_RET_JSON_PARSE;
+        goto end;
+    }
 
 
     json_data = cJSON_GetObjectItemCaseSensitive(ptr_json, "data");
@@ -202,7 +210,10 @@ return_t json_process_lte_connect(char *ptr)
 	const cJSON *json_data = NULL;
 	cJSON *ptr_json = cJSON_Parse(ptr);
 	if(ptr_json == NULL)
-		return F_RET_JSON_PARSE;
+    {
+        ret = F_RET_JSON_PARSE;
+        goto end;
+    }
 
 	json_data = cJSON_GetObjectItemCaseSensitive(ptr_json, "data");
 	if(ptr_json == NULL)
@@ -254,7 +265,10 @@ return_t json_process_get_data(char *ptr)
 	const cJSON *json_data = NULL;
 	cJSON *ptr_json = cJSON_Parse(ptr);
 	if(ptr_json == NULL)
-		return F_RET_JSON_PARSE;
+    {
+        ret = F_RET_JSON_PARSE;
+        goto end;
+    }
 
 	json_data = cJSON_GetObjectItemCaseSensitive(ptr_json, "data");
 	if(json_data == NULL)
@@ -298,9 +312,10 @@ static return_t json_process_response_common(char *ptr)
 	cJSON *json_data = NULL;
 	cJSON *ptr_json = cJSON_Parse(ptr);
 	if(ptr_json == NULL)
-	{
-		return F_RET_JSON_PARSE;
-	}
+    {
+        ret = F_RET_JSON_PARSE;
+        goto end;
+    }
 
 	json_data = cJSON_GetObjectItemCaseSensitive(ptr_json, "data");
 	if(json_data == NULL)

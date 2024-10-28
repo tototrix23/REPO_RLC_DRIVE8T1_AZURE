@@ -187,12 +187,6 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<fileInfo id="com.renesas.cdt.managedbuild.gnuarm.config.elf.debug.477370690.758683754" name="lfs_impl.c" rcbsApplicability="disable" resourcePath="src/files/lfs_impl.c" toolsToInvoke="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.991992938.603781217">
-						<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.991992938.603781217" name="GNU Arm Cross C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.991992938">
-							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.otheroptimizations.128057111" name="Other optimization flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.otheroptimizations" value="-O0" valueType="string"/>
-							<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1677962161" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
-						</tool>
-					</fileInfo>
 					<folderInfo id="com.renesas.cdt.managedbuild.gnuarm.config.elf.debug.477370690./ra/fsp/inc/ports" name="ports" resourcePath="ra/fsp/inc/ports">
 						<toolChain id="com.renesas.cdt.managedbuild.gnuarm.toolchain.elf.debug.1640379650" name="GCC ARM Embedded" superClass="com.renesas.cdt.managedbuild.gnuarm.toolchain.elf.debug" unusedChildren="">
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createflash.1008183573.758207436" name="Create flash image" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.addtools.createflash.1008183573"/>
@@ -233,6 +227,7 @@
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.warnings.floatequal.652194140.1351732815" name="Warn if floats are compared as equal (-Wfloat-equal)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.warnings.floatequal.652194140"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.target.other.1148519952.2042465543" name="Other target flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.target.other.1148519952"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.fpu.abi.1585052184.1231348846" name="Float ABI" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.arm.target.fpu.abi.1585052184"/>
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.GNU_ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.543355920" name="GNU Arm Cross Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.700723533">
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1687689119" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
