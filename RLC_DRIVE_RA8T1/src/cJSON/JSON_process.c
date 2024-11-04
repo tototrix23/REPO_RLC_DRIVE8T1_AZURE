@@ -9,6 +9,7 @@
 #include "JSON_process.h"
 #include <rtc/rtc.h>
 #include <modem/serial.h>
+#include <modem/panel_name.h>
 #include <modem/modem_data.h>
 #include <return_codes.h>
 
@@ -73,6 +74,83 @@ return_t json_process_get_datetime(char *ptr,int *status_code)
     {
         rtc_set((uint64_t)(json_unix->valuedouble));
     }
+
+    end:
+    cJSON_Delete(ptr_json);
+    return ret;
+}
+
+return_t json_process_get_panel_name(char *ptr,int *status_code)
+{
+    return_t ret = X_RET_OK;
+
+    const cJSON *json_data = NULL;
+    cJSON *ptr_json = cJSON_Parse(ptr);
+    if(ptr_json == NULL)
+    {
+        ret = F_RET_JSON_PARSE;
+        goto end;
+    }
+
+    json_data = cJSON_GetObjectItemCaseSensitive(ptr_json, "data");
+    if(ptr_json == NULL)
+    {
+        ret = F_RET_JSON_FIND_OBJECT;
+        goto end;
+    }
+
+
+    cJSON *json_status = cJSON_GetObjectItemCaseSensitive(json_data, "status_code");
+    if(json_status == NULL)
+    {
+        ret = F_RET_JSON_FIND_OBJECT;
+        goto end;
+    }
+
+    if(cJSON_IsNumber(json_status))
+    {
+        *status_code = json_status->valueint;
+        if(json_status->valueint != 0)
+        {
+            ret = F_RET_JSON_RESPONSE_ERROR;
+            goto end;
+        }
+    }
+    else
+    {
+        ret = F_RET_JSON_BAD_TYPE;
+        goto end;
+    }
+
+    // Récupération du serial (IMEI)
+    st_panel_name_t p;
+    memset(&p,0x00,sizeof(st_panel_name_t));
+    cJSON *json_var = cJSON_GetObjectItemCaseSensitive(json_data, "panel_name");
+    if(json_var == NULL)
+    {
+        ret = F_RET_JSON_FIND_OBJECT;
+        goto end;
+    }
+
+    if(cJSON_IsNull(json_var))
+    {
+        p.valid=FALSE;
+    }
+    else if(cJSON_IsString(json_var))
+    {
+        p.valid = TRUE;
+        strcpy(p.serial,json_var->valuestring);
+    }
+    else
+    {
+        ret = F_RET_JSON_BAD_TYPE;
+        goto end;
+    }
+
+
+
+    panel_name_set(&p);
+
 
     end:
     cJSON_Delete(ptr_json);
@@ -202,6 +280,55 @@ return_t json_process_mqtt_publish(char *ptr,int *status_code)
        return ret;
 }
 
+return_t json_process_mqtt_subscribe(char *ptr,int *status_code)
+{
+    return_t ret = X_RET_OK;
+
+    const cJSON *json_data = NULL;
+    cJSON *ptr_json = cJSON_Parse(ptr);
+    if(ptr_json == NULL)
+    {
+        ret = F_RET_JSON_PARSE;
+        goto end;
+    }
+
+
+    json_data = cJSON_GetObjectItemCaseSensitive(ptr_json, "data");
+    if(ptr_json == NULL)
+    {
+        ret = F_RET_JSON_FIND_OBJECT;
+        goto end;
+    }
+
+    cJSON *json_status = cJSON_GetObjectItemCaseSensitive(json_data, "status_code");
+    if(json_status == NULL)
+    {
+        ret = F_RET_JSON_FIND_OBJECT;
+        goto end;
+    }
+
+    if(cJSON_IsNumber(json_status))
+    {
+        *status_code = json_status->valueint;
+        if(json_status->valueint == 0)
+            goto end;
+        else
+        {
+            ret = F_RET_JSON_RESPONSE_ERROR;
+            goto end;
+        }
+
+    }
+    else
+    {
+        ret = F_RET_JSON_BAD_TYPE;
+        goto end;
+    }
+
+    end:
+       cJSON_Delete(ptr_json);
+       return ret;
+}
 
 return_t json_process_lte_connect(char *ptr)
 {
@@ -327,6 +454,42 @@ static return_t json_process_response_common(char *ptr)
 	end:
 	cJSON_Delete(ptr_json);
 	return ret;
+}
+
+
+return_t json_process_verify_received_type(char *type,char *data)
+{
+    return_t ret = X_RET_OK;
+    const cJSON *json_type = NULL;
+    cJSON *ptr_json = cJSON_Parse(data);
+    if(ptr_json == NULL)
+    {
+        ret = F_RET_JSON_PARSE;
+        goto end;
+    }
+    json_type = cJSON_GetObjectItemCaseSensitive(ptr_json, "type");
+    if(ptr_json == NULL)
+    {
+        ret = F_RET_JSON_FIND_OBJECT;
+        goto end;
+    }
+
+    if(!cJSON_IsString(json_type))
+    {
+        ret = X_RET_ERR_GENERIC;
+        goto end;
+    }
+
+    if(strcmp(json_type->valuestring,type) != 0x0)
+    {
+        ret = F_RET_JSON_BAD_TYPE;
+        goto end;
+    }
+
+
+    end:
+    cJSON_Delete(ptr_json);
+    return ret;
 }
 
 

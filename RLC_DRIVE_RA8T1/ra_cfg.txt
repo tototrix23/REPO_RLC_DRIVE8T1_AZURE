@@ -84,7 +84,7 @@ FSP Configuration
   RA8T1 event data
   RA Common
     Main stack size (bytes): 0x4000
-    Heap size (bytes): 0x2000
+    Heap size (bytes): 0x8000
     MCU Vcc (mV): 3300
     Parameter checking: Disabled
     Assert Failures: Return FSP_ERR_ASSERTION
@@ -1552,7 +1552,7 @@ FSP Configuration
     Name: Log Queue
     Symbol: g_queue_log
     Message Size (Words): 1
-    Queue Size (Bytes): 320
+    Queue Size (Bytes): 400
     
   Object "g_mutex_rtc Mutex"
     Name: Rtc Mutex
@@ -1563,7 +1563,7 @@ FSP Configuration
     Name: JSON Queue
     Symbol: g_queue_json
     Message Size (Words): 1
-    Queue Size (Bytes): 40
+    Queue Size (Bytes): 80
     
   Object "g_mutex_spi Mutex"
     Name: SPI Mutex

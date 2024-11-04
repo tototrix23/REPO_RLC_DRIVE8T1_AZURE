@@ -23,6 +23,7 @@
 #define LOG_MODULE    "modem"
 
 volatile uint32_t modem_line = 0;
+char end_pattern[2];
 
 typedef struct tx_info_t{
     bool_t in_progress;
@@ -72,12 +73,15 @@ return_t modem_init(void)
 
 void modem_rx_clear(void)
 {
-    tx_mutex_get(&g_mutex_uartrx_modem,TX_WAIT_FOREVER);
-    modem_rx_info.in_progress = FALSE;
+    //tx_mutex_get(&g_mutex_uartrx_modem,TX_WAIT_FOREVER);
+    //modem_rx_info.in_progress = FALSE;
     modem_rx_index = 0;
-    memset(modem_rx_array,0x00,sizeof(modem_rx_array));
-    modem_rx_info.waiting_for_process = FALSE;
-    tx_mutex_put(&g_mutex_uartrx_modem);
+    end_pattern[0] = 0;
+    end_pattern[1] = 0;
+
+    //memset(modem_rx_array,0x00,sizeof(modem_rx_array));
+    //modem_rx_info.waiting_for_process = FALSE;
+    //tx_mutex_put(&g_mutex_uartrx_modem);
 }
 
 void modem_send(char *data)
@@ -156,6 +160,17 @@ return_t modem_verify_received_json_type(char *type)
 
     end:
     cJSON_Delete(ptr_json);
+    return ret;
+}
+
+return_t modem_process_send_only(char *data_tx)
+{
+    return_t ret = X_RET_OK;
+    tx_mutex_get(&g_mutex_uarttx_modem,TX_WAIT_FOREVER);
+    modem_rx_clear();
+    modem_send(data_tx);
+    modem_send("\r\n");
+    tx_mutex_put(&g_mutex_uarttx_modem);
     return ret;
 }
 
@@ -451,93 +466,79 @@ return_t process_unsolicited_rx(void)
 
 void modem_callback(uart_callback_args_t *p_args)
 {
-    static char end_pattern[2];
+    //static char end_pattern[2];
 
-    modem_line = __LINE__;
 
     if(UART_EVENT_RX_CHAR == p_args->event)
     {
-        modem_line = __LINE__;
         modem_rx_info.in_progress = TRUE;
         if(modem_rx_index < (RX_MAX_CHAR-1))
         {
-            modem_line = __LINE__;
             modem_rx_array[modem_rx_index++] = (char)p_args->data;
             modem_rx_info.code = X_RET_OK;
 
             end_pattern[0] = end_pattern[1];
             end_pattern[1] = (char)p_args->data;
-            modem_line = __LINE__;
             if(end_pattern[0] == '\r' && end_pattern[1] == '\n')
             {
-                modem_line = __LINE__;
                 modem_rx_array[modem_rx_index++] = 0x00;
-                modem_line = __LINE__;
                 uint16_t str_size = modem_rx_index;
-                modem_line = __LINE__;
                 fsp_err_t err_fsp = FSP_SUCCESS;
-                modem_line = __LINE__;
                 char *ptr_malloc = MALLOC(str_size);
-                modem_line = __LINE__;
                 if(ptr_malloc != 0x00)
                 {
-                    modem_line = __LINE__;
                     memcpy(ptr_malloc,modem_rx_array,str_size);
-                    modem_line = __LINE__;
                     err_fsp = tx_queue_send(&g_queue_modem_msg_generic, &ptr_malloc, TX_NO_WAIT);
-                    modem_line = __LINE__;
                     if(err_fsp != FSP_SUCCESS)
                     {
-                        modem_line = __LINE__;
                         FREE((void**)&ptr_malloc);
-                        modem_line = __LINE__;
                     }
-                    modem_line = __LINE__;
                 }
 
 
-                modem_line = __LINE__;
                 ptr_malloc = MALLOC(str_size);
-                modem_line = __LINE__;
                 if(ptr_malloc != 0x00)
                 {
-                    modem_line = __LINE__;
                     memcpy(ptr_malloc,modem_rx_array,str_size);
-                    modem_line = __LINE__;
                     err_fsp = tx_queue_send(&g_queue_modem_msg_mqtt_publish, &ptr_malloc, TX_NO_WAIT);
-                    modem_line = __LINE__;
                     if(err_fsp != FSP_SUCCESS)
                     {
-                        modem_line = __LINE__;
                         FREE((void**)&ptr_malloc);
-                        modem_line = __LINE__;
                     }
                 }
+
+                ptr_malloc = MALLOC(str_size);
+                if(ptr_malloc != 0x00)
+                {
+                    memcpy(ptr_malloc,modem_rx_array,str_size);
+                    err_fsp = tx_queue_send(&g_queue_modem_msg_mqtt_subscribe, &ptr_malloc, TX_NO_WAIT);
+                    if(err_fsp != FSP_SUCCESS)
+                    {
+                        FREE((void**)&ptr_malloc);
+                    }
+                }
+
+
+                modem_rx_clear();
 
             }
         }
         else
         {
-            modem_line = __LINE__;
             modem_rx_clear();
-            modem_line = __LINE__;
         }
     }
     else if(UART_EVENT_TX_DATA_EMPTY == p_args->event)
     {
-        modem_line = __LINE__;
         modem_tx_info.in_progress = FALSE;
         modem_tx_info.code = X_RET_OK;
-        modem_line = __LINE__;
     }
     else if((UART_EVENT_ERR_PARITY == p_args->event || UART_EVENT_ERR_FRAMING == p_args->event ||
             UART_EVENT_ERR_OVERFLOW == p_args->event || UART_EVENT_BREAK_DETECT == p_args->event)
             )
     {
-        modem_line = __LINE__;
         modem_tx_info.in_progress = FALSE;
         modem_tx_info.code = X_RET_ERR_GENERIC;
-        modem_line = __LINE__;
     }
     else
     {

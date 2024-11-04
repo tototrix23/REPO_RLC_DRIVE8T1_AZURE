@@ -17,5 +17,7 @@ return_t json_process_lte_connect(char *ptr);
 return_t json_process_get_data(char *ptr);
 return_t json_process_send_data_and_event(char *ptr);
 return_t json_process_mqtt_publish(char *ptr,int *status_code);
-
+return_t json_process_mqtt_subscribe(char *ptr,int *status_code);
+return_t json_process_verify_received_type(char *type,char *data);
+return_t json_process_get_panel_name(char *ptr,int *status_code);
 #endif /* CJSON_JSON_PROCESS_H_ */

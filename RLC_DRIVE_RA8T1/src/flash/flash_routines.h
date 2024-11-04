@@ -37,9 +37,9 @@ return_t fs_file_write(FX_FILE *file_ptr, void *ptr, uint64_t size);
 return_t fs_file_create_and_write(char *name, void *ptr, uint64_t size);
 return_t fs_file_seek(FX_FILE *file_ptr, uint64_t offset);
 return_t fs_file_rename(char *old, char *new);
-return_t fs_first_file_find(char *file_name,ULONG *size,INT *year,INT* month,INT* day,INT* hour,INT* minut,INT* second);
-return_t fs_next_file_find(char *file_name,ULONG *size,INT *year,INT* month,INT* day,INT* hour,INT* minut,INT* second);
-
+return_t fs_first_file_find(char *file_name,ULONG *size,UINT *year,UINT* month,UINT* day,UINT* hour,UINT* minut,UINT* second);
+return_t fs_next_file_find(char *file_name,ULONG *size,UINT *year,UINT* month,UINT* day,UINT* hour,UINT* minut,UINT* second);
+return_t fs_file_date_time_set(char *file_name,UINT year,UINT month,UINT day,UINT hour,UINT minut,UINT second);
 
 
 #endif /* FLASH_FLASH_ROUTINES_H_ */

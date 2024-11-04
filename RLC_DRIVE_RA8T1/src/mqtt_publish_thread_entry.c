@@ -7,6 +7,7 @@
 #include <time.h>
 #include <return_codes.h>
 #include <my_malloc.h>
+#include <modem/modem.h>
 #undef  LOG_LEVEL
 #define LOG_LEVEL     LOG_LVL_DEBUG
 #undef  LOG_MODULE
@@ -23,7 +24,6 @@ return_t mqtt_pusblish_process_json(void)
 {
     return_t ret = 0x00;
     tx_mutex_get(&g_flash_memory_mutex,TX_WAIT_FOREVER);
-    int err = 0x00;
 
     ret = fs_open();
     if(ret != X_RET_OK)
@@ -34,22 +34,21 @@ return_t mqtt_pusblish_process_json(void)
        goto end;
 
 
-   volatile bool_t file_found = FALSE;
-   volatile uint64_t time_ref = 0xFFFFFFFFFFFFFFFF;
-   volatile char oldest_filename[64];
-   int err_remove = 0;
+   bool_t file_found = FALSE;
+   uint64_t time_ref = 0xFFFFFFFFFFFFFFFF;
+   char oldest_filename[64];
 
    bool_t end = FALSE;
-   volatile char filename[64];
-   volatile ULONG file_size;
-   volatile UINT year;
-   volatile UINT month;
-   volatile UINT day;
-   volatile UINT hour;
-   volatile UINT minut;
-   volatile UINT second;
+   char filename[64];
+   ULONG file_size;
+   UINT year;
+   UINT month;
+   UINT day;
+   UINT hour;
+   UINT minut;
+   UINT second;
 
-   fsp_err_t fsp_err=0;
+
 
    bool_t first_file_processed = FALSE;
    do{
@@ -74,9 +73,9 @@ return_t mqtt_pusblish_process_json(void)
            else
            {
 
-               if(second <0 || second>59 || minut<0 || minut>59 || hour<0 ||
-                  hour>23 || year<2024 || year>2050 || month<0 || month>12 ||
-                  day<0 || day >31)
+               if(second>59 ||minut>59 ||
+                  hour>23 || year<2024 || year>2050 ||  month>12 ||
+                   day >31)
                {
                    LOG_E(LOG_STD,"Bad timestamp %",filename);
                    fs_file_delete(filename);
@@ -85,7 +84,7 @@ return_t mqtt_pusblish_process_json(void)
                {
                    struct tm myDate;
                    myDate.tm_mday = day;
-                   myDate.tm_mon = month;
+                   myDate.tm_mon = month-1;
                    myDate.tm_year = year-1900;   // Date == April 6, 2014
                    myDate.tm_hour = hour;
                    myDate.tm_min = minut;
@@ -104,12 +103,12 @@ return_t mqtt_pusblish_process_json(void)
                        char *ptr = strstr(filename,".json");
                        if(ptr != NULL)
                        {
-                           volatile uint32_t s = ptr - filename;
-                           volatile char extract[32];
+                           uint32_t s = ptr - filename;
+                           char extract[32];
                            memset(extract,0x00,sizeof(extract));
                            memcpy(extract,filename,s);
-                           char *ptr_end;
-                           volatile uint64_t file_name_ts = strtoull(filename,ptr_end,10);
+                           char *ptr_end=0x0;
+                           uint64_t file_name_ts = strtoull(filename,&ptr_end,10);
                            if(file_name_ts == 0)
                            {
                                fs_file_delete(filename);
@@ -203,9 +202,7 @@ return_t mqtt_pusblish_process_json(void)
       // fs_file_delete(oldest_filename);
    }
 
-
-   ULONG b;
-   //fs_bytes_available(&b);
+   fs_flush ();
    fs_close();
 
 
@@ -222,7 +219,7 @@ return_t mqtt_publish_send(char *buffer)
     char *msg_rx = 0x00;
     //
     //tx_queue_flush(msg_queue);
-    ret = modem_process_send(msg_queue,"mqtt_publish",buffer,&msg_rx,3,60000);
+    ret = modem_process_send(msg_queue,"mqtt_publish",buffer,&msg_rx,3,10000);
     if(ret != X_RET_OK)
     {
         if(ret == F_RET_COMMS_OUT_TIMEOUT)
@@ -292,7 +289,7 @@ void mqtt_publish_thread_entry(void)
         else
         {
             LOG_E(LOG_STD,"%d",ret);
-            delay_ms(60000);
+            delay_ms(5000);
         }
         /*delay_ms(2000);
         LOG_D(LOG_STD,"TEST");*/

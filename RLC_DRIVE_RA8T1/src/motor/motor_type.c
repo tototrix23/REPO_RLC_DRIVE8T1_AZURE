@@ -26,15 +26,17 @@ return_t motor_init_type(motor_type_t type)
     return_t ret = X_RET_OK;
 
     if(type == MOTOR_TYPE_UNKNOWN || type >= MOTOR_TYPE_COUNT)
+    {
+        exchdat_set_motor_type(MOTOR_TYPE_UNKNOWN);
         ERROR_LOG_AND_RETURN(F_RET_MOTOR_BAD_TYPE);
-
+    }
 
     if(motors_instance.profil.initialised  == MOTOR_PROFIL_INITIALISED)
         return X_RET_OK;
 
     //motors_instance.profil.type = MOTOR_TYPE_UNKNOWN;
 
-    exchdat_set_motor_type(MOTOR_TYPE_UNKNOWN);
+
 
     switch(type)
     {
@@ -44,10 +46,12 @@ return_t motor_init_type(motor_type_t type)
             break;
 
         case MOTOR_TYPE_RM_ALCOM:
+            exchdat_set_motor_type(MOTOR_TYPE_UNKNOWN);
             ERROR_LOG_AND_RETURN(F_RET_MOTOR_BAD_TYPE);
             break;
 
         default:
+            exchdat_set_motor_type(MOTOR_TYPE_UNKNOWN);
             ERROR_LOG_AND_RETURN(F_RET_MOTOR_BAD_TYPE);
             break;
     }

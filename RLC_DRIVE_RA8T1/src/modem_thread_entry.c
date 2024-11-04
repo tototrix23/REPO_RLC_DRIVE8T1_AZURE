@@ -126,7 +126,6 @@ void modem_thread_entry(void)
     return_t ret = X_RET_OK;
     modem_init();
 
-
     do
     {
         delay_ms(1000);
@@ -185,7 +184,6 @@ void modem_thread_entry(void)
     tx_thread_resume(&mqtt_subscribe_thread);
 
 
-    uint32_t count = 0;
 
     /* TODO: add your own code here */
     while (1)
@@ -196,9 +194,8 @@ void modem_thread_entry(void)
         if(ret == X_RET_OK)
         {
             r = rtc_get();
-            LOG_D(LOG_STD,"%llu [%d]",r.time_ms,count);
-            count++;
+            //LOG_D(LOG_STD,"%llu",r.time_ms);
         }
-        tx_thread_sleep(1);
+        tx_thread_sleep(10);
     }
 }

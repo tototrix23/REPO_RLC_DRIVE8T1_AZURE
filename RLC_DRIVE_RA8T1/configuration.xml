@@ -118,7 +118,7 @@
     </config>
     <config id="config.bsp.ra">
       <property id="config.bsp.common.main" value="0x4000"/>
-      <property id="config.bsp.common.heap" value="0x2000"/>
+      <property id="config.bsp.common.heap" value="0x8000"/>
       <property id="config.bsp.common.vcc" value="3300"/>
       <property id="config.bsp.common.checking" value="config.bsp.common.checking.disabled"/>
       <property id="config.bsp.common.assert" value="config.bsp.common.assert.none"/>
@@ -1357,7 +1357,7 @@
       <property id="rtos.threadx.object.queue.name" value="Log Queue"/>
       <property id="rtos.threadx.object.queue.symbol" value="g_queue_log"/>
       <property id="rtos.threadx.object.queue.msg_size" value="1"/>
-      <property id="rtos.threadx.object.queue.queue_size" value="320"/>
+      <property id="rtos.threadx.object.queue.queue_size" value="400"/>
     </object>
     <object id="rtos.threadx.object.mutex.977443126">
       <property id="rtos.threadx.object.mutex.name" value="Rtc Mutex"/>
@@ -1368,7 +1368,7 @@
       <property id="rtos.threadx.object.queue.name" value="JSON Queue"/>
       <property id="rtos.threadx.object.queue.symbol" value="g_queue_json"/>
       <property id="rtos.threadx.object.queue.msg_size" value="1"/>
-      <property id="rtos.threadx.object.queue.queue_size" value="40"/>
+      <property id="rtos.threadx.object.queue.queue_size" value="80"/>
     </object>
     <object id="rtos.threadx.object.mutex.1141944626">
       <property id="rtos.threadx.object.mutex.name" value="SPI Mutex"/>

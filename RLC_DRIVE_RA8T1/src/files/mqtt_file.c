@@ -100,7 +100,7 @@ return_t mqtt_publish_event(uint16_t code)
     return ret;
 }
 
-return_t mqtt_publish_temperature_humidity(void)
+return_t mqtt_publish_sensor(st_sensor_t *src)
 {
     const uint16_t malloc_size = 128;
     return_t ret = X_RET_OK;
@@ -110,7 +110,8 @@ return_t mqtt_publish_temperature_humidity(void)
     if(payload != 0x00)
     {
          memset(payload,0x00,malloc_size);
-         st_sensor_t sensor_data = exchdat_get_sensor();
+         st_sensor_t sensor_data;
+         memcpy(&sensor_data,src,sizeof(st_sensor_t));
          char buffer[32];
          sprintf(payload,"\\\"data\\\": {");
          strcat(payload,"\\\"temperature\\\":");
@@ -146,7 +147,7 @@ return_t mqtt_publish_temperature_humidity(void)
 }
 
 
-return_t mqtt_publish_poster_count(void)
+return_t mqtt_publish_poster_count(uint8_t *src)
 {
     const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
@@ -154,7 +155,7 @@ return_t mqtt_publish_poster_count(void)
     if(payload != 0x00)
     {
         memset(payload,0x00,malloc_size);
-        uint8_t count = exchdat_get_poster_count();
+        uint8_t count = *src;
         char buffer[8];
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"poster_count\\\":");
@@ -171,7 +172,7 @@ return_t mqtt_publish_poster_count(void)
     return ret;
 }
 
-return_t mqtt_publish_battery_detected(void)
+return_t mqtt_publish_battery_detected(bool_t *src)
 {
     const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
@@ -179,7 +180,7 @@ return_t mqtt_publish_battery_detected(void)
     if(payload != 0x00)
     {
         memset(payload,0x00,malloc_size);
-        bool_t detected = exchdat_get_battery_detected();
+        bool_t detected = *src;
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"battery_detected\\\":");
         if(detected)
@@ -197,7 +198,7 @@ return_t mqtt_publish_battery_detected(void)
     return ret;
 }
 
-return_t mqtt_publish_scrolling_enabled(void)
+return_t mqtt_publish_scrolling_enabled(bool_t *src)
 {
     const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
@@ -205,7 +206,7 @@ return_t mqtt_publish_scrolling_enabled(void)
     if(payload != 0x00)
     {
         memset(payload,0x00,malloc_size);
-        bool_t enabled = exchdat_get_scrolling_enabled();
+        bool_t enabled = *src;
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"scrolling_enabled\\\":");
         if(enabled)
@@ -223,7 +224,7 @@ return_t mqtt_publish_scrolling_enabled(void)
     return ret;
 }
 
-return_t mqtt_publish_lighting_enabled(void)
+return_t mqtt_publish_lighting_enabled(bool_t *src)
 {
     const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
@@ -231,7 +232,7 @@ return_t mqtt_publish_lighting_enabled(void)
     if(payload != 0x00)
     {
         memset(payload,0x00,malloc_size);
-        bool_t enabled = exchdat_get_lighting_enabled();
+        bool_t enabled = *src;
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"lighting_enabled\\\":");
         if(enabled)
@@ -249,16 +250,17 @@ return_t mqtt_publish_lighting_enabled(void)
     return ret;
 }
 
-return_t mqtt_publish_motor_status(void)
+return_t mqtt_publish_motor_status(st_system_motor_status_t *src)
 {
-    const uint16_t malloc_size = 256;
+    const uint16_t malloc_size = 300;
     return_t ret = X_RET_OK;
     char *payload = (char *)MALLOC(malloc_size);
     if(payload != 0x00)
     {
         memset(payload,0x00,malloc_size);
         char buffer[8];
-        st_system_motor_status_t status = exchdat_get_motor_status();
+        st_system_motor_status_t status;
+        memcpy(&status,src,sizeof(st_system_motor_status_t));
         sprintf(payload,"\\\"data\\\": {");
 
         strcat(payload,"\\\"error_lvl1\\\":");
@@ -296,6 +298,9 @@ return_t mqtt_publish_motor_status(void)
         strcat(payload,buffer);
 
         strcat(payload,"}");
+
+        //volatile uint16_t size_t = strlen(payload);
+
         ret = json_file_add_to_queue("MotorStatus", payload);
         return ret;
     }
@@ -306,7 +311,7 @@ return_t mqtt_publish_motor_status(void)
     return ret;
 }
 
-return_t mqtt_publish_voltages(void)
+return_t mqtt_publish_voltages(st_voltages_t *src)
 {
     const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
@@ -314,21 +319,21 @@ return_t mqtt_publish_voltages(void)
     if(payload != 0x00)
     {
         char buffer[16];
-        st_adc_t adc_snapshot;
+        /*st_adc_t adc_snapshot;
         adc_get_snapshot(&adc_snapshot);
 
         float f_vin = (float)(adc_snapshot.vin / 1000.0f);
-        float f_vbatt = (float)(adc_snapshot.vbatt / 1000.0f);
+        float f_vbatt = (float)(adc_snapshot.vbatt / 1000.0f);*/
 
         memset(payload,0x00,malloc_size);
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"main_voltage\\\":");
-        sprintf(buffer,"%.02f",f_vin);
+        sprintf(buffer,"%.02f",src->main_voltage);
         strcat(payload,buffer);
         strcat(payload,",");
 
         strcat(payload,"\\\"battery_voltage\\\":");
-        sprintf(buffer,"%.02f",f_vbatt);
+        sprintf(buffer,"%.02f",src->battery_voltage);
         strcat(payload,buffer);
 
         strcat(payload,"}");
@@ -342,7 +347,7 @@ return_t mqtt_publish_voltages(void)
     return ret;
 }
 
-return_t mqtt_publish_motor_type(void)
+return_t mqtt_publish_motor_type(motor_type_t *src)
 {
     const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
@@ -350,7 +355,7 @@ return_t mqtt_publish_motor_type(void)
     if(payload != 0x00)
     {
         memset(payload,0x00,malloc_size);
-        motor_type_t type = exchdat_get_motor_type();
+        motor_type_t type = *src;
         char buffer[8];
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"motor_type\\\":");
@@ -367,7 +372,7 @@ return_t mqtt_publish_motor_type(void)
     return ret;
 }
 
-return_t mqtt_publish_board_version(void)
+return_t mqtt_publish_board_version(uint8_t *src)
 {
     const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
@@ -375,7 +380,7 @@ return_t mqtt_publish_board_version(void)
     if(payload != 0x00)
     {
         memset(payload,0x00,malloc_size);
-        uint8_t version = exchdat_get_board_version();
+        uint8_t version = *src;
         char buffer[8];
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"board_version\\\":");
@@ -392,7 +397,7 @@ return_t mqtt_publish_board_version(void)
     return ret;
 }
 
-return_t mqtt_publish_firmware(void)
+return_t mqtt_publish_firmware(char *src)
 {
     const uint16_t malloc_size = 64;
     return_t ret = X_RET_OK;
@@ -400,8 +405,8 @@ return_t mqtt_publish_firmware(void)
     if(payload != 0x00)
     {
         memset(payload,0x00,malloc_size);
-        char* firmware = exchdat_get_firmware();
-        char buffer[8];
+        char* firmware = src;
+        char buffer[32];
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"firmware_version\\\":\\\"");
         sprintf(buffer,"%s",firmware);
@@ -414,6 +419,13 @@ return_t mqtt_publish_firmware(void)
     {
         return X_RET_MEMORY_ALLOCATION;
     }
+    return ret;
+}
+
+return_t mqtt_publish_drive_mode(drive_mode_t *src)
+{
+
+    return_t ret = X_RET_OK;
     return ret;
 }
 

@@ -10,8 +10,9 @@
 
 #include <_core/c_common.h>
 #include <rtc/rtc.h>
-
-
+#include <sht40_sensor/sht40.h>
+#include <status/motor_status.h>
+#include <exchanged_data/exchanged_data.h>
 #define FILE_TYPE_PAYLOAD  0
 #define FILE_TYPE_EVENT    1
 
@@ -39,14 +40,17 @@ return_t json_create_full_mqtt_publish(char *ptr_full,json_file_t *json_descript
 
 
 return_t mqtt_publish_event(uint16_t code);
-return_t mqtt_publish_temperature_humidity(void);
-return_t mqtt_publish_poster_count(void);
-return_t mqtt_publish_battery_detected(void);
-return_t mqtt_publish_scrolling_enabled(void);
-return_t mqtt_publish_lighting_enabled(void);
-return_t mqtt_publish_motor_status(void);
-return_t mqtt_publish_voltages(void);
-return_t mqtt_publish_motor_type(void);
-return_t mqtt_publish_board_version(void);
-return_t mqtt_publish_firmware(void);
+
+return_t mqtt_publish_sensor(st_sensor_t *src);
+return_t mqtt_publish_poster_count(uint8_t *src);
+return_t mqtt_publish_battery_detected(bool_t *src);
+return_t mqtt_publish_scrolling_enabled(bool_t *src);
+return_t mqtt_publish_lighting_enabled(bool_t *src);
+return_t mqtt_publish_motor_status(st_system_motor_status_t *src);
+return_t mqtt_publish_voltages(st_voltages_t *src);
+return_t mqtt_publish_motor_type(motor_type_t *src);
+return_t mqtt_publish_board_version(uint8_t *src);
+return_t mqtt_publish_firmware(char *src);
+return_t mqtt_publish_drive_mode(drive_mode_t *src);
+
 #endif /* FILES_MQTT_FILE_H_ */

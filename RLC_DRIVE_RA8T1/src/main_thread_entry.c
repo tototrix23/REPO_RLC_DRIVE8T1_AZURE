@@ -21,12 +21,14 @@
 #include <sht40_sensor/sht40.h>
 #include <adc/adc.h>
 #include <files/mqtt_file.h>
+#include <files/mqtt_publish_vars.h>
 #include <exchanged_data/exchanged_data.h>
-
+#include <vee/vee.h>
 #include <flash/flash_stack.h>
 #include <flash/flash_routines.h>
 #include <time.h>
 #include <my_malloc.h>
+
 #define MEDIA_SECTOR_HEADS_VALUE (1U)
 #define MEDIA_SECTORS_PER_HEAD    (1U)
 
@@ -126,27 +128,11 @@ void main_thread_entry(void)
 
     heap_init();
 
-   /* volatile char* p = MALLOC(1024);
-    if(p != 0)
-    {
-        volatile uint8_t x = 0;
-        FREE(&p);
-        FREE(&p);
-    }
-
-
-
-    delay_ms(2000);*/
-
-
-
-
-
 
     /*flash_open();
     flash_erase_chip();
     flash_close();*/
-/*
+
 
 
     //fx_system_initialize();
@@ -157,28 +143,52 @@ void main_thread_entry(void)
     i_time_init(&i_time_interface_t,impl_time_init, impl_time_update);
     h_time_init(&i_time_interface_t);
 
-    delay_ms(5000);
+
+
+    delay_ms(2000);
     LOG_I(LOG_STD,"Main thread start");
 
 
 
     rtc_init();
-    /*fs_initialise_only_one_time();
+    fs_initialise_only_one_time();
     ULONG flash_bytes_available;
     ret = fs_open();
     if(ret == X_RET_OK)
     {
 
         fs_bytes_available(&flash_bytes_available);
+        LOG_D(LOG_STD,"%ul bytes available in Flash");
     }
-    fs_close();*/
+
+
+    /*char buff[404];
+    memset(buff,0x00,sizeof(buff));
+    memset(buff,'X',390);
+    ret = fs_set_directory(dir_data);
+    size_t len = strlen(buff);
+    ret = fs_file_create_and_write("test",buff,len);*/
+
+    /*volatile char filename[64];
+    volatile UINT size;
+    volatile UINT year;
+    volatile UINT month;
+    volatile  UINT day;
+    volatile UINT hour;
+    volatile  UINT minut;
+    volatile UINT second;
+    ret = fs_first_file_find(filename,&size,&year,&month,&day,&hour,&minut,&second);*/
+
+
+    fs_close();
+
 
 
 
     // Demarrage du Thread dédié aux LOGs
-    //tx_thread_resume(&log_thread);
+    tx_thread_resume(&log_thread);
     delay_ms(1000);
-    //tx_thread_resume(&modem_thread);
+    tx_thread_resume(&modem_thread);
 
     // Initialisation de la partie moteurs (partie logicielle)
     motor_structures_init();
@@ -197,10 +207,11 @@ void main_thread_entry(void)
     // Initialisation de la VEE (EEPROM virtuelle)
     vee_init();
 
+    // Initialisation des variables MQTT
+    mqtt_vars_init();
 
-
-    //exchdat_set_temperature_humidity(24.12f,45.78f);
-    //mqtt_publish_temperature_humidity();
+    exchdat_set_firmware((char*)drive_firmware);
+    exchdat_set_board_version(0);
 
 
 
@@ -221,6 +232,9 @@ void main_thread_entry(void)
     c_timespan_init(&ts_adc);
     h_time_update(&ts_adc);
 
+    c_timespan_t ts_heap;
+    c_timespan_init(&ts_heap);
+    h_time_update(&ts_heap);
 
     /* TODO: add your own code here */
     while (1)
@@ -282,14 +296,25 @@ void main_thread_entry(void)
             {
                 float vinf = (float)(adc_snap.vin/1000.0f);
                 float vbattf = (float)(adc_snap.vbatt/1000.0f);
-                exchdat_set_main_voltage(vinf);
-                exchdat_set_battery_voltage(vbattf);
+                st_voltages_t v;
+                v.main_voltage = vinf;
+                v.battery_voltage = vbattf;
+                exchdat_set_voltages(v);
                 bool_t batt_detected = FALSE;
                 if(vbattf > 5.0f)
                     batt_detected = TRUE;
                 exchdat_set_battery_detected(batt_detected);
             }
         }
+
+        /*h_time_is_elapsed_ms(&ts_heap, 10000, &elasped);
+        if(elasped == TRUE)
+        {
+            h_time_update(&ts_heap);
+            uint32_t b,p;
+            heap_usage(&b, &p);
+            LOG_D(LOG_STD,"heap %d bytes / %d percent",b,p);
+        }*/
 
 
         /*if(motor_emergency_is_error())

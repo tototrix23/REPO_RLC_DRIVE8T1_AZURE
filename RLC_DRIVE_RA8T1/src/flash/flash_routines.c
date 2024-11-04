@@ -22,7 +22,7 @@ static FX_MEDIA g_fx_media1;
 static uint8_t g_fx_media1_media_memory[G_FX_MEDIA0_MEDIA_MEMORY_SIZE];
 
 
-char dir_data[] = "/DATA";
+char dir_data[] = "\\DATA";
 
 return_t fs_initialise_only_one_time(void)
 {
@@ -60,6 +60,34 @@ return_t fs_open()
             return F_RET_FS_INIT_MEDIA;
         }
     }
+
+    ULONG flash_bytes_available;
+    fs_bytes_available(&flash_bytes_available);
+
+    if(flash_bytes_available < 1000000)
+    {
+        LOG_E(LOG_STD,"Error media avaialable size");
+        ret = fx_media_close(&g_fx_media1);
+        if(ret != X_RET_OK)
+            return ret;
+        ret = fs_format();
+        if(ret != X_RET_OK)
+            return ret;
+        err = fx_media_open(&g_fx_media1, "&g_fx_media1", RM_FILEX_BLOCK_MEDIA_BlockDriver,
+                            (void* ) &g_rm_filex_block_media_1_instance, g_fx_media1_media_memory,
+                            G_FX_MEDIA0_MEDIA_MEMORY_SIZE);
+        if(ret != FSP_SUCCESS)
+        {
+            LOG_E(LOG_STD,"Error opening media");
+            return F_RET_FS_INIT_MEDIA;
+        }
+        else
+        {
+            LOG_I(LOG_STD,"Success formating and opening");
+        }
+
+    }
+
 
     fs_set_timestamp();
 
@@ -115,10 +143,13 @@ return_t fs_close()
 return_t fs_set_timestamp()
 {
     st_rtc_t r = rtc_get();
-    time_t timestamp = r.time_ms / 1000;
-    volatile struct tm * timeInfos = gmtime( & timestamp );
-    fx_system_date_set(timeInfos->tm_year+1900,timeInfos->tm_mon,timeInfos->tm_mday);
-    fx_system_time_set(timeInfos->tm_hour,timeInfos->tm_min,timeInfos->tm_sec);
+    if(r.configured == TRUE)
+    {
+        time_t timestamp = r.time_ms / 1000;
+        volatile struct tm * timeInfos = gmtime( & timestamp );
+        fx_system_date_set(timeInfos->tm_year+1900,timeInfos->tm_mon+1,timeInfos->tm_mday);
+        fx_system_time_set(timeInfos->tm_hour,timeInfos->tm_min,timeInfos->tm_sec);
+    }
     return X_RET_OK;
 }
 
@@ -308,7 +339,7 @@ return_t fs_bytes_available(ULONG *bytes)
 
     *bytes=b;
 
-    LOG_D(LOG_STD,"FS %d bytes available",b);
+    //LOG_D(LOG_STD,"FS %d bytes available",b);
     return X_RET_OK;
 }
 
@@ -329,10 +360,12 @@ return_t fs_file_create_and_write(char *name, void *ptr, uint64_t size)
     {
         fs_file_close (&file);
         fs_file_delete(name);
-        fs_flush ();
+        //fs_flush ();
         return ret;
     }
 
+    volatile uint8_t xxx=0;
+    xxx=1;
 
     ret = fs_file_close (&file);
     if (ret != X_RET_OK)
@@ -341,6 +374,25 @@ return_t fs_file_create_and_write(char *name, void *ptr, uint64_t size)
     ret = fs_flush ();
     if (ret != X_RET_OK)
         return ret;
+
+    /*st_rtc_t r = rtc_get();
+    if(r.configured == TRUE)
+    {
+        time_t timestamp = r.time_ms / 1000;
+        struct tm * timeInfos = gmtime( & timestamp );
+
+        volatile UINT year = timeInfos->tm_year + 1900;
+        volatile UINT month = timeInfos->tm_mon+1;
+        volatile UINT day = timeInfos->tm_mday;
+        volatile UINT hour = timeInfos->tm_hour;
+        volatile UINT minut = timeInfos->tm_min;
+        volatile UINT second = timeInfos->tm_sec;
+
+
+        ret = fs_file_date_time_set(name,year,month,day,hour,minut,second);
+        if (ret != X_RET_OK)
+            return ret;
+    }*/
 
 
     return X_RET_OK;
@@ -374,7 +426,7 @@ return_t fs_file_rename(char *old, char *new)
 }
 
 
-return_t fs_first_file_find(char *file_name,ULONG *size,INT *year,INT* month,INT* day,INT* hour,INT* minut,INT* second)
+return_t fs_first_file_find(char *file_name,ULONG *size,UINT *year,UINT* month,UINT* day,UINT* hour,UINT* minut,UINT* second)
 {
 
     UINT attributes;
@@ -422,7 +474,7 @@ return_t fs_first_file_find(char *file_name,ULONG *size,INT *year,INT* month,INT
     return X_RET_OK;
 }
 
-return_t fs_next_file_find(char *file_name,ULONG *size,INT *year,INT* month,INT* day,INT* hour,INT* minut,INT* second)
+return_t fs_next_file_find(char *file_name,ULONG *size,UINT *year,UINT* month,UINT* day,UINT* hour,UINT* minut,UINT* second)
 {
 
     UINT attributes;
@@ -452,4 +504,17 @@ return_t fs_next_file_find(char *file_name,ULONG *size,INT *year,INT* month,INT*
 }
 
 
-
+return_t fs_file_date_time_set(char *file_name,UINT year,UINT month,UINT day,UINT hour,UINT minut,UINT second)
+{
+    return_t ret = X_RET_OK;
+    fsp_err_t err_fsp = fx_file_date_time_set(&g_fx_media1, file_name,year,month,day,hour,minut,second);
+    if (err_fsp == FSP_SUCCESS)
+    {
+        return X_RET_OK;
+    }
+    else
+    {
+        return F_RET_FS_GENERIC;
+    }
+    return X_RET_OK;
+}
