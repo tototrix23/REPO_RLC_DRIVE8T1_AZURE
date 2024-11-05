@@ -98,5 +98,6 @@
 #define F_RET_FS_READ_FILE                   -11415
 #define F_RET_FS_WRITE_FILE                  -11416
 #define F_RET_FS_RENAME_FILE                 -11417
+#define F_RET_FS_GET_DIRECTORY               -11418
 
 #endif /* RETURN_CODES_H_ */

@@ -26,6 +26,7 @@ return_t fs_bytes_available(ULONG *bytes);
 return_t fs_is_directory_exist( char *dir, bool_t *result);
 return_t fs_get_current_directory(char **dir);
 return_t fs_set_directory(char *dir);
+return_t fs_get_directory(char **dir);
 return_t fs_create_directory(char *dir);
 return_t fs_delete_directory(char *dir);
 return_t fs_file_create(char *name);

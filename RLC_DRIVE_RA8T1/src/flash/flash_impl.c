@@ -15,6 +15,7 @@ int flash_write_disable(void);
 int flash_write_align(ULONG flash_address, ULONG *source, ULONG words);
 
 
+#define FLASH_FLAG_BUSY   0x01
 
 
 
@@ -56,11 +57,14 @@ int flash_write_and_read(uint8_t *tx_b,uint8_t *rx_b,uint32_t count)
     g_transfer_complete = false;
     __NOP();
     __NOP();
+    //FSP_CRITICAL_SECTION_DEFINE;
+    //FSP_CRITICAL_SECTION_ENTER;
     err = R_SCI_B_SPI_WriteRead(&g_sci_spi_lfs_ctrl, tx_b,rx_b, count, SPI_BIT_WIDTH_8_BITS);
     if(err != FSP_SUCCESS) goto error;
     __NOP();
     __NOP();
-    while (false == g_transfer_complete);
+    while (false == g_transfer_complete) __NOP();
+    //FSP_CRITICAL_SECTION_EXIT;
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_FLASH_CS, BSP_IO_LEVEL_HIGH);
     __NOP();
     __NOP();
@@ -86,12 +90,12 @@ int flash_write_enable(void)
 
 int flash_write_disable(void)
 {
-    int ret = 0;
+    /*int ret = 0;
     uint8_t cmd_buffer[1];
     uint8_t in_buffer[1];
     cmd_buffer[0] = 0x04;
     ret = flash_write_and_read(cmd_buffer,in_buffer,1);
-    if(ret != 0) return ret;
+    if(ret != 0) return ret;*/
     return 0;
 }
 
@@ -122,7 +126,7 @@ int flash_read(uint32_t flash_address, uint8_t *destination, uint32_t bytes)
     __NOP();
     __NOP();
 
-    while (false == g_transfer_complete);// tx_thread_sleep(1);
+    while (false == g_transfer_complete) __NOP();// tx_thread_sleep(1);
     g_transfer_complete = FALSE;
     __NOP();
     __NOP();
@@ -130,7 +134,7 @@ int flash_read(uint32_t flash_address, uint8_t *destination, uint32_t bytes)
     if(err != FSP_SUCCESS) goto error;
     __NOP();
     __NOP();
-    while (false == g_transfer_complete);// tx_thread_sleep(1);
+    while (false == g_transfer_complete) __NOP();// tx_thread_sleep(1);
 
     g_transfer_complete = FALSE;
 
@@ -220,6 +224,8 @@ int flash_write(uint32_t flash_address, uint8_t *source, uint32_t bytes)
     ret = flash_write_enable();
     if(ret != 0)
     {
+        R_SCI_B_SPI_Close(&g_sci_spi_lfs_ctrl);
+        tx_mutex_put(&g_mutex_spi);
         return ret;
     }
 
@@ -247,14 +253,14 @@ int flash_write(uint32_t flash_address, uint8_t *source, uint32_t bytes)
     if(err != FSP_SUCCESS) goto error;
     __NOP();
     __NOP();
-    while (false == g_transfer_complete);
+    while (false == g_transfer_complete)__NOP();
     g_transfer_complete = false;
 
     err = R_SCI_B_SPI_Write(&g_sci_spi_lfs_ctrl, source, bytes, SPI_BIT_WIDTH_8_BITS);
     if(err != FSP_SUCCESS) goto error;
     __NOP();
     __NOP();
-    while (false == g_transfer_complete);
+    while (false == g_transfer_complete)__NOP();
     g_transfer_complete = false;
 
 
@@ -275,7 +281,7 @@ int flash_write(uint32_t flash_address, uint8_t *source, uint32_t bytes)
             tx_mutex_put(&g_mutex_spi);
             return ret;
         }
-        if((st & 0x02) == 0x00)
+        if((st & FLASH_FLAG_BUSY) == 0x00)
         {
             R_SCI_B_SPI_Close(&g_sci_spi_lfs_ctrl);
             tx_mutex_put(&g_mutex_spi);
@@ -340,7 +346,7 @@ int flash_erase(ULONG block)
             tx_mutex_put(&g_mutex_spi);
             return ret;
         }
-        if((st & 0x02) == 0x00)
+        if((st & FLASH_FLAG_BUSY) == 0x00)
         {
             R_SCI_B_SPI_Close(&g_sci_spi_lfs_ctrl);
             tx_mutex_put(&g_mutex_spi);
@@ -384,13 +390,13 @@ int flash_erase_chip(void)
         ret = flash_read_status(&st);
         if(ret != 0)
         {
-           tx_mutex_put(&g_mutex_spi);
-           return ret;
+            tx_mutex_put(&g_mutex_spi);
+            return ret;
         }
-        if((st & 0x02) == 0x00)
+        if((st & FLASH_FLAG_BUSY) == 0x00)
         {
-           tx_mutex_put(&g_mutex_spi);
-           return 0;
+            tx_mutex_put(&g_mutex_spi);
+            return 0;
         }
         __NOP();
         __NOP();

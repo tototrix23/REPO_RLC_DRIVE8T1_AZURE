@@ -63,7 +63,7 @@ static return_motor_cplx_t error_test_1H(void)
     while(!end)
     {
         CHECK_STOP_REQUEST_NESTED_CPLX();
-        h_time_is_elapsed_ms(&ts, 500, &ts_elasped);
+        h_time_is_elapsed_ms(&ts, 200, &ts_elasped);
         if(ts_elasped == TRUE)
             end = TRUE;
 
@@ -121,7 +121,7 @@ static return_motor_cplx_t error_test_1L(void)
     while(!end)
     {
         CHECK_STOP_REQUEST_NESTED_CPLX();
-        h_time_is_elapsed_ms(&ts, 500, &ts_elasped);
+        h_time_is_elapsed_ms(&ts, 200, &ts_elasped);
         if(ts_elasped == TRUE)
             end = TRUE;
 

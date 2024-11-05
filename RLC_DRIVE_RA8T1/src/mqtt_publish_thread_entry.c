@@ -64,6 +64,7 @@ return_t mqtt_pusblish_process_json(void)
        }
        if(ret == X_RET_OK)
        {
+           //LOG_D(LOG_STD,"parse %s",filename);
            if(file_size == 0)
            {
                LOG_E(LOG_STD,"Size null %",filename);
@@ -89,13 +90,16 @@ return_t mqtt_pusblish_process_json(void)
                    myDate.tm_hour = hour;
                    myDate.tm_min = minut;
                    myDate.tm_sec = second;
-                   uint64_t timestamp = mktime(&myDate);
+                   volatile uint64_t timestamp = mktime(&myDate);
                    timestamp = timestamp*1000;
                    st_rtc_t r = rtc_get();
-                   volatile uint64_t time_diff = r.time_ms - timestamp;
+                   volatile uint64_t time_diff = 0x00;
+                   if(timestamp < r.time_ms)
+                       time_diff = r.time_ms - timestamp;
 
                    if(time_diff > 259200000)//259200000)
                    {
+                       LOG_E(LOG_STD,"time_diff %s   %llu",filename,time_diff);
                        ret = fs_file_delete(filename);
                    }
                    else
@@ -111,6 +115,7 @@ return_t mqtt_pusblish_process_json(void)
                            uint64_t file_name_ts = strtoull(filename,&ptr_end,10);
                            if(file_name_ts == 0)
                            {
+                               LOG_E(LOG_STD,"file_name_ts %s",filename);
                                fs_file_delete(filename);
                            }
                            else
@@ -126,6 +131,7 @@ return_t mqtt_pusblish_process_json(void)
                        }
                        else
                        {
+                           LOG_E(LOG_STD,"ext %s",filename);
                            fs_file_delete(filename);
                        }
                    }
@@ -219,7 +225,7 @@ return_t mqtt_publish_send(char *buffer)
     char *msg_rx = 0x00;
     //
     //tx_queue_flush(msg_queue);
-    ret = modem_process_send(msg_queue,"mqtt_publish",buffer,&msg_rx,3,10000);
+    ret = modem_process_send(msg_queue,"mqtt_publish",buffer,&msg_rx,1,15000);
     if(ret != X_RET_OK)
     {
         if(ret == F_RET_COMMS_OUT_TIMEOUT)
@@ -288,12 +294,8 @@ void mqtt_publish_thread_entry(void)
         }
         else
         {
-            LOG_E(LOG_STD,"%d",ret);
-            delay_ms(5000);
+            delay_ms(10000);
         }
-        /*delay_ms(2000);
-        LOG_D(LOG_STD,"TEST");*/
-
         tx_thread_sleep (1);
     }
 }

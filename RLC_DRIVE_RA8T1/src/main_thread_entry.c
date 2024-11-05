@@ -157,29 +157,17 @@ void main_thread_entry(void)
     if(ret == X_RET_OK)
     {
 
+        volatile char *current_dir = 0x00;
+        ret = fs_get_directory(&current_dir);
+        ret = fs_set_directory(dir_data);
+        ret = fs_set_directory(dir_data);
+        ret = fs_set_directory(dir_data);
+        ret = fs_get_directory(&current_dir);
+
         fs_bytes_available(&flash_bytes_available);
+
         LOG_D(LOG_STD,"%ul bytes available in Flash");
     }
-
-
-    /*char buff[404];
-    memset(buff,0x00,sizeof(buff));
-    memset(buff,'X',390);
-    ret = fs_set_directory(dir_data);
-    size_t len = strlen(buff);
-    ret = fs_file_create_and_write("test",buff,len);*/
-
-    /*volatile char filename[64];
-    volatile UINT size;
-    volatile UINT year;
-    volatile UINT month;
-    volatile  UINT day;
-    volatile UINT hour;
-    volatile  UINT minut;
-    volatile UINT second;
-    ret = fs_first_file_find(filename,&size,&year,&month,&day,&hour,&minut,&second);*/
-
-
     fs_close();
 
 
@@ -244,7 +232,7 @@ void main_thread_entry(void)
 
         bool_t elasped = FALSE;
 
-        h_time_is_elapsed_ms(&ts_sensor, 5000, &elasped);
+        h_time_is_elapsed_ms(&ts_sensor, 20000, &elasped);
 
         if(elasped == TRUE)
         {

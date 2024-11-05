@@ -22,18 +22,53 @@ static FX_MEDIA g_fx_media1;
 static uint8_t g_fx_media1_media_memory[G_FX_MEDIA0_MEDIA_MEMORY_SIZE];
 
 
-char dir_data[] = "\\DATA";
+uint8_t g_fx_fault_tolerant_memory[4096];
+
+
+char dir_data[] = "/DATA\0";
 
 return_t fs_initialise_only_one_time(void)
 {
     fx_system_initialize ();
-    return X_RET_OK;
+
+
+    return_t ret = X_RET_OK;
+
+    ret = fs_open();
+    if(ret != X_RET_OK) return ret;
+
+    char write_array[256];
+    strcpy(write_array,"test");
+    fs_set_directory(dir_data);
+    fs_file_delete("test");
+    ret = fs_file_create_and_write("test", write_array, strlen(write_array));
+    if(ret != X_RET_OK)
+    {
+        LOG_E(LOG_STD,"Error initialising media, formatting");
+        ret = fs_format();
+        if(ret != X_RET_OK)
+            goto end;
+
+        ret = fs_open();
+        if(ret != X_RET_OK)
+            goto end;
+    }
+    else
+    {
+        ret = fs_file_delete("test");
+        if(ret != X_RET_OK)
+            goto end;
+    }
+
+    end:
+    ret = fs_close();
+    return ret;
 }
 
 return_t fs_open()
 {
     return_t ret = X_RET_OK;
-    fsp_err_t err = RM_FILEX_BLOCK_MEDIA_Open (&g_rm_filex_block_media_1_ctrl, &g_rm_filex_block_media_1_cfg);
+    volatile fsp_err_t err = RM_FILEX_BLOCK_MEDIA_Open (&g_rm_filex_block_media_1_ctrl, &g_rm_filex_block_media_1_cfg);
     if(err != FSP_SUCCESS)
     {
         LOG_E(LOG_STD,"Error opening block media");
@@ -60,6 +95,14 @@ return_t fs_open()
             return F_RET_FS_INIT_MEDIA;
         }
     }
+
+    err = fx_fault_tolerant_enable(&g_fx_media1,g_fx_fault_tolerant_memory,sizeof(g_fx_fault_tolerant_memory));
+    if(err != FSP_SUCCESS)
+        {
+            LOG_E(LOG_STD,"Error opening media");
+            return F_RET_FS_INIT_MEDIA;
+        }
+
 
     ULONG flash_bytes_available;
     fs_bytes_available(&flash_bytes_available);
@@ -192,6 +235,14 @@ return_t fs_set_directory(char *dir)
     return X_RET_OK;
 }
 
+return_t fs_get_directory(char **dir)
+{
+    fsp_err_t err_fsp = fx_directory_default_get (&g_fx_media1, dir);
+    if (err_fsp != FSP_SUCCESS)
+        return F_RET_FS_GET_DIRECTORY;
+    return X_RET_OK;
+}
+
 return_t fs_create_directory(char *dir)
 {
     fsp_err_t err_fsp = fx_directory_create (&g_fx_media1, dir);
@@ -277,6 +328,13 @@ return_t fs_file_open(FX_FILE *file_ptr, char *name, uint16_t open_mode)
     fsp_err_t err_fsp = fx_file_open(&g_fx_media1, file_ptr, name, open_mode);
     if (err_fsp == FSP_SUCCESS)
     {
+
+        err_fsp = fx_file_seek(file_ptr, 0);
+        if (err_fsp != FSP_SUCCESS)
+        {
+            LOG_E(LOG_STD,"Error seek file %s [%d]",name,err_fsp);
+            return F_RET_FS_OPEN_FILE;
+        }
         return X_RET_OK;
     }
     else
@@ -346,7 +404,7 @@ return_t fs_bytes_available(ULONG *bytes)
 return_t fs_file_create_and_write(char *name, void *ptr, uint64_t size)
 {
     FX_FILE file;
-    return_t ret = fs_file_create (name);
+    volatile return_t ret = fs_file_create (name);
     if (ret != X_RET_OK)
         return ret;
 
@@ -374,27 +432,6 @@ return_t fs_file_create_and_write(char *name, void *ptr, uint64_t size)
     ret = fs_flush ();
     if (ret != X_RET_OK)
         return ret;
-
-    /*st_rtc_t r = rtc_get();
-    if(r.configured == TRUE)
-    {
-        time_t timestamp = r.time_ms / 1000;
-        struct tm * timeInfos = gmtime( & timestamp );
-
-        volatile UINT year = timeInfos->tm_year + 1900;
-        volatile UINT month = timeInfos->tm_mon+1;
-        volatile UINT day = timeInfos->tm_mday;
-        volatile UINT hour = timeInfos->tm_hour;
-        volatile UINT minut = timeInfos->tm_min;
-        volatile UINT second = timeInfos->tm_sec;
-
-
-        ret = fs_file_date_time_set(name,year,month,day,hour,minut,second);
-        if (ret != X_RET_OK)
-            return ret;
-    }*/
-
-
     return X_RET_OK;
 
 }

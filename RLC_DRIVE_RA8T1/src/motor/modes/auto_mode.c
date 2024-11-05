@@ -382,7 +382,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
           if(direction == AUTO_ENRH)
           {
               pos_final = ptr->panels.positions[index]+ptr->panels.positions_compH[index];
-              pos = pos_final-100;//150;
+              pos = pos_final-200;//150;
               if(abs(pulsesH) >= pos)
               {
                   LOG_D(LOG_STD,"pos%d ENRH %d / %d",index,pos,pos_final);
@@ -393,7 +393,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
           else if(direction == AUTO_ENRL)
           {
               pos_final = ptr->panels.positions[index]+ptr->panels.positions_compL[index];
-              pos = pos_final+100;//150;
+              pos = pos_final+200;//150;
               if(abs(pulsesH) <= pos)
               {
                   LOG_D(LOG_STD,"pos%d ENRL %d / %d",index,pos,pos_final);

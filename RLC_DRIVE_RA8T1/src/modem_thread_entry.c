@@ -188,7 +188,7 @@ void modem_thread_entry(void)
     /* TODO: add your own code here */
     while (1)
     {
-        delay_ms(10000);
+        delay_ms(1800000);
         ret = modem_order_get_datetime();
 
         if(ret == X_RET_OK)
