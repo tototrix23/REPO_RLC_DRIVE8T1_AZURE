@@ -5,7 +5,7 @@
  *      Author: Ch.Leclercq
  */
 
-#include <vee/vee.h>
+
 #include <exchanged_data/exchanged_data.h>
 #include <status/motor_status.h>
 
@@ -14,7 +14,6 @@
 void motor_status_init(void)
 {
     tx_mutex_get(&g_mutex_motor_status,TX_WAIT_FOREVER);
-    //motor_emergency_init();
     st_system_motor_status_t motor_status;
     memset(&motor_status,0x00,sizeof(st_system_motor_status_t));
     exchdat_set_motor_status(motor_status);
@@ -24,14 +23,11 @@ void motor_status_init(void)
 
 void motor_status_set(st_system_motor_status_t new_status)
 {
-    st_system_motor_status_t current = exchdat_get_motor_status();
-    if(memcmp(&new_status,&current,sizeof(st_system_motor_status_t)) != 0)
-    {
-        tx_mutex_get(&g_mutex_motor_status,TX_WAIT_FOREVER);
-        exchdat_set_motor_status(new_status);
-        vee_write_by_id(EEPROM_MOTOR_STATUS);
-        tx_mutex_put(&g_mutex_motor_status);
-    }
+
+    tx_mutex_get(&g_mutex_motor_status,TX_WAIT_FOREVER);
+    exchdat_set_motor_status(new_status);
+    tx_mutex_put(&g_mutex_motor_status);
+
 }
 
 st_system_motor_status_t motor_status_get(void)
@@ -48,7 +44,7 @@ void motor_status_clear(void)
     {
         motor_status_init();
         tx_mutex_get(&g_mutex_motor_status,TX_WAIT_FOREVER);
-        vee_write_by_id(EEPROM_MOTOR_STATUS);
+        //vee_write_by_id(EEPROM_MOTOR_STATUS);
         tx_mutex_put(&g_mutex_motor_status);
     }
 }

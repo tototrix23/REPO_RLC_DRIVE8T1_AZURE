@@ -308,14 +308,6 @@
       <description>Motor 120 degree driver</description>
       <originalPack>Renesas.RA.5.3.0.pack</originalPack>
     </component>
-    <component apiversion="" class="HAL Drivers" condition="" group="all" subgroup="r_flash_hp" variant="" vendor="Renesas" version="5.3.0">
-      <description>Flash Memory High Performance</description>
-      <originalPack>Renesas.RA.5.3.0.pack</originalPack>
-    </component>
-    <component apiversion="" class="Middleware" condition="" group="all" subgroup="rm_vee_flash" variant="" vendor="Renesas" version="5.3.0">
-      <description>Virtual EEPROM</description>
-      <originalPack>Renesas.RA.5.3.0.pack</originalPack>
-    </component>
     <component apiversion="" class="HAL Drivers" condition="" group="all" subgroup="r_sci_b_i2c" variant="" vendor="Renesas" version="5.3.0">
       <description>SCI_B I2C Master Interface</description>
       <originalPack>Renesas.RA.5.3.0.pack</originalPack>
@@ -360,7 +352,7 @@
       <property id="module.driver.uart.clk_src" value="module.driver.uart.clk_src.int_clk"/>
       <property id="module.driver.uart.rx_edge_start" value="module.driver.uart.rx_edge_start.falling_edge"/>
       <property id="module.driver.uart.noisecancel_en" value="module.driver.uart.noisecancel_en.disabled"/>
-      <property id="module.driver.uart.rx_fifo_trigger" value="module.driver.uart.rx_fifo_trigger.max"/>
+      <property id="module.driver.uart.rx_fifo_trigger" value="module.driver.uart.rx_fifo_trigger.one"/>
       <property id="module.driver.uart.rs485.de_enable" value="module.driver.uart.rs485.de_enable.disabled"/>
       <property id="module.driver.uart.rs485.de_polarity" value="module.driver.uart.rs485.de_polarity.high"/>
       <property id="module.driver.uart.rs485.de_assertion_time" value="1"/>
@@ -390,8 +382,8 @@
       <property id="module.driver.spi.bit_order" value="module.driver.spi.bit_order.bit_order_msb_first"/>
       <property id="module.driver.spi.clock_source" value="module.driver.spi.clock_source.scispiclk"/>
       <property id="module.driver.spi.p_callback" value="sci_b_spi_lfs_callback"/>
-      <property id="module.driver.spi.rxi_ipl" value="board.icu.common.irq.priority12"/>
-      <property id="module.driver.spi.txi_ipl" value="board.icu.common.irq.priority12"/>
+      <property id="module.driver.spi.rxi_ipl" value="board.icu.common.irq.priority3"/>
+      <property id="module.driver.spi.txi_ipl" value="board.icu.common.irq.priority3"/>
       <property id="module.driver.spi.tei_ipl" value="board.icu.common.irq.priority12"/>
       <property id="module.driver.spi.eri_ipl" value="board.icu.common.irq.priority12"/>
       <property id="module.driver.spi.bitrate" value="1000000"/>
@@ -1175,24 +1167,8 @@
       <property id="module.driver.adc.window_b_ipl" value="_disabled"/>
       <property id="module.driver.adc.adbuf" value="module.driver.adc.adbuf.disabled"/>
     </module>
-    <module id="module.middleware.rm_vee_flash.1590955227">
-      <property id="module.middleware.rm_vee_flash.name" value="g_vee"/>
-      <property id="module.middleware.rm_vee_flash.record_max_id" value="16"/>
-      <property id="module.middleware.rm_vee_flash.num_segments" value="2"/>
-      <property id="module.middleware.rm_vee_flash.start_addr" value="BSP_FEATURE_FLASH_DATA_FLASH_START"/>
-      <property id="module.middleware.rm_vee_flash.total_size" value="BSP_DATA_FLASH_SIZE_BYTES"/>
-      <property id="module.middleware.rm_vee_flash.ref_data_size" value="0"/>
-      <property id="module.middleware.rm_vee_flash.p_callback" value="vee_callback"/>
-    </module>
-    <module id="module.driver.flash_on_flash_hp.255943238">
-      <property id="module.driver.flash.name" value="g_flash0"/>
-      <property id="module.driver.flash.data_flash_bgo" value="module.driver.flash.data_flash_bgo.enabled"/>
-      <property id="module.driver.flash.p_callback" value="NULL"/>
-      <property id="module.driver.flash.ipl" value="board.icu.common.irq.priority9"/>
-      <property id="module.driver.flash.err_ipl" value="board.icu.common.irq.priority9"/>
-    </module>
     <module id="module.driver.i2c_on_sci_b_i2c.1305472037">
-      <property id="module.driver.i2c.name" value="g_i2c_sensor"/>
+      <property id="module.driver.i2c.name" value="g_i2c0"/>
       <property id="module.driver.i2c.channel" value="1"/>
       <property id="module.driver.i2c.slave" value="0x44"/>
       <property id="module.driver.i2c.addr_mode" value="module.driver.i2c.addr_mode.addr_mode_7bit"/>
@@ -1220,7 +1196,7 @@
       <property id="module.driver.uart.clk_src" value="module.driver.uart.clk_src.int_clk"/>
       <property id="module.driver.uart.rx_edge_start" value="module.driver.uart.rx_edge_start.falling_edge"/>
       <property id="module.driver.uart.noisecancel_en" value="module.driver.uart.noisecancel_en.disabled"/>
-      <property id="module.driver.uart.rx_fifo_trigger" value="module.driver.uart.rx_fifo_trigger.max"/>
+      <property id="module.driver.uart.rx_fifo_trigger" value="module.driver.uart.rx_fifo_trigger.one"/>
       <property id="module.driver.uart.rs485.de_enable" value="module.driver.uart.rs485.de_enable.disabled"/>
       <property id="module.driver.uart.rs485.de_polarity" value="module.driver.uart.rs485.de_polarity.high"/>
       <property id="module.driver.uart.rs485.de_assertion_time" value="1"/>
@@ -1353,6 +1329,15 @@
       <property id="module.driver.transfer.number_of_descriptors" value="1"/>
       <property id="module.driver.transfer.activation_source" value="_disabled"/>
     </module>
+    <module id="module.driver.external_irq_on_icu.1308838263">
+      <property id="module.driver.external_irq.name" value="g_sync_irq"/>
+      <property id="module.driver.external_irq.channel" value="8"/>
+      <property id="module.driver.external_irq.trigger" value="module.driver.external_irq.trigger.trig_rising"/>
+      <property id="module.driver.external_irq.filter_enable" value="module.driver.external_irq.filter_enable.false"/>
+      <property id="module.driver.external_irq.clock_source_div" value="module.driver.external_irq.clock_source_div.clock_source_div_by_64"/>
+      <property id="module.driver.external_irq.p_callback" value="sync_irq_callback"/>
+      <property id="module.driver.external_irq.ipl" value="board.icu.common.irq.priority12"/>
+    </module>
     <object id="rtos.threadx.object.queue.146954789">
       <property id="rtos.threadx.object.queue.name" value="Log Queue"/>
       <property id="rtos.threadx.object.queue.symbol" value="g_queue_log"/>
@@ -1438,6 +1423,15 @@
       <property id="rtos.threadx.object.mutex.symbol" value="g_mutex_uarttx_modem"/>
       <property id="rtos.threadx.object.mutex.inherit" value="rtos.threadx.object.mutex.inherit.enabled"/>
     </object>
+    <object id="rtos.threadx.object.mutex.2128525030">
+      <property id="rtos.threadx.object.mutex.name" value="New Mutex"/>
+      <property id="rtos.threadx.object.mutex.symbol" value="g_i2c_mutex"/>
+      <property id="rtos.threadx.object.mutex.inherit" value="rtos.threadx.object.mutex.inherit.enabled"/>
+    </object>
+    <object id="rtos.threadx.object.flags.1491725405">
+      <property id="rtos.threadx.object.flags.name" value="New Event Flags"/>
+      <property id="rtos.threadx.object.flags.symbol" value="g_event_flash_complete"/>
+    </object>
     <context id="_hal.0">
       <stack module="module.driver.ioport_on_ioport.0"/>
       <stack module="module.middleware.rm_threadx_port.0"/>
@@ -1451,9 +1445,6 @@
         <stack module="module.driver.transfer_on_dtc.505479211" requires="module.driver.spi_on_sci_b_spi.requires.transfer_tx"/>
         <stack module="module.driver.transfer_on_dtc.1950417074" requires="module.driver.spi_on_sci_b_spi.requires.transfer_rx"/>
       </stack>
-      <stack module="module.middleware.rm_vee_flash.1590955227">
-        <stack module="module.driver.flash_on_flash_hp.255943238" requires="module.middleware.rm_vee_flash.requires.flash"/>
-      </stack>
       <stack module="module.driver.i2c_on_sci_b_i2c.1305472037"/>
       <stack module="module.azure.fx.block_media.380912320">
         <stack module="module.middleware.rm_filex_block_media.1209611563" requires="module.azure.fx.requires.rm_filex_block_media">
@@ -1462,6 +1453,7 @@
           </stack>
         </stack>
       </stack>
+      <stack module="module.driver.external_irq_on_icu.1308838263"/>
     </context>
     <context id="rtos.threadx.thread.1290712810">
       <property id="_symbol" value="main_thread"/>
@@ -1528,7 +1520,7 @@
       <property id="rtos.threadx.thread.stack" value="4096"/>
       <property id="rtos.threadx.thread.priority" value="4"/>
       <property id="rtos.threadx.thread.autostart" value="rtos.threadx.thread.autostart.disabled"/>
-      <property id="rtos.threadx.thread.timeslice" value="2"/>
+      <property id="rtos.threadx.thread.timeslice" value="1"/>
       <stack module="module.driver.uart_on_sci_b_uart.1190653222"/>
     </context>
     <context id="rtos.threadx.thread.1854636873">
@@ -1537,7 +1529,7 @@
       <property id="rtos.threadx.thread.stack" value="4096"/>
       <property id="rtos.threadx.thread.priority" value="4"/>
       <property id="rtos.threadx.thread.autostart" value="rtos.threadx.thread.autostart.disabled"/>
-      <property id="rtos.threadx.thread.timeslice" value="2"/>
+      <property id="rtos.threadx.thread.timeslice" value="1"/>
     </context>
     <context id="rtos.threadx.thread.1207060177">
       <property id="_symbol" value="mqtt_subscribe_thread"/>
@@ -1545,13 +1537,8 @@
       <property id="rtos.threadx.thread.stack" value="4096"/>
       <property id="rtos.threadx.thread.priority" value="4"/>
       <property id="rtos.threadx.thread.autostart" value="rtos.threadx.thread.autostart.disabled"/>
-      <property id="rtos.threadx.thread.timeslice" value="2"/>
+      <property id="rtos.threadx.thread.timeslice" value="1"/>
     </context>
-    <config id="config.driver.flash_hp">
-      <property id="config.driver.flash_hp.param_checking_enable" value="config.flash_hp.param_checking_enable.bsp"/>
-      <property id="config.driver.flash_hp.param_code_flash_programming_enable" value="config.driver.flash_hp.param_code_flash_programming_enable.disabled"/>
-      <property id="config.driver.flash_hp.param_data_flash_programming_enable" value="config.driver.flash_hp.param_data_flash_programming_enable.enabled"/>
-    </config>
     <config id="config.middleware.motor_120_degree">
       <property id="config.middleware.motor_120_degree.param_checking_enable" value="config.middleware.motor_120_degree.param_checking_enable.bsp"/>
     </config>
@@ -1603,7 +1590,7 @@
     </config>
     <config id="config.driver.sci_b_uart">
       <property id="config.driver.sci_b_uart.param_checking_enable" value="config.driver.sci_b_uart.param_checking_enable.bsp"/>
-      <property id="config.driver.sci_b_uart.fifo_support" value="config.driver.sci_b_uart.fifo_support.disabled"/>
+      <property id="config.driver.sci_b_uart.fifo_support" value="config.driver.sci_b_uart.fifo_support.enabled"/>
       <property id="config.driver.sci_b_uart.dtc_support" value="config.driver.sci_b_uart.dtc_support.disabled"/>
       <property id="config.driver.sci_b_uart.flow_control" value="config.driver.sci_b_uart.flow_control.disabled"/>
     </config>
@@ -1621,11 +1608,6 @@
     </config>
     <config id="config.driver.rm_block_media_spi">
       <property id="config.driver.rm_block_media_spi.param_checking_enable" value="config.driver.rm_block_media_spi.param_checking_enable.bsp"/>
-    </config>
-    <config id="config.middleware.rm_vee_flash">
-      <property id="config.middleware.rm_vee_flash.checking" value="config.middleware.rm_vee_flash.checking.system"/>
-      <property id="config.middleware.rm_vee_flash.ref_data_support" value="config.middleware.rm_vee_flash.ref_data_support.disabled"/>
-      <property id="config.middleware.rm_vee_flash.refresh_buf_size" value="32"/>
     </config>
     <config id="config.driver.sci_b_spi">
       <property id="config.driver.sci_b_spi.param_checking_enable" value="config.driver.sci_b_spi.param_checking_enable.bsp"/>
@@ -1809,7 +1791,7 @@
       <configSetting altId="irq5.mode.custom.free" configurationId="irq5.mode"/>
       <configSetting altId="irq6.irq6.p301" configurationId="irq6.irq6"/>
       <configSetting altId="irq6.mode.custom.free" configurationId="irq6.mode"/>
-      <configSetting altId="irq8.irq8.p905" configurationId="irq8.irq8"/>
+      <configSetting altId="irq8.irq8.p305" configurationId="irq8.irq8"/>
       <configSetting altId="irq8.mode.custom.free" configurationId="irq8.mode"/>
       <configSetting altId="jtag_fslash_swd.mode.swd.free" configurationId="jtag_fslash_swd.mode"/>
       <configSetting altId="jtag_fslash_swd.swclk.p211" configurationId="jtag_fslash_swd.swclk"/>
@@ -1894,8 +1876,9 @@
       <configSetting altId="p303.gpio_mode.gpio_mode_out.low" configurationId="p303.gpio_mode"/>
       <configSetting altId="p304.output.low" configurationId="p304"/>
       <configSetting altId="p304.gpio_mode.gpio_mode_out.low" configurationId="p304.gpio_mode"/>
-      <configSetting altId="p305.output.low" configurationId="p305"/>
-      <configSetting altId="p305.gpio_mode.gpio_mode_out.low" configurationId="p305.gpio_mode"/>
+      <configSetting altId="p305.irq8.irq8" configurationId="p305"/>
+      <configSetting altId="p305.gpio_irq.gpio_irq_enabled" configurationId="p305.gpio_irq"/>
+      <configSetting altId="p305.gpio_mode.gpio_mode_irq" configurationId="p305.gpio_mode"/>
       <configSetting altId="p306.output.low" configurationId="p306"/>
       <configSetting altId="p306.gpio_mode.gpio_mode_out.low" configurationId="p306.gpio_mode"/>
       <configSetting altId="p307.output.low" configurationId="p307"/>
@@ -2000,9 +1983,6 @@
       <configSetting altId="p812.gpio_mode.gpio_mode_an" configurationId="p812.gpio_mode"/>
       <configSetting altId="p815.output.low" configurationId="p815"/>
       <configSetting altId="p815.gpio_mode.gpio_mode_out.low" configurationId="p815.gpio_mode"/>
-      <configSetting altId="p905.irq8.irq8" configurationId="p905"/>
-      <configSetting altId="p905.gpio_irq.gpio_irq_enabled" configurationId="p905.gpio_irq"/>
-      <configSetting altId="p905.gpio_mode.gpio_mode_irq" configurationId="p905.gpio_mode"/>
       <configSetting altId="p906.input" configurationId="p906"/>
       <configSetting altId="p906.gpio_mode.gpio_mode_in" configurationId="p906.gpio_mode"/>
       <configSetting altId="p907.output.low" configurationId="p907"/>

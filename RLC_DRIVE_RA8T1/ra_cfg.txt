@@ -195,7 +195,7 @@ FSP Configuration
       P302 86 IRQ5_IRQ5 IO_MOT1_HALL_W - IRQ5 "IRQ mode" - - "BUS: A3; ETHER_MII: ET0_ERXD1; ETHER_RMII: RMII0_RXD0; GPT4: GTIOC4A; GPT_OPS: GTOUUP; IRQ5: IRQ5; SDHI0: SD0DAT2; SDRAM: A3; ULPT0: ULPTO0_A-DS" - IO - - 
       P303 85 GPIO IO_LED_ERROR L - "Output mode (Initial Low)" - - "BUS: A4; ETHER_MII: ET0_ETXD0; ETHER_RMII: REF50CK0; GPT7: GTIOC7B; SDHI0: SD0DAT1; SDRAM: A4" - IO - - 
       P304 82 GPIO IO_LED_LIGHT L None "Output mode (Initial Low)" - - "BUS: A5; ETHER_MII: ET0_ETXD1; ETHER_RMII: RMII0_TXD0; GPT7: GTIOC7A; GPT_OPS: GTOVLO; IRQ9: IRQ9; SDHI0: SD0DAT0; SDRAM: A5; TRACE: TDATA3; ULPT1: ULPTO1" - IO - - 
-      P305 81 GPIO IO_MODEM_SPARE3 L None "Output mode (Initial Low)" - - "BUS: A6; ETHER_MII: ET0_RX_ER; ETHER_RMII: RMII0_TXD1; GPT_OPS: GTOVUP; IRQ8: IRQ8; SDHI0: SD0WP; SDRAM: A6; TRACE: TDATA2; ULPT1: ULPTEE1" - IO - - 
+      P305 81 IRQ8_IRQ8 IO_MODEM_SPARE3 - IRQ8 "IRQ mode" - - "BUS: A6; ETHER_MII: ET0_RX_ER; ETHER_RMII: RMII0_TXD1; GPT_OPS: GTOVUP; IRQ8: IRQ8; SDHI0: SD0WP; SDRAM: A6; TRACE: TDATA2; ULPT1: ULPTEE1" - IO - - 
       P306 80 GPIO IO_MODEM_SPARE2 L - "Output mode (Initial Low)" - - "BUS: A7; ETHER_MII: ET0_TX_EN; ETHER_RMII: RMII0_TXD_EN; GPT_OPS: GTIW; SDHI0: SD0CD; SDRAM: A7; TRACE: TDATA1; ULPT1: ULPTEVI1" - IO - - 
       P307 79 GPIO IO_LED_BATT L - "Output mode (Initial Low)" - - "BUS: A8; ETHER_MII: ET0_MDIO; ETHER_RMII: ET0_MDIO; GPT_OPS: GTIV; SDHI0: SD0CMD; SDRAM: A8; TRACE: TDATA0; ULPT1: ULPTOA1" - IO - - 
       P308 78 GPIO IO_LED_TIMESTAMP L - "Output mode (Initial Low)" - - "BUS: A9; ETHER_MII: ET0_MDC; ETHER_RMII: ET0_MDC; GPT_OPS: GTIU; SCI9: CTS9; SDHI0: SD0CLK; SDRAM: A9; TRACE: TCLK; ULPT1: ULPTOB1" - IO - - 
@@ -270,7 +270,7 @@ FSP Configuration
       P815 46 GPIO IO_LED2 L - "Output mode (Initial Low)" - - "CANFD0: CTX0; GPT8: GTIOC8A; USB FS: USB_DM" - IO - - 
       P900 57 - - - - Disabled - - "SCI3: TXD3" - None - - 
       P901 58 - - - - Disabled - - "AGT1: AGTIO1; SCI3: RXD3" - None - - 
-      P905 73 IRQ8_IRQ8 IO_PPS - IRQ8 "IRQ mode" - - "BUS: A14; IRQ8: IRQ8; SCI3: CTS3; SDRAM: A14" - IO - - 
+      P905 73 - IO_PPS - - Disabled - - "BUS: A14; IRQ8: IRQ8; SCI3: CTS3; SDRAM: A14" - None - - 
       P906 72 GPIO IO_MODEM_SPARE - None "Input mode" - - "BUS: A15; GPT13: GTIOC13B; IRQ9: IRQ9; SDRAM: A15; USB FS: USB_ID" - IO - - 
       P907 71 GPIO IO_LED_RELAY_VERIFY L None "Output mode (Initial Low)" - - "BUS: A16; GPT13: GTIOC13A; IRQ10: IRQ10; SDRAM: A16; USB FS: USB_EXICEN" - IO - - 
       P908 70 GPIO IO_EN_12V_HALL1 L None "Output mode (Initial Low)" - - "BUS: CS2#; GPT12: GTIOC12B; IRQ11: IRQ11; SDRAM: RAS" - IO - - 
@@ -334,7 +334,7 @@ FSP Configuration
   Module "Azure RTOS ThreadX Port (rm_threadx_port)"
   Module "UART (r_sci_b_uart)"
     Parameter Checking: Default (BSP)
-    FIFO Support: Disable
+    FIFO Support: Enable
     DTC Support: Disable
     Flow Control Support: Disable
     
@@ -378,16 +378,6 @@ FSP Configuration
     
   Module "ADC (r_adc)"
     Parameter Checking: Default (BSP)
-    
-  Module "Virtual EEPROM on Flash (rm_vee_flash)"
-    Parameter Checking: Default (BSP)
-    Reference Data Support: Disabled
-    Refresh Buffer Size: 32
-    
-  Module "Flash (r_flash_hp)"
-    Parameter Checking: Default (BSP)
-    Code Flash Programming Enable: Disabled
-    Data Flash Programming Enable: Enabled
     
   Module "I2C Master (r_sci_b_i2c)"
     Parameter Checking: Default (BSP)
@@ -507,7 +497,7 @@ FSP Configuration
       Extra: Clock Source: Internal Clock
       Extra: Start bit detection: Falling Edge
       Extra: Noise Filter: Disable
-      Extra: Receive FIFO Trigger Level: Max
+      Extra: Receive FIFO Trigger Level: One
       Extra: RS-485: DE Pin: Disable
       Extra: RS-485: DE Pin Polarity: Active High
       Extra: RS-485: DE Pin Assertion Time: 1
@@ -537,8 +527,8 @@ FSP Configuration
       Bit Order: MSB First
       Clock Source: SCISPICLK
       Callback: sci_b_spi_lfs_callback
-      Receive Interrupt Priority: Priority 12
-      Transmit Interrupt Priority: Priority 12
+      Receive Interrupt Priority: Priority 3
+      Transmit Interrupt Priority: Priority 3
       Transmit End Interrupt Priority: Priority 12
       Error Interrupt Priority: Priority 12
       Bitrate: 1000000
@@ -611,24 +601,8 @@ FSP Configuration
         Number of Transfer Descriptors: 1
         Activation Source: SCI9 RXI (Receive data full)
         
-    Instance "Virtual EEPROM on Flash (rm_vee_flash)"
-      Name: g_vee
-      Record Max ID: 16
-      Number of Segments: 2
-      Start Address: BSP_FEATURE_FLASH_DATA_FLASH_START
-      Total Size: BSP_DATA_FLASH_SIZE_BYTES
-      Reference Data Size: 0
-      Callback: vee_callback
-      
-      Instance "g_flash0 Flash (r_flash_hp)"
-        Name: g_flash0
-        Data Flash Background Operation: Enabled
-        Callback: rm_vee_flash_callback
-        Flash Ready Interrupt Priority: Priority 9
-        Flash Error Interrupt Priority: Priority 9
-        
-    Instance "g_i2c_sensor I2C Master (r_sci_b_i2c)"
-      Name: g_i2c_sensor
+    Instance "g_i2c0 I2C Master (r_sci_b_i2c)"
+      Name: g_i2c0
       Channel: 1
       Slave Address : 0x44
       Address Mode: 7-Bit
@@ -711,6 +685,15 @@ FSP Configuration
             DOTF: Decryption start address: 0x90000000
             DOTF: Decryption end address: 0x90001FFF
             
+    Instance "g_sync_irq External IRQ (r_icu)"
+      Name: g_sync_irq
+      Channel: 8
+      Trigger: Rising
+      Digital Filtering: Disabled
+      Digital Filtering Sample Clock (Only valid when Digital Filtering is Enabled): PCLK / 64
+      Callback: sync_irq_callback
+      Pin Interrupt Priority: Priority 12
+      
   Thread "Main Thread"
     Symbol: main_thread
     Name: Main Thread
@@ -1504,7 +1487,7 @@ FSP Configuration
     Stack size (bytes): 4096
     Priority: 4
     Auto start: Disabled
-    Time slicing interval (ticks): 2
+    Time slicing interval (ticks): 1
     
     Instance "g_uart_modem UART (r_sci_b_uart)"
       General: Name: g_uart_modem
@@ -1521,7 +1504,7 @@ FSP Configuration
       Extra: Clock Source: Internal Clock
       Extra: Start bit detection: Falling Edge
       Extra: Noise Filter: Disable
-      Extra: Receive FIFO Trigger Level: Max
+      Extra: Receive FIFO Trigger Level: One
       Extra: RS-485: DE Pin: Disable
       Extra: RS-485: DE Pin Polarity: Active High
       Extra: RS-485: DE Pin Assertion Time: 1
@@ -1538,7 +1521,7 @@ FSP Configuration
     Stack size (bytes): 4096
     Priority: 4
     Auto start: Disabled
-    Time slicing interval (ticks): 2
+    Time slicing interval (ticks): 1
     
   Thread "MQTT subscribe Thread"
     Symbol: mqtt_subscribe_thread
@@ -1546,7 +1529,7 @@ FSP Configuration
     Stack size (bytes): 4096
     Priority: 4
     Auto start: Disabled
-    Time slicing interval (ticks): 2
+    Time slicing interval (ticks): 1
     
   Object "g_queue_log Queue"
     Name: Log Queue
@@ -1632,4 +1615,13 @@ FSP Configuration
     Name: UartTx Mutex
     Symbol: g_mutex_uarttx_modem
     Priority inheritance: Enabled
+    
+  Object "g_i2c_mutex Mutex"
+    Name: New Mutex
+    Symbol: g_i2c_mutex
+    Priority inheritance: Enabled
+    
+  Object "g_event_flash_complete Event Flags"
+    Name: New Event Flags
+    Symbol: g_event_flash_complete
     

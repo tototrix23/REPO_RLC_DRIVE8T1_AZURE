@@ -19,19 +19,18 @@ int flash_write_align(ULONG flash_address, ULONG *source, ULONG words);
 
 
 
-volatile bool_t g_transfer_complete = false;
+static bool_t g_transfer_complete = FALSE;
 
 void sci_b_spi_lfs_callback (spi_callback_args_t * p_args)
 {
     if (SPI_EVENT_TRANSFER_COMPLETE == p_args->event)
     {
-        g_transfer_complete = TRUE;
+        //g_transfer_complete = TRUE;
+        tx_event_flags_set(&g_event_flash_complete, 0b0001, TX_OR);
     }
     else
     {
-        volatile int crash = p_args->event;
-        crash = p_args->event;
-        crash = p_args->event;
+
     }
 }
 
@@ -52,18 +51,20 @@ int flash_read_status(uint8_t *st)
 
 int flash_write_and_read(uint8_t *tx_b,uint8_t *rx_b,uint32_t count)
 {
-    fsp_err_t err = FSP_SUCCESS;
+    volatile fsp_err_t err = FSP_SUCCESS;
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_FLASH_CS, BSP_IO_LEVEL_LOW);
-    g_transfer_complete = false;
+    g_transfer_complete = FALSE;
     __NOP();
     __NOP();
-    //FSP_CRITICAL_SECTION_DEFINE;
-    //FSP_CRITICAL_SECTION_ENTER;
     err = R_SCI_B_SPI_WriteRead(&g_sci_spi_lfs_ctrl, tx_b,rx_b, count, SPI_BIT_WIDTH_8_BITS);
     if(err != FSP_SUCCESS) goto error;
     __NOP();
     __NOP();
-    while (false == g_transfer_complete) __NOP();
+    ULONG actual_events;
+    err = tx_event_flags_get(&g_event_flash_complete, 0b0001, TX_AND_CLEAR, &actual_events, 20);//TX_WAIT_FOREVER);
+    if(err == TX_NO_EVENTS) goto error;
+
+    //while (FALSE == g_transfer_complete) tx_thread_sleep(1);//__NOP();
     //FSP_CRITICAL_SECTION_EXIT;
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_FLASH_CS, BSP_IO_LEVEL_HIGH);
     __NOP();
@@ -107,7 +108,7 @@ int flash_read(uint32_t flash_address, uint8_t *destination, uint32_t bytes)
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_FLASH_CS, BSP_IO_LEVEL_LOW);
     __NOP();
     __NOP();
-    g_transfer_complete = false;
+    g_transfer_complete = FALSE;
 
     ULONG *dest = destination;
     ULONG addr = (ULONG)flash_address;
@@ -125,16 +126,21 @@ int flash_read(uint32_t flash_address, uint8_t *destination, uint32_t bytes)
     if(err != FSP_SUCCESS) goto error;
     __NOP();
     __NOP();
+    ULONG actual_events;
+    err = tx_event_flags_get(&g_event_flash_complete, 0b0001, TX_AND_CLEAR, &actual_events, 10);//TX_WAIT_FOREVER);
+    if(err == TX_NO_EVENTS) goto error;
 
-    while (false == g_transfer_complete) __NOP();// tx_thread_sleep(1);
-    g_transfer_complete = FALSE;
+    //while (FALSE == g_transfer_complete) tx_thread_sleep(1);//__NOP();
+    //g_transfer_complete = FALSE;
     __NOP();
     __NOP();
     err= R_SCI_B_SPI_Read(&g_sci_spi_lfs_ctrl, dest, bytes, SPI_BIT_WIDTH_8_BITS);
     if(err != FSP_SUCCESS) goto error;
     __NOP();
     __NOP();
-    while (false == g_transfer_complete) __NOP();// tx_thread_sleep(1);
+    err = tx_event_flags_get(&g_event_flash_complete, 0b0001, TX_AND_CLEAR, &actual_events, 20);//TX_WAIT_FOREVER);
+    if(err == TX_NO_EVENTS) goto error;
+    //while (FALSE == g_transfer_complete) tx_thread_sleep(1);//__NOP();
 
     g_transfer_complete = FALSE;
 
@@ -230,20 +236,12 @@ int flash_write(uint32_t flash_address, uint8_t *source, uint32_t bytes)
     }
 
     fsp_err_t err = FSP_SUCCESS;
-
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_FLASH_CS, BSP_IO_LEVEL_LOW);
     __NOP();
     __NOP();
-    g_transfer_complete = false;
-
-    volatile uint8_t tab[4];
-    ULONG i = 0;
-
+    g_transfer_complete = FALSE;
     volatile ULONG addr = (ULONG)flash_address;
-    ULONG *src = source;
-
     uint8_t cmd_buffer[4];
-
     cmd_buffer[0] = 0x02;
     cmd_buffer[1] = (uint8_t)(addr>>16);
     cmd_buffer[2] = (uint8_t)(addr>>8);
@@ -253,18 +251,23 @@ int flash_write(uint32_t flash_address, uint8_t *source, uint32_t bytes)
     if(err != FSP_SUCCESS) goto error;
     __NOP();
     __NOP();
-    while (false == g_transfer_complete)__NOP();
-    g_transfer_complete = false;
+    ULONG actual_events;
+    err = tx_event_flags_get(&g_event_flash_complete, 0b0001, TX_AND_CLEAR, &actual_events, 10);//TX_WAIT_FOREVER);
+    if(err == TX_NO_EVENTS) goto error;
+
+    /*while (FALSE == g_transfer_complete) tx_thread_sleep(1);//__NOP();
+    g_transfer_complete = FALSE;*/
 
     err = R_SCI_B_SPI_Write(&g_sci_spi_lfs_ctrl, source, bytes, SPI_BIT_WIDTH_8_BITS);
     if(err != FSP_SUCCESS) goto error;
     __NOP();
     __NOP();
-    while (false == g_transfer_complete)__NOP();
-    g_transfer_complete = false;
 
+    err = tx_event_flags_get(&g_event_flash_complete, 0b0001, TX_AND_CLEAR, &actual_events, 20);//TX_WAIT_FOREVER);
+    if(err == TX_NO_EVENTS) goto error;
 
-
+    /*while (FALSE == g_transfer_complete) tx_thread_sleep(1);//__NOP();
+    g_transfer_complete = FALSE;*/
 
 
     R_IOPORT_PinWrite(&g_ioport_ctrl, IO_FLASH_CS, BSP_IO_LEVEL_HIGH);
@@ -289,6 +292,7 @@ int flash_write(uint32_t flash_address, uint8_t *source, uint32_t bytes)
         }
         __NOP();
         __NOP();
+        tx_thread_sleep(1);//__NOP();
     }
 
     error:
@@ -354,6 +358,7 @@ int flash_erase(ULONG block)
         }
         __NOP();
         __NOP();
+        tx_thread_sleep(1);//__NOP();
     }
     return 0;
 }
@@ -400,6 +405,7 @@ int flash_erase_chip(void)
         }
         __NOP();
         __NOP();
+        tx_thread_sleep(1);//__NOP();
     }
     return 0;
 }

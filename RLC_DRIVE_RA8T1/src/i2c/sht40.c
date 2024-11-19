@@ -7,9 +7,7 @@
 
 
 #include "sht40.h"
-
-
-i2c_master_event_t iic_event;
+#include "i2c_callback.h"
 
 
 return_t sht40_init(void)
@@ -27,19 +25,30 @@ return_t sht40_read(st_sensor_t *data)
     uint8_t g_i2c_tx_buffer[2];
     uint8_t g_i2c_rx_buffer[6];
 
+    tx_mutex_get(&g_i2c_mutex,TX_WAIT_FOREVER);
     memset(data,0x00,sizeof(st_sensor_t));
 
-    err = R_SCI_B_I2C_Open(&g_i2c_sensor_ctrl, &g_i2c_sensor_cfg);
+    err = R_SCI_B_I2C_Open(&g_i2c0_ctrl, &g_i2c0_cfg);
     if(err != FSP_SUCCESS)
-        return -1;
+    {
+        ret = -1;
+        goto end;
+    }
+
+    err = R_SCI_B_I2C_SlaveAddressSet(&g_i2c0_ctrl,0x44,I2C_MASTER_ADDR_MODE_7BIT);
+    if(err != FSP_SUCCESS)
+    {
+        ret = -1;
+        goto end;
+    }
 
     iic_event = I2C_MASTER_EVENT_ABORTED;
     g_i2c_tx_buffer[0] = 0xFD;
-    err = R_SCI_B_I2C_Write(&g_i2c_sensor_ctrl, &g_i2c_tx_buffer[0], 1, false);
+    err = R_SCI_B_I2C_Write(&g_i2c0_ctrl, &g_i2c_tx_buffer[0], 1, false);
     if(err != FSP_SUCCESS)
     {
-        R_SCI_B_I2C_Close(&g_i2c_sensor_ctrl);
-        return -1;
+        ret = -1;
+        goto end;
     }
 
     timeout_ms = 10;
@@ -51,16 +60,16 @@ return_t sht40_read(st_sensor_t *data)
 
     if (I2C_MASTER_EVENT_ABORTED == iic_event)
     {
-        R_SCI_B_I2C_Close(&g_i2c_sensor_ctrl);
-        return -1;
+        ret = -1;
+        goto end;
     }
 
     iic_event = I2C_MASTER_EVENT_ABORTED;
-    err = R_SCI_B_I2C_Read(&g_i2c_sensor_ctrl, g_i2c_rx_buffer, 6, false);
+    err = R_SCI_B_I2C_Read(&g_i2c0_ctrl, g_i2c_rx_buffer, 6, false);
     if(err != FSP_SUCCESS)
     {
-        R_SCI_B_I2C_Close(&g_i2c_sensor_ctrl);
-        return -1;
+        ret = -1;
+        goto end;
     }
 
     timeout_ms = 10;
@@ -72,8 +81,8 @@ return_t sht40_read(st_sensor_t *data)
 
     if (I2C_MASTER_EVENT_ABORTED == iic_event)
     {
-        R_SCI_B_I2C_Close(&g_i2c_sensor_ctrl);
-        return -1;
+        ret = -1;
+        goto end;
     }
     uint16_t t_ticks = (uint16_t)(g_i2c_rx_buffer[0] * 256 + g_i2c_rx_buffer[1]);
     float t = (float)(-45.0 + 175.0 * (float)t_ticks/65535.0);
@@ -83,28 +92,11 @@ return_t sht40_read(st_sensor_t *data)
     data->humidity = r;
     data->valid = TRUE;
 
-    R_SCI_B_I2C_Close(&g_i2c_sensor_ctrl);
+    end:
+    R_SCI_B_I2C_Close(&g_i2c0_ctrl);
+    tx_mutex_put(&g_i2c_mutex);
     return ret;
 }
 
 
-void i2c_sensor_callback (i2c_master_callback_args_t * p_args)
-{
-    iic_event = p_args->event;
 
-    switch(iic_event)
-    {
-        case I2C_MASTER_EVENT_ABORTED:
-        {
-            break;
-        }
-        case I2C_MASTER_EVENT_RX_COMPLETE:
-        {
-            break;
-        }
-        case I2C_MASTER_EVENT_TX_COMPLETE:
-        {
-            break;
-        }
-    }
-}

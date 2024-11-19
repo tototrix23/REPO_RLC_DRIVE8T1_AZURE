@@ -4,6 +4,7 @@
 
 #include <_core/c_common.h>
 #include <_core/c_timespan/c_timespan.h>
+#include <_hal/h_time/h_time.h>
 #include <rtc/rtc.h>
 #include <modem/modem.h>
 #include <modem/serial.h>
@@ -32,7 +33,7 @@ return_t modem_order_get_serial(void)
     char *msg_rx = 0x00;
 
     //tx_queue_flush(msg_queue);
-    ret = modem_process_send(msg_queue,"get_serial",tx_array,&msg_rx,1,5000);
+    ret = modem_process_send(msg_queue,"get_serial",tx_array,&msg_rx,1,15000);
     if(ret != X_RET_OK)
     {
         if(ret == F_RET_COMMS_OUT_TIMEOUT)
@@ -80,7 +81,7 @@ return_t modem_order_get_datetime(void)
     char *msg_rx = 0x00;
 
     //tx_queue_flush(msg_queue);
-    ret = modem_process_send(msg_queue,"get_datetime",tx_array,&msg_rx,1,5000);//  modem_process_outgoing("get_datetime",tx_array,2,1000);
+    ret = modem_process_send(msg_queue,"get_datetime",tx_array,&msg_rx,1,15000);//  modem_process_outgoing("get_datetime",tx_array,2,1000);
     if(ret != X_RET_OK)
     {
         if(ret == F_RET_COMMS_OUT_TIMEOUT)
@@ -128,7 +129,7 @@ void modem_thread_entry(void)
 
     do
     {
-        delay_ms(1000);
+        delay_ms(3000);
         ret = modem_order_get_serial();
     }while(ret != X_RET_OK);
 
@@ -138,7 +139,7 @@ void modem_thread_entry(void)
     tx_mutex_get(&g_flash_memory_mutex,TX_WAIT_FOREVER);
     do
     {
-        delay_ms(1000);
+        delay_ms(3000);
         ret = modem_order_get_datetime();
     }while(ret != X_RET_OK);
 
@@ -185,16 +186,25 @@ void modem_thread_entry(void)
 
 
 
+    c_timespan_t ts_dt;
+    h_time_update(&ts_dt);
+
     /* TODO: add your own code here */
     while (1)
     {
-        delay_ms(1800000);
-        ret = modem_order_get_datetime();
-
-        if(ret == X_RET_OK)
+        bool_t elasped = FALSE;
+        h_time_is_elapsed_ms(&ts_dt, 60000, &elasped);
+        if(elasped == TRUE)
         {
-            r = rtc_get();
-            //LOG_D(LOG_STD,"%llu",r.time_ms);
+            h_time_update(&ts_dt);
+            //delay_ms(60000);//(1800000);
+            ret = modem_order_get_datetime();
+
+            if(ret == X_RET_OK)
+            {
+                r = rtc_get();
+                LOG_D(LOG_STD,"%llu",r.time_ms);
+            }
         }
         tx_thread_sleep(10);
     }

@@ -17,6 +17,9 @@ typedef struct st_rtc_t
 {
     uint64_t time_ms;
     bool_t configured;
+
+    uint64_t time_ms_without_date;
+
 }st_rtc_t;
 
 

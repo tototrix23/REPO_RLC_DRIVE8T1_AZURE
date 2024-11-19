@@ -112,6 +112,8 @@ return_t mqtt_publish_sensor(st_sensor_t *src)
          memset(payload,0x00,malloc_size);
          st_sensor_t sensor_data;
          memcpy(&sensor_data,src,sizeof(st_sensor_t));
+         LOG_D(LOG_STD,"MQTT PUB sensor %d %.02f  %.02f",sensor_data.valid,sensor_data.temperature,sensor_data.humidity);
+
          char buffer[32];
          sprintf(payload,"\\\"data\\\": {");
          strcat(payload,"\\\"temperature\\\":");
@@ -154,8 +156,10 @@ return_t mqtt_publish_poster_count(uint8_t *src)
     char *payload = (char *)MALLOC(malloc_size);
     if(payload != 0x00)
     {
+
         memset(payload,0x00,malloc_size);
         uint8_t count = *src;
+        LOG_D(LOG_STD,"MQTT PUB poster count %d",count);
         char buffer[8];
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"poster_count\\\":");
@@ -181,6 +185,7 @@ return_t mqtt_publish_battery_detected(bool_t *src)
     {
         memset(payload,0x00,malloc_size);
         bool_t detected = *src;
+        LOG_D(LOG_STD,"MQTT PUB battery detected %d",detected);
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"battery_detected\\\":");
         if(detected)
@@ -207,6 +212,7 @@ return_t mqtt_publish_scrolling_enabled(bool_t *src)
     {
         memset(payload,0x00,malloc_size);
         bool_t enabled = *src;
+        LOG_D(LOG_STD,"MQTT PUB scrolling enabled %d",enabled);
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"scrolling_enabled\\\":");
         if(enabled)
@@ -233,6 +239,7 @@ return_t mqtt_publish_lighting_enabled(bool_t *src)
     {
         memset(payload,0x00,malloc_size);
         bool_t enabled = *src;
+        LOG_D(LOG_STD,"MQTT PUB lighting enabled %d",enabled);
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"lighting_enabled\\\":");
         if(enabled)
@@ -257,6 +264,7 @@ return_t mqtt_publish_motor_status(st_system_motor_status_t *src)
     char *payload = (char *)MALLOC(malloc_size);
     if(payload != 0x00)
     {
+        LOG_D(LOG_STD,"MQTT PUB motor status");
         memset(payload,0x00,malloc_size);
         char buffer[8];
         st_system_motor_status_t status;
@@ -311,6 +319,30 @@ return_t mqtt_publish_motor_status(st_system_motor_status_t *src)
     return ret;
 }
 
+
+return_t mqtt_publish_system_status(st_system_status_t *src)
+{
+    const uint16_t malloc_size = 64;
+    return_t ret = X_RET_OK;
+    char *payload = (char *)MALLOC(malloc_size);
+    if(payload != 0x00)
+    {
+        memset(payload,0x00,malloc_size);
+        char buffer[8];
+        st_system_status_t status;
+        memcpy(&status,src,sizeof(st_system_status_t));
+        LOG_D(LOG_STD,"MQTT PUB system status %d",status.value);
+        sprintf(payload,"\\\"data\\\": {");
+        strcat(payload,"\\\"system_status\\\":");
+        sprintf(buffer,"%d",status.value);
+        strcat(payload,buffer);
+        strcat(payload,"}");
+        ret = json_file_add_to_queue("SystemStatus", payload);
+        return ret;
+    }
+    return ret;
+}
+
 return_t mqtt_publish_voltages(st_voltages_t *src)
 {
     const uint16_t malloc_size = 64;
@@ -324,6 +356,8 @@ return_t mqtt_publish_voltages(st_voltages_t *src)
 
         float f_vin = (float)(adc_snapshot.vin / 1000.0f);
         float f_vbatt = (float)(adc_snapshot.vbatt / 1000.0f);*/
+
+        LOG_D(LOG_STD,"MQTT PUB voltages %0.2f %0.2f",src->main_voltage,src->battery_voltage);
 
         memset(payload,0x00,malloc_size);
         sprintf(payload,"\\\"data\\\": {");
@@ -356,6 +390,7 @@ return_t mqtt_publish_motor_type(motor_type_t *src)
     {
         memset(payload,0x00,malloc_size);
         motor_type_t type = *src;
+        LOG_D(LOG_STD,"MQTT PUB motor type %d",type);
         char buffer[8];
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"motor_type\\\":");
@@ -381,6 +416,7 @@ return_t mqtt_publish_board_version(uint8_t *src)
     {
         memset(payload,0x00,malloc_size);
         uint8_t version = *src;
+        LOG_D(LOG_STD,"MQTT PUB board version %d",version);
         char buffer[8];
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"board_version\\\":");
@@ -406,6 +442,7 @@ return_t mqtt_publish_firmware(char *src)
     {
         memset(payload,0x00,malloc_size);
         char* firmware = src;
+        LOG_D(LOG_STD,"MQTT PUB firmware %s",firmware);
         char buffer[32];
         sprintf(payload,"\\\"data\\\": {");
         strcat(payload,"\\\"firmware_version\\\":\\\"");
@@ -424,8 +461,78 @@ return_t mqtt_publish_firmware(char *src)
 
 return_t mqtt_publish_drive_mode(drive_mode_t *src)
 {
-
+    PARAMETER_NOT_USED(src);
     return_t ret = X_RET_OK;
     return ret;
 }
 
+return_t mqtt_publish_scrolling_id(char *src)
+{
+    const uint16_t malloc_size = 128;
+    return_t ret = X_RET_OK;
+    char *payload = (char *)MALLOC(malloc_size);
+    if(payload != 0x00)
+    {
+
+        LOG_D(LOG_STD,"MQTT PUB scrolling ID %s",src);
+        memset(payload,0x00,malloc_size);
+        char buffer[64];
+        sprintf(payload,"\\\"data\\\": {");
+        strcat(payload,"\\\"scrolling_setting_id\\\":");
+
+        if(*src == 0x0)
+        {
+            strcat(payload,"null");
+        }
+        else
+        {
+            strcat(payload,"\\\"");
+            sprintf(buffer,"%s",src);
+            strcat(payload,buffer);
+            strcat(payload,"\\\"");
+        }
+        strcat(payload,"}");
+        ret = json_file_add_to_queue("ScrollingSettingId", payload);
+        return ret;
+    }
+    else
+    {
+        return X_RET_MEMORY_ALLOCATION;
+    }
+    return ret;
+}
+
+return_t mqtt_publish_lighting_id(char *src)
+{
+    const uint16_t malloc_size = 128;
+    return_t ret = X_RET_OK;
+    char *payload = (char *)MALLOC(malloc_size);
+    if(payload != 0x00)
+    {
+        LOG_D(LOG_STD,"MQTT PUB lighting ID %s",src);
+        memset(payload,0x00,malloc_size);
+        char buffer[64];
+        sprintf(payload,"\\\"data\\\": {");
+        strcat(payload,"\\\"lighting_setting_id\\\":");
+
+        if(*src == 0x0)
+        {
+            strcat(payload,"null");
+        }
+        else
+        {
+            strcat(payload,"\\\"");
+            sprintf(buffer,"%s",src);
+            strcat(payload,buffer);
+            strcat(payload,"\\\"");
+        }
+        strcat(payload,"}");
+        ret = json_file_add_to_queue("LightingSettingId", payload);
+        return ret;
+    }
+    else
+    {
+        return X_RET_MEMORY_ALLOCATION;
+    }
+    return ret;
+}

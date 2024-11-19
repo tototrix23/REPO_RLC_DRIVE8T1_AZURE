@@ -11,7 +11,13 @@
 #include <modem/serial.h>
 #include <modem/panel_name.h>
 #include <modem/modem_data.h>
+#include <firmware/pending_firmware.h>
 #include <return_codes.h>
+
+#undef  LOG_LEVEL
+#define LOG_LEVEL     LOG_LVL_DEBUG
+#undef  LOG_MODULE
+#define LOG_MODULE    "json_process"
 
 static return_t json_process_response_common(char *ptr);
 
@@ -493,3 +499,133 @@ return_t json_process_verify_received_type(char *type,char *data)
 }
 
 
+return_t json_process_subsbribe_firmware(cJSON *ptr_cjson)
+{
+    return_t ret = X_RET_OK;
+    cJSON *json_firmware = cJSON_GetObjectItemCaseSensitive(ptr_cjson, "firmware_version");
+    if(json_firmware == NULL)
+    {
+        ret = F_RET_JSON_FIND_OBJECT;
+        goto end;
+    }
+
+    if(cJSON_IsString(json_firmware))
+    {
+        LOG_D(LOG_STD,"AuthorizedFirmwareVersion/Drive [%s]",json_firmware->valuestring);
+
+        st_pending_firmware_t p;
+        char *current_f = exchdat_get_firmware();
+        if(strcmp(current_f,json_firmware->valuestring) != 0x00)
+        {
+            p.pending = TRUE;
+            strcpy(p.firmware,json_firmware->valuestring);
+        }
+        else
+        {
+            p.pending = FALSE;
+        }
+        pending_firmware_set(p);
+    }
+    else
+    {
+        ret = F_RET_JSON_BAD_TYPE;
+        goto end;
+    }
+
+    end:
+    return ret;
+}
+
+return_t json_process_subsbribe_scrolling_settings(e_settings_type type,cJSON *ptr_cjson)
+{
+    return_t ret = X_RET_OK;
+
+    st_settings_with_id_t new_settings;
+    memset(&new_settings,0x00,sizeof(st_settings_with_id_t));
+
+    // ID
+    cJSON *json_id = cJSON_GetObjectItemCaseSensitive(ptr_cjson, "id");
+    if(json_id == NULL)
+    {
+        ret = F_RET_JSON_FIND_OBJECT;
+        goto end_error;
+    }
+
+    if(cJSON_IsString(json_id))
+    {
+        strcpy(new_settings.id,json_id->valuestring);
+    }
+    else
+    {
+        ret = F_RET_JSON_BAD_TYPE;
+        goto end_error;
+    }
+
+    // MODE
+    cJSON *json_mode = cJSON_GetObjectItemCaseSensitive(ptr_cjson, "mode");
+    if(json_id == NULL)
+    {
+        ret = F_RET_JSON_FIND_OBJECT;
+        goto end_error;
+    }
+
+    if(cJSON_IsNumber(json_mode))
+    {
+        new_settings.mode = (uint8_t)json_mode->valueint;
+        LOG_D(LOG_STD,"Mode: %d",new_settings.mode);
+    }
+    else
+    {
+        ret = F_RET_JSON_BAD_TYPE;
+        goto end_error;
+    }
+
+    if(new_settings.mode == setting_mode_force_off || new_settings.mode == setting_mode_force_on)
+        goto end;
+
+    // PLAGES
+    cJSON *json_conf = cJSON_GetObjectItemCaseSensitive(ptr_cjson, "configurations");
+    if(json_conf == NULL)
+    {
+        ret = F_RET_JSON_FIND_OBJECT;
+        goto end_error;
+    }
+
+    uint8_t index=0;
+    cJSON *conf;
+    cJSON_ArrayForEach(conf, json_conf)
+    {
+        cJSON *start = cJSON_GetObjectItemCaseSensitive(conf, "start_time_unix");
+        if(start == NULL){
+           ret = F_RET_JSON_FIND_OBJECT;
+           goto end_error;
+        }
+        cJSON *end = cJSON_GetObjectItemCaseSensitive(conf, "end_time_unix");
+        if(end == NULL){
+           ret = F_RET_JSON_FIND_OBJECT;
+           goto end_error;
+        }
+
+        if (!cJSON_IsNumber(start) || !cJSON_IsNumber(end))
+        {
+            ret = F_RET_JSON_BAD_TYPE;
+            goto end_error;
+        }
+
+
+        new_settings.array[index].start = (uint64_t)start->valuedouble;
+        new_settings.array[index].stop = (uint64_t)end->valuedouble;
+        index++;
+    }
+
+    end:
+
+    // Sauvegarde des nouveaux paramètres
+    if(type == setting_scrolling)
+       exchdat_set_scrolling_settings(new_settings);
+    else if(type == setting_lighting)
+       exchdat_set_lighting_settings(new_settings);
+
+    end_error:
+    return ret;
+}

@@ -505,7 +505,7 @@ void adc_mot_callback(adc_callback_args_t *p_args)
         adc_raw_inst.instantaneous.vin = (float)ADC_VIN_ADAPT(data[1]);
         accumulator_vin.accumulator+=data[1];
         accumulator_vin.counter++;
-        if(accumulator_vin.counter>=1000)
+        if(accumulator_vin.counter>=10000)
         {
             adc_raw_inst.average.vin_uint = accumulator_vin.accumulator/accumulator_vin.counter;
             accumulator_vin.accumulator=0;
@@ -515,7 +515,7 @@ void adc_mot_callback(adc_callback_args_t *p_args)
         adc_raw_inst.instantaneous.vbatt = (float)ADC_VBATT_ADAPT(data[0]);
         accumulator_vbatt.accumulator+=data[0];
         accumulator_vbatt.counter++;
-        if(accumulator_vbatt.counter>=1000)
+        if(accumulator_vbatt.counter>=10000)
         {
             adc_raw_inst.average.vbatt_uint = accumulator_vbatt.accumulator/accumulator_vbatt.counter;
             accumulator_vbatt.accumulator=0;

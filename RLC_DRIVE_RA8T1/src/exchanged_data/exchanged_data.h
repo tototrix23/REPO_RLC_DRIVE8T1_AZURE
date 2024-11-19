@@ -12,9 +12,10 @@
 #include <_core/c_common.h>
 #include <motor/motor_type.h>
 #include <motor/drive_mode.h>
-#include <sht40_sensor/sht40.h>
+#include <i2c/sht40.h>
 #include <status/motor_status.h>
-
+#include <status/system_status.h>
+#include <settings/settings.h>
 
 typedef struct st_voltages_t
 {
@@ -27,25 +28,46 @@ typedef struct st_data_t
 {
    st_sensor_t sensor_data;
    st_system_motor_status_t motor_status;
+   st_system_status_t system_status;
    motor_type_t motor_type;
    uint8_t poster_count;
    bool_t gps_sync;
    drive_mode_t drive_mode;
    bool_t scrolling_enabled;
    bool_t lighting_enabled;
-   uint64_t settings_scrolling_id;
-   uint64_t settings_lighting_id;
+   char settings_scrolling_id[64];
+   char settings_lighting_id[64];
    st_voltages_t voltages;
    bool_t battery_detected;
    uint8_t board_version;
    char firmware[32];
+   st_settings_with_id_t scrolling_settings;
+   st_settings_with_id_t lighting_settings;
 }st_data_t;
 
 extern st_data_t exchanged_data;
 
 
+void exchdat_set_system_status_error_eeprom(bit value);
+void exchdat_set_system_status_error_flash(bit value);
+void exchdat_set_system_status_error_relay(bit value);
+st_system_status_t exchdat_get_system_status(void);
+void exchdat_get_system_status2(st_system_status_t *dest);
+bit exchdat_get_system_error_eeprom(void);
+bit exchdat_get_system_error_flash(void);
+bit exchdat_get_system_error_relay(void);
 
 
+
+
+
+void exchdat_set_scrolling_settings(st_settings_with_id_t data);
+st_settings_with_id_t exchdat_get_scrolling_settings(void);
+void exchdat_get_scrolling_settings2(st_settings_with_id_t *dest);
+
+void exchdat_set_lighting_settings(st_settings_with_id_t data);
+st_settings_with_id_t exchdat_get_lighting_settings(void);
+void exchdat_get_lighting_settings2(st_settings_with_id_t *dest);
 
 void exchdat_set_sensor(st_sensor_t sensor_data);
 st_sensor_t exchdat_get_sensor(void);
@@ -82,13 +104,9 @@ void exchdat_set_lighting_enabled(bool_t enabled);
 bool_t exchdat_get_lighting_enabled(void);
 void exchdat_get_lighting_enabled2(bool_t *dest);
 
-void exchdat_set_scrolling_id(uint64_t id);
-uint64_t exchdat_get_scrolling_id(void);
-void exchdat_get_scrolling_id2(uint64_t *dest);
 
-void exchdat_set_lighting_id(uint64_t id);
-uint64_t exchdat_get_lighting_id(void);
-void exchdat_get_lighting_id2(uint64_t *dest);
+void exchdat_get_scrolling_id2(char *dest);
+void exchdat_get_lighting_id2(char *dest);
 
 /*void exchdat_set_main_voltage(float voltage);
 float exchdat_get_main_voltage(void);

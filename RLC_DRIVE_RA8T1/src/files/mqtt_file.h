@@ -10,7 +10,7 @@
 
 #include <_core/c_common.h>
 #include <rtc/rtc.h>
-#include <sht40_sensor/sht40.h>
+#include <i2c/sht40.h>
 #include <status/motor_status.h>
 #include <exchanged_data/exchanged_data.h>
 #define FILE_TYPE_PAYLOAD  0
@@ -52,5 +52,7 @@ return_t mqtt_publish_motor_type(motor_type_t *src);
 return_t mqtt_publish_board_version(uint8_t *src);
 return_t mqtt_publish_firmware(char *src);
 return_t mqtt_publish_drive_mode(drive_mode_t *src);
-
+return_t mqtt_publish_scrolling_id(char *src);
+return_t mqtt_publish_lighting_id(char *src);
+return_t mqtt_publish_system_status(st_system_status_t *src);
 #endif /* FILES_MQTT_FILE_H_ */

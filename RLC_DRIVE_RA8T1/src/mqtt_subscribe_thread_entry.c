@@ -20,7 +20,7 @@
 
 extern TX_THREAD mqtt_publish_thread;
 
-bool_t mqtt_subscribe_done = FALSE;
+bool_t mqtt_subscribe_done = TRUE;
 
 return_t modem_order_get_panel_name(void);
 return_t mqtt_subscribe_process(void);
@@ -40,8 +40,7 @@ return_t modem_order_get_panel_name(void)
 
     char *msg_rx = 0x00;
 
-    //tx_queue_flush(msg_queue);
-    ret = modem_process_send(&g_queue_modem_msg_mqtt_subscribe,"get_panel_name",tx_array,&msg_rx,1,5000);
+    ret = modem_process_send(&g_queue_modem_msg_mqtt_subscribe,"get_panel_name",tx_array,&msg_rx,1,20000);
     if(ret != X_RET_OK)
     {
         if(ret == F_RET_COMMS_OUT_TIMEOUT)
@@ -116,11 +115,15 @@ return_t mqtt_subscribe_list(void)
     strcpy(tx_array,"{\"type\": \"mqtt_subscribe\",\"data\":{\"mqtt_topic\":[");
 
     ptr = mqtt_subscribe_add_topic_to_list(ptr,"Firmwares",s.serial,"AuthorizedFirmwareVersion/Drive");
+    ptr = strcat(ptr,",");
+    ptr = mqtt_subscribe_add_topic_to_list(ptr,"Settings",p.serial,"Scrolling");
+    ptr = strcat(ptr,",");
+    ptr = mqtt_subscribe_add_topic_to_list(ptr,"Settings",p.serial,"Lighting");
     ptr = strcat(ptr,"]}}");
 
 
     char *msg_rx = 0x00;
-    ret = modem_process_send(&g_queue_modem_msg_mqtt_subscribe,"mqtt_subscribe",tx_array,&msg_rx,1,5000);
+    ret = modem_process_send(&g_queue_modem_msg_mqtt_subscribe,"mqtt_subscribe",tx_array,&msg_rx,1,30000);
     if(ret != X_RET_OK)
     {
         if(ret == F_RET_COMMS_OUT_TIMEOUT)
@@ -179,9 +182,9 @@ return_t mqtt_subscribe_process_received_payload(cJSON *json_ptr,char *topic)
     ptr_topic = strstr(topic,"AuthorizedFirmwareVersion/Drive");
     if(ptr_topic != 0x00)
     {
+        ret = json_process_subsbribe_firmware(json_data);
 
-
-        cJSON *json_firmware = cJSON_GetObjectItemCaseSensitive(json_data, "firmware_version");
+        /*cJSON *json_firmware = cJSON_GetObjectItemCaseSensitive(json_data, "firmware_version");
         if(json_firmware == NULL)
         {
             ret = F_RET_JSON_FIND_OBJECT;
@@ -211,14 +214,34 @@ return_t mqtt_subscribe_process_received_payload(cJSON *json_ptr,char *topic)
         {
             ret = F_RET_JSON_BAD_TYPE;
             goto end;
-        }
+        }*/
 
         goto end;
     }
-    else
+
+
+    ptr_topic = strstr(topic,"Scrolling");
+    if(ptr_topic != 0x00)
     {
-        ret = F_RET_JSON_NOT_FOUND;
+
+        LOG_D(LOG_STD,"Scrolling");
+
+        ret = json_process_subsbribe_scrolling_settings(setting_scrolling,json_data);
+        goto end;
     }
+
+
+    ptr_topic = strstr(topic,"Lighting");
+    if(ptr_topic != 0x00)
+    {
+        LOG_D(LOG_STD,"Lighting");
+        ret = json_process_subsbribe_scrolling_settings(setting_lighting,json_data);
+        goto end;
+    }
+
+
+    ret = F_RET_JSON_NOT_FOUND;
+
     end:
     cJSON_Delete(ptr_json);
     return ret;
@@ -370,18 +393,42 @@ void mqtt_subscribe_thread_entry(void)
     LOG_I(LOG_STD,"Thread start");
 
 
-    while(mqtt_subscribe_done == FALSE)
+    tx_queue_flush(&g_queue_modem_msg_mqtt_subscribe);
+    delay_ms(3000);
+
+
+
+    do
     {
+        delay_ms(2000);
         ret = modem_order_get_panel_name();
+    }while(ret != X_RET_OK);
+
+    delay_ms(3000);
+
+
+    /*while(mqtt_subscribe_done == FALSE)
+    {
+        delay_ms(3000);
+        ret = modem_order_get_panel_name();
+        LOG_D(LOG_STD,"pn %d",ret);
         if(ret == X_RET_OK)
         {
+            delay_ms(3000);
             ret = mqtt_subscribe_list();
+            LOG_D(LOG_STD,"sl %d",ret);
             if(ret == X_RET_OK)
                 mqtt_subscribe_done = TRUE;
         }
-        delay_ms(3000);
-    }
+        else
+        {
 
+        }
+        delay_ms(100);
+    }*/
+    st_panel_name_t p;
+    p = panel_name_get();
+    LOG_I(LOG_STD,"Panel name: %s",p.serial);
     tx_thread_resume(&mqtt_publish_thread);
 
     while (1)
@@ -389,14 +436,16 @@ void mqtt_subscribe_thread_entry(void)
 
         while(mqtt_subscribe_done == FALSE)
         {
+            delay_ms(2000);
             ret = modem_order_get_panel_name();
             if(ret == X_RET_OK)
             {
+                delay_ms(2000);
                 ret = mqtt_subscribe_list();
                 if(ret == X_RET_OK)
                     mqtt_subscribe_done = TRUE;
             }
-            delay_ms(3000);
+            delay_ms(100);
         }
 
         mqtt_subscribe_process();

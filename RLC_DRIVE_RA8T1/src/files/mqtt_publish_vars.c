@@ -10,6 +10,12 @@
 #include "mqtt_file.h"
 #include <exchanged_data/exchanged_data.h>
 
+
+#undef  LOG_LEVEL
+#define LOG_LEVEL     LOG_LVL_DEBUG
+#undef  LOG_MODULE
+#define LOG_MODULE    "mqtt_publish_vars"
+
 return_t mqtt_vars_process_internal(st_mqtt_vars_t *ptr_var,bool_t forced);
 
 
@@ -75,9 +81,10 @@ st_mqtt_vars_t mqtt_vars_table[]=
        .func_get_value = (void*)(void*)exchdat_get_drive_mode2,
        .func_publish = (return_t(*)(void*))mqtt_publish_drive_mode,
    },
-   {   .publish_mode = MQTT_PUBLISH_ON_PERIOD_S,
+   {   .publish_mode = MQTT_PUBLISH_ON_DELTA,
        .type = MQTT_TYPE_SENSOR,
-       .period_ms = 60000,
+       //.delta = 0.3f,
+       //.period_ms = 60000,
        .var_pointer = &exchanged_data.sensor_data,
        .func_get_value = (void*)(void*)exchdat_get_sensor2,
        .func_publish = (return_t(*)(void*))mqtt_publish_sensor,
@@ -90,11 +97,39 @@ st_mqtt_vars_t mqtt_vars_table[]=
        .func_get_value = (void*)(void*)exchdat_get_firmware2,
        .func_publish = (return_t(*)(void*))mqtt_publish_firmware,
    },
-
-
+   {   .publish_mode = MQTT_PUBLISH_ON_CHANGE,
+       .type = MQTT_TYPE_SETTINGS,
+       .var_pointer = &exchanged_data.scrolling_settings,
+       .func_get_value = (void*)(void*)exchdat_get_scrolling_settings2,
+       .func_publish = (return_t(*)(void*))mqtt_publish_scrolling_id,
+   },
+   {   .publish_mode = MQTT_PUBLISH_ON_CHANGE,
+       .type = MQTT_TYPE_SETTINGS,
+       .var_pointer = &exchanged_data.lighting_settings,
+       .func_get_value = (void*)(void*)exchdat_get_lighting_settings2,
+       .func_publish = (return_t(*)(void*))mqtt_publish_lighting_id,
+   },
+   {   .publish_mode = MQTT_PUBLISH_ON_CHANGE,
+       .type = MQTT_TYPE_SYSTEM_STATUS,
+       .var_pointer = &exchanged_data.system_status,
+       .func_get_value = (void*)(void*)exchdat_get_system_status2,
+       .func_publish = (return_t(*)(void*))mqtt_publish_system_status,
+   },
+   {   .publish_mode = MQTT_PUBLISH_ON_CHANGE,
+       .type = MQTT_TYPE_CHAR,
+       .override_size = sizeof(exchanged_data.settings_scrolling_id),
+       .var_pointer = exchanged_data.settings_scrolling_id,
+       .func_get_value = (void*)(void*)exchdat_get_scrolling_id2,
+       .func_publish = (return_t(*)(void*))mqtt_publish_scrolling_id,
+   },
+   {   .publish_mode = MQTT_PUBLISH_ON_CHANGE,
+       .type = MQTT_TYPE_CHAR,
+       .override_size = sizeof(exchanged_data.settings_lighting_id),
+       .var_pointer = &exchanged_data.settings_lighting_id,
+       .func_get_value = (void*)(void*)exchdat_get_lighting_id2,
+       .func_publish = (return_t(*)(void*))mqtt_publish_lighting_id,
+   },
 };
-
-
 
 uint16_t mqtt_vars_count = sizeof(mqtt_vars_table)/sizeof(st_mqtt_vars_t);
 
@@ -151,6 +186,14 @@ return_t mqtt_vars_init(void)
 
             case MQTT_TYPE_CHAR:
                 mqtt_vars_table[i].variable_size = sizeof(char);
+                break;
+
+            case MQTT_TYPE_SETTINGS:
+                mqtt_vars_table[i].variable_size = sizeof(st_settings_with_id_t);
+                break;
+
+            case MQTT_TYPE_SYSTEM_STATUS:
+                mqtt_vars_table[i].variable_size = sizeof(st_system_status_t);
                 break;
 
         }
@@ -417,7 +460,8 @@ return_t mqtt_vars_process_internal(st_mqtt_vars_t *ptr_var,bool_t forced)
 
                     case MQTT_TYPE_CHAR:
                     {
-                        char *value=0;
+                        char value[ptr_var->variable_size+1];
+                        memset(value,0x00,sizeof(value));
                         ptr_var->func_get_value(value);
                         char *ptr_save = (char*)ptr_var->save_pointer;
 
@@ -425,6 +469,36 @@ return_t mqtt_vars_process_internal(st_mqtt_vars_t *ptr_var,bool_t forced)
                         if(compare != 0x00 || forced == TRUE)
                         {
                             strcpy(ptr_save,value);
+                            ptr_var->func_publish(ptr_var->save_pointer);
+                        }
+
+                    }
+                        break;
+
+                    case MQTT_TYPE_SETTINGS:
+                    {
+                        st_settings_with_id_t value;
+                        ptr_var->func_get_value(&value);
+                        st_settings_with_id_t *ptr_save = (st_settings_with_id_t*)ptr_var->save_pointer;
+                        int compare = memcmp(&value,ptr_save,sizeof(st_settings_with_id_t));
+                        if(compare != 0x00 || forced == TRUE)
+                        {
+                            memcpy(ptr_save,&value,sizeof(st_settings_with_id_t));
+                            ptr_var->func_publish(ptr_var->save_pointer);
+                        }
+                    }
+                        break;
+
+
+                    case MQTT_TYPE_SYSTEM_STATUS:
+                    {
+                        st_system_status_t value;
+                        ptr_var->func_get_value(&value);
+                        st_system_status_t *ptr_save = (st_system_status_t*)ptr_var->save_pointer;
+                        int compare = memcmp(&value,ptr_save,sizeof(st_system_status_t));
+                        if(compare != 0x00 || forced == TRUE)
+                        {
+                            memcpy(ptr_save,&value,sizeof(st_system_status_t));
                             ptr_var->func_publish(ptr_var->save_pointer);
                         }
                     }
@@ -550,10 +624,22 @@ return_t mqtt_vars_process_internal(st_mqtt_vars_t *ptr_var,bool_t forced)
 
                     case MQTT_TYPE_CHAR:
                     {
-                        char *value=0x0;
+                        char value[ptr_var->variable_size+1];
+                        memset(value,0x00,sizeof(value));
                         ptr_var->func_get_value(value);
                         char *ptr_save = (char*)ptr_var->save_pointer;
                         strcpy(ptr_save,value);
+                        ptr_var->func_publish(ptr_var->save_pointer);
+
+                    }
+                        break;
+
+                    case MQTT_TYPE_SETTINGS:
+                    {
+                        st_settings_with_id_t value;
+                        ptr_var->func_get_value(&value);
+                        st_settings_with_id_t *ptr_save = (st_settings_with_id_t*)ptr_var->save_pointer;
+                        memcpy(ptr_save,&value,sizeof(st_settings_with_id_t));
                         ptr_var->func_publish(ptr_var->save_pointer);
 
                     }

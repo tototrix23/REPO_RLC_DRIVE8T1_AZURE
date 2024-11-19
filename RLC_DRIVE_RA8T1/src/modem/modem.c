@@ -204,17 +204,6 @@ return_t modem_process_send(TX_QUEUE *queue,char *type,char *data_tx,char **data
                 {
                     FREE((void**)data_rx);
 
-
-                    /*r++;
-                    if(r>=retry)
-                    {
-                        ret = F_RET_COMMS_OUT_TIMEOUT;
-                        goto end;
-                    }
-                    else
-                    {
-                        rx_finished = TRUE;
-                    }*/
                 }
                 else
                 {
@@ -222,7 +211,7 @@ return_t modem_process_send(TX_QUEUE *queue,char *type,char *data_tx,char **data
                     rx_error = FALSE;
                 }
             }
-            tx_thread_sleep (1);
+
 
             bool_t elasped = FALSE;
             h_time_is_elapsed_ms(&ts, timeout_ms, &elasped);
@@ -241,6 +230,7 @@ return_t modem_process_send(TX_QUEUE *queue,char *type,char *data_tx,char **data
                     rx_finished = TRUE;
                 }
             }
+            tx_thread_sleep (1);
         }while(rx_finished == FALSE);
 
         if(rx_error == TRUE)
@@ -252,6 +242,7 @@ return_t modem_process_send(TX_QUEUE *queue,char *type,char *data_tx,char **data
         {
             finished = TRUE;
         }
+        tx_thread_sleep (1);
     }while(finished == FALSE);
 
 

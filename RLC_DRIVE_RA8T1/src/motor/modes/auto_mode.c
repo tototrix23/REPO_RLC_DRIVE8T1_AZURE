@@ -17,6 +17,7 @@
 #include <motor/motors_errors.h>
 #include <adc/adc.h>
 #include <exchanged_data/exchanged_data.h>
+#include <settings/settings.h>
 #include <return_codes.h>
 
 #undef  LOG_LEVEL
@@ -669,6 +670,67 @@ return_t auto_mode_process(void)
         CHECK_STOP_REQUEST();
         if(ptr->panels.count > 1)
         {
+            if(ptr->panels.index == 0)
+            {
+                bool_t end_scrolling_settings_check = FALSE;
+                //gestion de l'horodatage
+
+                do
+                {
+                    CHECK_STOP_REQUEST();
+                    bool_t stop_scrolling = FALSE;
+                    st_settings_with_id_t scroll_settings = exchdat_get_scrolling_settings();
+                    bool_t current_enabled = exchdat_get_scrolling_enabled();
+
+
+                    if(scroll_settings.id[0] != 0x00)
+                    {
+                        if(scroll_settings.mode == setting_mode_force_off)
+                        {
+                           if(current_enabled == TRUE)
+                           {
+                              exchdat_set_scrolling_enabled(FALSE);
+                           }
+                        }
+                        else if(scroll_settings.mode == setting_mode_force_on)
+                        {
+                            if(current_enabled == FALSE)
+                            {
+                               exchdat_set_scrolling_enabled(TRUE);
+                            }
+                            end_scrolling_settings_check = TRUE;
+                        }
+                        else
+                        {
+                            settings_is_in_range(&scroll_settings,&stop_scrolling);
+                            if(current_enabled == TRUE && stop_scrolling == TRUE)
+                            {
+                                exchdat_set_scrolling_enabled(FALSE);
+                            }
+                            else if(current_enabled == FALSE && stop_scrolling == FALSE)
+                            {
+                                exchdat_set_scrolling_enabled(TRUE);
+                                end_scrolling_settings_check = TRUE;
+                            }
+                            else if(stop_scrolling == FALSE)
+                            {
+                                end_scrolling_settings_check = TRUE;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        end_scrolling_settings_check = TRUE;
+                    }
+
+                    if(end_scrolling_settings_check == FALSE)
+                        tx_thread_sleep(10);
+                    else
+                        tx_thread_sleep(1);
+                }while(end_scrolling_settings_check == FALSE);
+            }
+
+
             if(direction == AUTO_ENRH)
             {
                 ret_cplx = poster_change_to_position(AUTO_ENRH,ptr->panels.index+1);
@@ -713,8 +775,6 @@ return_t auto_mode_process(void)
                     delay = delay*2;
             }
 
-            delay = delay-500;
-
             bool_t ts_elasped = FALSE;
             do
             {
@@ -722,6 +782,13 @@ return_t auto_mode_process(void)
                 CHECK_STOP_REQUEST();
                 tx_thread_sleep(1);
             }while(ts_elasped == FALSE);
+
+
+
+
+
+
+
         }
         tx_thread_sleep(1);
     }

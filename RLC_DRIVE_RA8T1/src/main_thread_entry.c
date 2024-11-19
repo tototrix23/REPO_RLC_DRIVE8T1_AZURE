@@ -18,16 +18,18 @@
 #include <remotectrl/remotectrl.h>
 #include <motor/motor.h>
 #include <motor/config_spi/config_spi.h>
-#include <sht40_sensor/sht40.h>
+#include <i2c/sht40.h>
 #include <adc/adc.h>
 #include <files/mqtt_file.h>
 #include <files/mqtt_publish_vars.h>
 #include <exchanged_data/exchanged_data.h>
-#include <vee/vee.h>
 #include <flash/flash_stack.h>
 #include <flash/flash_routines.h>
 #include <time.h>
 #include <my_malloc.h>
+#include <i2c/eeprom.h>
+#include <relay/relay.h>
+#include <synchro/synchro.h>
 
 #define MEDIA_SECTOR_HEADS_VALUE (1U)
 #define MEDIA_SECTORS_PER_HEAD    (1U)
@@ -117,6 +119,9 @@ uint32_t heap_usage(uint32_t *bytes,uint32_t *percent)
     return ret;
 }
 
+
+
+
 /* Main Thread entry function */
 void main_thread_entry(void)
 {
@@ -126,16 +131,14 @@ void main_thread_entry(void)
     i_log.write_i = impl_log_write_i;
     i_log.write_w = impl_log_write_w;
 
-    heap_init();
 
+
+    heap_init();
 
     /*flash_open();
     flash_erase_chip();
     flash_close();*/
 
-
-
-    //fx_system_initialize();
     volatile UINT fx_ret_val = FX_SUCCESS;
         /* Initialize LevelX system */
 
@@ -144,34 +147,24 @@ void main_thread_entry(void)
     h_time_init(&i_time_interface_t);
 
 
-
     delay_ms(2000);
     LOG_I(LOG_STD,"Main thread start");
 
-
-
+    relay_init();
+    eeprom_init();
     rtc_init();
     fs_initialise_only_one_time();
-    ULONG flash_bytes_available;
     ret = fs_open();
     if(ret == X_RET_OK)
     {
-
-        volatile char *current_dir = 0x00;
-        ret = fs_get_directory(&current_dir);
-        ret = fs_set_directory(dir_data);
-        ret = fs_set_directory(dir_data);
-        ret = fs_set_directory(dir_data);
-        ret = fs_get_directory(&current_dir);
-
+        ULONG flash_bytes_available;
         fs_bytes_available(&flash_bytes_available);
-
         LOG_D(LOG_STD,"%ul bytes available in Flash");
     }
     fs_close();
 
 
-
+    synchro_init();
 
     // Demarrage du Thread dédié aux LOGs
     tx_thread_resume(&log_thread);
@@ -192,24 +185,19 @@ void main_thread_entry(void)
     // Initialisation de la table d'échange
     exchanged_data_init();
 
-    // Initialisation de la VEE (EEPROM virtuelle)
-    vee_init();
-
     // Initialisation des variables MQTT
     mqtt_vars_init();
 
+
     exchdat_set_firmware((char*)drive_firmware);
     exchdat_set_board_version(0);
-
-
+    exchdat_set_lighting_enabled(FALSE);
+    exchdat_set_scrolling_enabled(TRUE);
 
 
     tx_thread_resume(&motors_thread);
 
-
     set_drive_mode(MOTOR_INIT_MODE);
-
-
 
     c_timespan_t ts_sensor;
     c_timespan_init(&ts_sensor);
@@ -224,6 +212,12 @@ void main_thread_entry(void)
     c_timespan_init(&ts_heap);
     h_time_update(&ts_heap);
 
+    c_timespan_t ts_relay;
+    c_timespan_init(&ts_relay);
+    h_time_update(&ts_relay);
+
+
+
     /* TODO: add your own code here */
     while (1)
     {
@@ -232,7 +226,7 @@ void main_thread_entry(void)
 
         bool_t elasped = FALSE;
 
-        h_time_is_elapsed_ms(&ts_sensor, 20000, &elasped);
+        h_time_is_elapsed_ms(&ts_sensor, 10000, &elasped);
 
         if(elasped == TRUE)
         {
@@ -240,6 +234,7 @@ void main_thread_entry(void)
             st_sensor_t sensor_data;
             sht40_read(&sensor_data);
             exchdat_set_sensor(sensor_data);
+
 
 
             /*uint32_t bytes,percent;
@@ -293,6 +288,12 @@ void main_thread_entry(void)
                     batt_detected = TRUE;
                 exchdat_set_battery_detected(batt_detected);
             }
+        }
+
+        h_time_is_elapsed_ms(&ts_relay, 1000, &elasped);
+        {
+            h_time_update(&ts_relay);
+            relay_process();
         }
 
         /*h_time_is_elapsed_ms(&ts_heap, 10000, &elasped);

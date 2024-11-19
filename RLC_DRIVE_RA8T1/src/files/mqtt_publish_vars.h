@@ -27,8 +27,8 @@
 #define MQTT_TYPE_SENSOR                  13
 #define MQTT_TYPE_VOLTAGES                14
 #define MQTT_TYPE_CHAR                    15
-
-
+#define MQTT_TYPE_SETTINGS                16
+#define MQTT_TYPE_SYSTEM_STATUS           17
 
 
 typedef struct st_mqtt_vars_t

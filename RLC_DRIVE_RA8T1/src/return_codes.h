@@ -100,4 +100,9 @@
 #define F_RET_FS_RENAME_FILE                 -11417
 #define F_RET_FS_GET_DIRECTORY               -11418
 
+#define F_RET_SETTINGS_NOT_VALID             -11500
+
+#define F_RET_EEPROM                         -11550
+
+
 #endif /* RETURN_CODES_H_ */

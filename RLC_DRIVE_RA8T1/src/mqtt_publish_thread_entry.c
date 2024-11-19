@@ -143,7 +143,7 @@ return_t mqtt_pusblish_process_json(void)
            end = TRUE;
        }
 
-       //tx_thread_sleep(1);
+       tx_thread_sleep(1);
    }while(!end);
 
 
@@ -172,33 +172,53 @@ return_t mqtt_pusblish_process_json(void)
                if(ret == X_RET_OK)
                {
                    fs_file_close(&file);
-                   ret = mqtt_publish_send(ptr_read);
-                   if(ret == X_RET_OK || ret == F_RET_COMMS_MQTT_TIMEOUT || ret == F_RET_COMMS_MQTT_GENERIC)
+
+                   bool_t json_valid = FALSE;
+                   cJSON *ptr_json = cJSON_Parse(ptr_read);
+                   if(ptr_json == NULL)
                    {
-                       if(ret == X_RET_OK)
+                       json_valid = FALSE;
+                   }
+                   else
+                       json_valid = TRUE;
+
+                   cJSON_Delete(ptr_json);
+
+                   if(json_valid == TRUE)
+                   {
+                       ret = mqtt_publish_send(ptr_read);
+                       if(ret == X_RET_OK || ret == F_RET_COMMS_MQTT_TIMEOUT || ret == F_RET_COMMS_MQTT_GENERIC)
                        {
-                          LOG_D(LOG_STD,"MQTT publish success");
+                           if(ret == X_RET_OK)
+                           {
+                              LOG_D(LOG_STD,"MQTT publish success");
+                           }
+                           else
+                           {
+                               LOG_E(LOG_STD,"MQTT publish error %d",ret);
+                           }
+
+                           if(ret == X_RET_OK || ret == F_RET_COMMS_MQTT_GENERIC)
+                           {
+                               fs_file_delete(oldest_filename);
+                           }
                        }
                        else
                        {
-                           LOG_E(LOG_STD,"MQTT publish error %d",ret);
-                       }
-
-                       if(ret == X_RET_OK || ret == F_RET_COMMS_MQTT_GENERIC)
-                       {
-                           fs_file_delete(oldest_filename);
+                           if(ret == F_RET_COMMS_MQTT_BROK_NOT_CONNECTED)
+                           {
+                               LOG_W(LOG_STD,"Broker not connected");
+                           }
+                           else
+                           {
+                               LOG_E(LOG_STD,"Error %d",ret);
+                           }
                        }
                    }
                    else
                    {
-                       if(ret == F_RET_COMMS_MQTT_BROK_NOT_CONNECTED)
-                       {
-                           LOG_W(LOG_STD,"Broker not connected");
-                       }
-                       else
-                       {
-                           LOG_E(LOG_STD,"Error %d",ret);
-                       }
+                       LOG_E(LOG_STD,"Error parsing, delete %s",oldest_filename);
+                       fs_file_delete(oldest_filename);
                    }
                }
                FREE((void**)&ptr_read);
@@ -225,7 +245,15 @@ return_t mqtt_publish_send(char *buffer)
     char *msg_rx = 0x00;
     //
     //tx_queue_flush(msg_queue);
-    ret = modem_process_send(msg_queue,"mqtt_publish",buffer,&msg_rx,1,15000);
+
+    volatile char *ptr_test = strstr(buffer,"ScrollingSettingId");
+    if(ptr_test != 0x00)
+    {
+        volatile uint8_t ffff=0;
+        ffff = 1;
+    }
+
+    ret = modem_process_send(msg_queue,"mqtt_publish",buffer,&msg_rx,1,40000);
     if(ret != X_RET_OK)
     {
         if(ret == F_RET_COMMS_OUT_TIMEOUT)

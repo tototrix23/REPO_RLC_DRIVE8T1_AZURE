@@ -38,7 +38,7 @@ void impl_printf(char *buffer)
     tx_info.in_progress=TRUE;
     R_SCI_B_UART_Write(&g_uart_log_ctrl, (uint8_t*)buffer, strlen(buffer));
     tx_info.code = X_RET_OK;
-    while(tx_info.in_progress) delay_ms(1);
+    while(tx_info.in_progress) __NOP();
     //R_BSP_SoftwareDelay(2, BSP_DELAY_UNITS_MILLISECONDS);
 
 }
