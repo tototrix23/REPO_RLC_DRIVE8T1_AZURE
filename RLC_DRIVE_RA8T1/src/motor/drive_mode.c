@@ -36,7 +36,7 @@ void motor_check_fault_pins(void)
 
     if(mot2_fault == 0)
     {
-        LOG_E(LOG_STD,"mot1_fault");
+        LOG_E(LOG_STD,"mot2_fault");
         motor_error_sources_set_driversL();
     }
 }

@@ -461,7 +461,7 @@
       <property id="module.middleware.motor_120_driver.port_wn" value="BSP_IO_PORT_06_PIN_09"/>
       <property id="module.middleware.motor_120_driver.pwm_timer_freq" value="120.0"/>
       <property id="module.middleware.motor_120_driver.pwm_carrier_freq" value="50.0"/>
-      <property id="module.middleware.motor_120_driver.dead_time" value="0"/>
+      <property id="module.middleware.motor_120_driver.dead_time" value="200"/>
       <property id="module.middleware.motor_120_driver.current_range" value="6.6"/>
       <property id="module.middleware.motor_120_driver.vdc_range" value="33.33"/>
       <property id="module.middleware.motor_120_driver.ad_resolution" value="0xFFF"/>
@@ -798,7 +798,7 @@
       <property id="module.middleware.motor_120_driver.port_wn" value="BSP_IO_PORT_06_PIN_02"/>
       <property id="module.middleware.motor_120_driver.pwm_timer_freq" value="120.0"/>
       <property id="module.middleware.motor_120_driver.pwm_carrier_freq" value="50.0"/>
-      <property id="module.middleware.motor_120_driver.dead_time" value="0"/>
+      <property id="module.middleware.motor_120_driver.dead_time" value="200"/>
       <property id="module.middleware.motor_120_driver.current_range" value="6.6"/>
       <property id="module.middleware.motor_120_driver.vdc_range" value="33.33"/>
       <property id="module.middleware.motor_120_driver.ad_resolution" value="0xFFF"/>
@@ -1432,6 +1432,19 @@
       <property id="rtos.threadx.object.flags.name" value="New Event Flags"/>
       <property id="rtos.threadx.object.flags.symbol" value="g_event_flash_complete"/>
     </object>
+    <object id="rtos.threadx.object.flags.61691553">
+      <property id="rtos.threadx.object.flags.name" value="New Event Flags"/>
+      <property id="rtos.threadx.object.flags.symbol" value="g_event_serial_log"/>
+    </object>
+    <object id="rtos.threadx.object.mutex.349088660">
+      <property id="rtos.threadx.object.mutex.name" value="New Mutex"/>
+      <property id="rtos.threadx.object.mutex.symbol" value="g_mutex_synchro"/>
+      <property id="rtos.threadx.object.mutex.inherit" value="rtos.threadx.object.mutex.inherit.disabled"/>
+    </object>
+    <object id="rtos.threadx.object.flags.393787838">
+      <property id="rtos.threadx.object.flags.name" value="New Event Flags"/>
+      <property id="rtos.threadx.object.flags.symbol" value="g_event_synchro_flag"/>
+    </object>
     <context id="_hal.0">
       <stack module="module.driver.ioport_on_ioport.0"/>
       <stack module="module.middleware.rm_threadx_port.0"/>
@@ -1832,6 +1845,7 @@
       <configSetting altId="p102.gpio_speed.gpio_speed_m" configurationId="p102.gpio_drivecapacity"/>
       <configSetting altId="p102.gpio_mode.gpio_mode_peripheral" configurationId="p102.gpio_mode"/>
       <configSetting altId="p103.output.low" configurationId="p103"/>
+      <configSetting altId="p103.gpio_speed.gpio_speed_m" configurationId="p103.gpio_drivecapacity"/>
       <configSetting altId="p103.gpio_mode.gpio_mode_out.low" configurationId="p103.gpio_mode"/>
       <configSetting altId="p104.irq1.irq1" configurationId="p104"/>
       <configSetting altId="p104.gpio_irq.gpio_irq_enabled" configurationId="p104.gpio_irq"/>
@@ -1942,6 +1956,7 @@
       <configSetting altId="p611.gpt4.gtioc4b" configurationId="p611"/>
       <configSetting altId="p611.gpio_mode.gpio_mode_peripheral" configurationId="p611.gpio_mode"/>
       <configSetting altId="p612.output.low" configurationId="p612"/>
+      <configSetting altId="p612.gpio_speed.gpio_speed_m" configurationId="p612.gpio_drivecapacity"/>
       <configSetting altId="p612.gpio_mode.gpio_mode_out.low" configurationId="p612.gpio_mode"/>
       <configSetting altId="p613.output.high" configurationId="p613"/>
       <configSetting altId="p613.gpio_mode.gpio_mode_out.high" configurationId="p613.gpio_mode"/>

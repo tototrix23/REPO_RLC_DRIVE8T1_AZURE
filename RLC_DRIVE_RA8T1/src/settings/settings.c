@@ -57,12 +57,12 @@ return_t settings_is_in_range(st_settings_with_id_t *ptr,bool_t *res)
                 {
                     if(set.start <= set.stop)
                     {
-                       if(r.time_ms_without_date>set.start && r.time_ms_without_date<set.stop)
+                       if(r.time_ms_hour_min_sec_ms>set.start && r.time_ms_hour_min_sec_ms<set.stop)
                            *res = TRUE;
                     }
                     else
                     {
-                        if(r.time_ms_without_date>set.stop || r.time_ms_without_date<set.start)
+                        if(r.time_ms_hour_min_sec_ms>set.stop || r.time_ms_hour_min_sec_ms<set.start)
                            *res = TRUE;
                     }
                 }

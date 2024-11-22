@@ -475,6 +475,14 @@ fsp_err_t RM_MOTOR_120_DRIVER_PhasePatternSet (motor_120_driver_ctrl_t * const  
 
         /*temp_duty.duty[0] = (uint32_t) (((p_instance_ctrl->f_refu * (float) p_instance_ctrl->u4_carrier_base) /
                                          p_instance_ctrl->f_vdc_ad) + (float) p_instance_ctrl->u4_deadtime_count);*/
+
+        volatile uint32_t duty = (uint32_t) (((f_refu_new * (float) p_instance_ctrl->u4_carrier_base) /
+                                                 p_instance_ctrl->f_vdc_ad) + (float) p_instance_ctrl->u4_deadtime_count);
+
+        volatile uint32_t max_duty = (uint32_t)((float) p_instance_ctrl->u4_carrier_base* p_instance_ctrl->st_modulation.f4_max_duty);
+        if(duty > max_duty) duty = max_duty;
+
+
         temp_duty.duty[0] = (uint32_t) (((f_refu_new * (float) p_instance_ctrl->u4_carrier_base) /
                                                  p_instance_ctrl->f_vdc_ad) + (float) p_instance_ctrl->u4_deadtime_count);
 

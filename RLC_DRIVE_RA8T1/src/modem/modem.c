@@ -182,8 +182,10 @@ return_t modem_process_send(TX_QUEUE *queue,char *type,char *data_tx,char **data
     h_time_update(&ts);
     uint8_t r=0;
     bool_t finished = FALSE;
-    bool_t rx_error = FALSE;
     bool_t rx_finished = FALSE;
+
+    tx_thread_sleep(1);
+
 
     //tx_queue_flush(queue);
     do
@@ -193,11 +195,10 @@ return_t modem_process_send(TX_QUEUE *queue,char *type,char *data_tx,char **data
         modem_send("\r\n");
 
         h_time_update(&ts);
-        rx_error = FALSE;
         rx_finished = FALSE;
         do
         {
-            volatile uint32_t status = tx_queue_receive(queue, data_rx, TX_NO_WAIT);
+            volatile uint32_t status = tx_queue_receive(queue, data_rx, 10);//TX_NO_WAIT);
             if(status == TX_SUCCESS)
             {
                 if(modem_verify_received_json_type2(type,*data_rx) != X_RET_OK)
@@ -208,7 +209,6 @@ return_t modem_process_send(TX_QUEUE *queue,char *type,char *data_tx,char **data
                 else
                 {
                     rx_finished = TRUE;
-                    rx_error = FALSE;
                 }
             }
 
@@ -233,15 +233,9 @@ return_t modem_process_send(TX_QUEUE *queue,char *type,char *data_tx,char **data
             tx_thread_sleep (1);
         }while(rx_finished == FALSE);
 
-        if(rx_error == TRUE)
-        {
-            rx_error = FALSE;
-            tx_thread_sleep (10);
-        }
-        else
-        {
-            finished = TRUE;
-        }
+
+        finished = TRUE;
+
         tx_thread_sleep (1);
     }while(finished == FALSE);
 

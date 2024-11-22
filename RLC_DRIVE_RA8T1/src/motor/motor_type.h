@@ -103,8 +103,14 @@ typedef struct st_motor_profil_t
     motor_ext_technology_t technology; ///< Technologie des moteurs
     motor_ext_cfg_t cfg_motorH; ///< Configuration du comportement du moteur haut
     motor_ext_cfg_t cfg_motorL; ///< Configuration du comportement du moteur bas
-    uint32_t poster_showtime;
+    uint32_t poster_showtime_ms;
     uint32_t current_stop;
+
+    struct
+    {
+        uint16_t short_time_ms;
+        uint16_t long_time_ms;
+    }sync_settings;
 
 
 

@@ -85,4 +85,7 @@ extern const char drive_firmware[10];
 #define REMOTECTRL_ACTIVE_LEVEL 1
 
 
+#define FILE_STORAGE
+#define MQTT_PUBLISH
+#define MQTT_SUBSCRIBE
 #endif /* CONFIG_COMPILER_CONFIG_H_ */

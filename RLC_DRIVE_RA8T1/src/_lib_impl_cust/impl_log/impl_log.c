@@ -38,7 +38,14 @@ void impl_printf(char *buffer)
     tx_info.in_progress=TRUE;
     R_SCI_B_UART_Write(&g_uart_log_ctrl, (uint8_t*)buffer, strlen(buffer));
     tx_info.code = X_RET_OK;
-    while(tx_info.in_progress) __NOP();
+
+
+    ULONG actual_events;
+    tx_event_flags_get(&g_event_serial_log, 0b0001, TX_AND_CLEAR, &actual_events, 20);
+    tx_thread_sleep(1);
+
+
+    //while(tx_info.in_progress) __NOP();
     //R_BSP_SoftwareDelay(2, BSP_DELAY_UNITS_MILLISECONDS);
 
 }
@@ -252,21 +259,25 @@ void uart_log_callback(uart_callback_args_t *p_args)
     }
     else if(UART_EVENT_TX_DATA_EMPTY == p_args->event)
     {
-        tx_info.in_progress = FALSE;
-        tx_info.code = X_RET_OK;
+
+        tx_event_flags_set(&g_event_serial_log, 0b0001, TX_OR);
+        //tx_info.in_progress = FALSE;
+        //tx_info.code = X_RET_OK;
 
     }
     else if((UART_EVENT_ERR_PARITY == p_args->event || UART_EVENT_ERR_FRAMING == p_args->event ||
             UART_EVENT_ERR_OVERFLOW == p_args->event || UART_EVENT_BREAK_DETECT == p_args->event)
             /*&& tx_info.in_progress == TRUE*/)
     {
-        tx_info.in_progress = FALSE;
-        tx_info.code = X_RET_ERR_GENERIC;
+        tx_event_flags_set(&g_event_serial_log, 0b0001, TX_OR);
+        //tx_info.in_progress = FALSE;
+        //tx_info.code = X_RET_ERR_GENERIC;
     }
     else
     {
-        tx_info.in_progress = FALSE;
-        tx_info.code = X_RET_OK;
+        tx_event_flags_set(&g_event_serial_log, 0b0001, TX_OR);
+        //tx_info.in_progress = FALSE;
+        //tx_info.code = X_RET_OK;
     }
 
 }

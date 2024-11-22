@@ -546,19 +546,20 @@ static return_t error_loop(void)
 return_t analyze_error_drivers_source(motor_error_sources_t *str)
 {
     return_t ret = X_RET_OK;
+
+    ret = h_drv8323s_read_all_registers(&drv_mot1);
+    ret = h_drv8323s_read_all_registers(&drv_mot2);
+    LOG_D(LOG_STD,"MOT1 drv %02X",drv_mot1.registers.drv_control.value);
+    LOG_D(LOG_STD,"MOT2 drv %02X",drv_mot2.registers.drv_control.value);
+
     if(str->flags.bits.motorH_fault == 1)
     {
         ret = h_drv8323s_read_status_registers(&drv_mot1);
         if(ret != X_RET_OK) return ret;
-
         str->motorH_bits.status1.value = drv_mot1.registers.fault_status1.value;
         str->motorH_bits.status2.value = drv_mot1.registers.vgs_status2.value;
-
-
-        LOG_D(LOG_STD,"MOT1 status1 %d",str->motorH_bits.status1.value);
-        LOG_D(LOG_STD,"MOT1 status2 %d",str->motorH_bits.status2.value);
-
-
+        LOG_D(LOG_STD,"MOT1 status1 %02X",str->motorH_bits.status1.value);
+        LOG_D(LOG_STD,"MOT1 status2 %02X",str->motorH_bits.status2.value);
         h_drv8323s_clear_fault(&drv_mot1);
     }
 
@@ -568,8 +569,8 @@ return_t analyze_error_drivers_source(motor_error_sources_t *str)
         if(ret != X_RET_OK) return ret;
         str->motorL_bits.status1.value = drv_mot2.registers.fault_status1.value;
         str->motorL_bits.status2.value = drv_mot2.registers.vgs_status2.value;
-        LOG_D(LOG_STD,"MOT2 status1 %d",str->motorL_bits.status1.value);
-        LOG_D(LOG_STD,"MOT2 status2 %d",str->motorL_bits.status2.value);
+        LOG_D(LOG_STD,"MOT2 status1 %02X",str->motorL_bits.status1.value);
+        LOG_D(LOG_STD,"MOT2 status2 %02X",str->motorL_bits.status2.value);
         h_drv8323s_clear_fault(&drv_mot2);
     }
     return ret;

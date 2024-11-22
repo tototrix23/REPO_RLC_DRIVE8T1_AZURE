@@ -61,7 +61,7 @@ typedef struct st_return_motor_cplx_t
     uint32_t fsp_motorL_error_code;
 }return_motor_cplx_t;
 
-extern volatile st_drive_t motors_instance;
+extern st_drive_t motors_instance;
 
 extern char motorh_serial[20];
 extern char motorl_serial[20];

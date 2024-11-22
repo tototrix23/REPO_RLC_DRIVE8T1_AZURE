@@ -9,20 +9,33 @@
 #define SYNCHRO_SYNCHRO_H_
 
 #include <_core/c_common.h>
+#include <rtc/rtc.h>
+
+typedef enum e_synchro_state
+{
+    synchro_state_idle                    = 0,
+    synchro_state_init                    = 1,
+    synchro_state_wait_for_time_and_pulse = 2,
+    synchro_state_wait_for_start_cycle    = 3,
+    synchro_state_wait_down               = 4,
+    synchro_state_wait_up                 = 5,
+    synchro_state_last_cycle_resync       = 6,
+
+}e_synchro_state;
+
 
 typedef struct sSyncStimuli
 {
     uint8_t   pps_flag; // Flag indiquant si un front montant est détécté sur le signal PPS
-    uint8_t   minuts;   // Contient la dernière valeur des minutes envoyé par le GPS (trame RMC)
-    uint8_t   seconds;  // Contient la dernière valeur des heures envoyé par le GPS (trame RMC)
+    st_rtc_t  rtc_info;
 }sSyncStimuli;
 
 // Structure contenant les informations relatives à la configuration de l'USB
 typedef struct sSyncConfig
 {
     uint8_t   panelCount;     // Nombre d'affiches
-    uint8_t  scrollingTime;  // Temps de défilement
-    uint8_t  showTime;       // Temps d'exposition
+    uint16_t  shortTimeMs;  // Temps de défilement
+    uint16_t  longTimeMs;       // Temps d'exposition
 }sSyncConfig;
 
 typedef struct sSyncCalcValues
@@ -42,16 +55,16 @@ typedef struct sSyncCalcValues
 // Structure contenant les données relatives au fonction de la machine à état
 typedef struct sSyncProcess
 {
-    uint8_t   smState;      // Etat en cours de la machine
-    uint16_t  currentCycle; // Compteur de cycle (valeur maximale = sSyncCalcValues.cyclesByHour)
-    uint8_t   currentIndex; // Index qui permet de savoir sur quelle affiche l'algorithme se trouve
-    uint16_t  ledTime;      // Compteur de temps qui permet de gérer l'allumage de la LED
-    uint32_t  uTimerValue;  // Compteur de temps
-    uint32_t  uTimerValue2; // Compteur de temps
-    double dTriggerMs; //
-    uint32_t  uTriggerMs;   //
-    uint8_t  longPulseFlag; // Indique que l'émission d'un pulse long est requise
-    uint8_t  shortPulseFlag;// Indique que l'émission d'un pulse court est requise
+    e_synchro_state   smState;      // Etat en cours de la machine
+    uint16_t  currentCycle;         // Compteur de cycle (valeur maximale = sSyncCalcValues.cyclesByHour)
+    uint8_t   currentIndex;         // Index qui permet de savoir sur quelle affiche l'algorithme se trouve
+    uint16_t  ledTime;              // Compteur de temps qui permet de gérer l'allumage de la LED
+    uint32_t  uTimerValue;          // Compteur de temps
+    uint32_t  uTimerValue2;         // Compteur de temps
+    double dTriggerMs;              //
+    uint32_t  uTriggerMs;           //
+    bool_t  longPulseFlag;         // Indique que l'émission d'un pulse long est requise
+    bool_t  shortPulseFlag;        // Indique que l'émission d'un pulse court est requise
 }sSyncProcess;
 
 
@@ -62,10 +75,18 @@ typedef struct s_synchro
     struct sSyncConfig structConfig;
     struct sSyncCalcValues structCalcValues;
     struct sSyncProcess structProcess;
+    bool_t active;
 }s_synchro;
 
 
 return_t synchro_init(void);
+return_t synchro_set_params(uint8_t panels,uint16_t shortTimeMs,uint16_t longTimeMs);
+void synchro_clear_signals(void);
+bool_t synchro_is_active(void);
+bool_t synchro_is_long_signal(void);
+bool_t synchro_is_short_signal(void);
 
+
+void synchro_process(void);
 
 #endif /* SYNCHRO_SYNCHRO_H_ */

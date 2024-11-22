@@ -1,6 +1,7 @@
 #include "mqtt_publish_thread.h"
 #include <_core/c_common.h>
 #include <_core/c_timespan/c_timespan.h>
+#include <_hal/h_time/h_time.h>
 #include <rtc/rtc.h>
 #include <cJSON/JSON_process.h>
 #include <flash/flash_routines.h>
@@ -19,6 +20,295 @@ return_t mqtt_pusblish_process_json(void);
 return_t mqtt_publish_send(char *buffer);
 
 
+return_t mqtt_publish_get_oldest_file(char *ptr_filename,uint32_t *size,char **buffer);
+return_t mqtt_publish_process_send(char *bytes_stream);
+return_t mqtt_publish_process_send_result(char *ptr_filename,char **buffer,return_t res);
+
+
+return_t mqtt_publish_get_oldest_file(char *ptr_filename,uint32_t *size,char **buffer)
+{
+    return_t ret = X_RET_OK;
+
+    tx_mutex_get(&g_flash_memory_mutex,TX_WAIT_FOREVER);
+
+    ret = fs_open();
+    if(ret != X_RET_OK)
+       goto end;
+
+    ret = fs_set_directory(dir_data);
+    if(ret != X_RET_OK)
+       goto end;
+
+    bool_t file_found = FALSE;
+   uint64_t time_ref = 0xFFFFFFFFFFFFFFFF;
+   char oldest_filename[64];
+
+   bool_t end = FALSE;
+   char filename[64];
+   ULONG file_size;
+   UINT year;
+   UINT month;
+   UINT day;
+   UINT hour;
+   UINT minut;
+   UINT second;
+
+
+
+   bool_t first_file_processed = FALSE;
+   do{
+
+       if(first_file_processed == FALSE)
+       {
+           ret = fs_first_file_find(filename,&file_size,&year,&month,&day,&hour,&minut,&second);
+           first_file_processed = TRUE;
+       }
+       else
+       {
+           ret = fs_next_file_find(filename,&file_size,&year,&month,&day,&hour,&minut,&second);
+       }
+       if(ret == X_RET_OK)
+       {
+           if(file_size == 0)
+           {
+               LOG_E(LOG_STD,"Size null %",filename);
+               fs_file_delete(filename);
+
+           }
+           else
+           {
+
+               if(second>59 ||minut>59 ||
+                  hour>23 || year<2024 || year>2050 ||  month>12 ||
+                   day >31)
+               {
+                   LOG_E(LOG_STD,"Bad timestamp %",filename);
+                   fs_file_delete(filename);
+               }
+               else
+               {
+                   struct tm myDate;
+                   myDate.tm_mday = day;
+                   myDate.tm_mon = month-1;
+                   myDate.tm_year = year-1900;   // Date == April 6, 2014
+                   myDate.tm_hour = hour;
+                   myDate.tm_min = minut;
+                   myDate.tm_sec = second;
+                   volatile uint64_t timestamp = mktime(&myDate);
+                   timestamp = timestamp*1000;
+                   st_rtc_t r = rtc_get();
+                   volatile uint64_t time_diff = 0x00;
+                   if(timestamp < r.time_ms)
+                       time_diff = r.time_ms - timestamp;
+
+                   if(time_diff > 259200000)//259200000)
+                   {
+                       LOG_E(LOG_STD,"time_diff %s   %llu",filename,time_diff);
+                       ret = fs_file_delete(filename);
+                   }
+                   else
+                   {
+                       char *ptr = strstr(filename,".json");
+                       if(ptr != NULL)
+                       {
+                           uint32_t s = ptr - filename;
+                           char extract[32];
+                           memset(extract,0x00,sizeof(extract));
+                           memcpy(extract,filename,s);
+                           char *ptr_end=0x0;
+                           uint64_t file_name_ts = strtoull(filename,&ptr_end,10);
+                           if(file_name_ts == 0)
+                           {
+                               LOG_E(LOG_STD,"file_name_ts %s",filename);
+                               fs_file_delete(filename);
+                           }
+                           else
+                           {
+                               if(file_name_ts < time_ref)
+                               {
+                                   file_found = TRUE;
+                                   time_ref = file_name_ts;
+                                   strcpy(oldest_filename,filename);
+                               }
+                           }
+
+                       }
+                       else
+                       {
+                           LOG_E(LOG_STD,"ext %s",filename);
+                           fs_file_delete(filename);
+                       }
+                   }
+               }
+           }
+       }
+       else
+       {
+           end = TRUE;
+       }
+
+       tx_thread_sleep(1);
+   }while(!end);
+
+
+
+
+   if(file_found == TRUE)
+   {
+       strcpy(ptr_filename,oldest_filename);
+
+        FX_FILE file;
+        ret = fs_file_open (&file, ptr_filename, FX_OPEN_FOR_READ);
+        if (ret != X_RET_OK)
+        {
+            fs_file_delete (ptr_filename);
+            goto end;
+        }
+
+
+        uint32_t fsize = (uint32_t) file.fx_file_current_file_size;
+        *size = fsize;
+        *buffer = MALLOC(fsize);
+        if(*buffer == NULL)
+        {
+            ret = X_RET_MEMORY_ALLOCATION;
+            goto end;
+        }
+
+        uint64_t actual_read = 0;
+        ret = fs_file_read (&file, *buffer, fsize, &actual_read);
+        if(ret != X_RET_OK)
+        {
+            FREE((void**)*buffer);
+            goto end;
+        }
+
+        bool_t json_valid = FALSE;
+        cJSON *ptr_json = cJSON_Parse (*buffer);
+        if (ptr_json == NULL)
+        {
+            json_valid = FALSE;
+        }
+        else
+            json_valid = TRUE;
+        cJSON_Delete (ptr_json);
+
+
+        if(json_valid == FALSE)
+        {
+            LOG_E(LOG_STD, "Error parsing, delete %s", ptr_filename);
+            fs_file_delete (ptr_filename);
+            ret = F_RET_JSON_PARSE;
+            goto end;
+        }
+
+
+   }
+   else
+   {
+       ret = X_RET_NOT_FOUND;
+   }
+
+
+
+    end:
+    fs_close();
+    fs_flush();
+    tx_mutex_put(&g_flash_memory_mutex);
+    return ret;
+}
+
+
+return_t mqtt_publish_process_send(char *bytes_stream)
+{
+    return_t ret = X_RET_OK;
+
+
+
+    ret = mqtt_publish_send (bytes_stream);
+    /*if (ret == X_RET_OK || ret == F_RET_COMMS_MQTT_TIMEOUT || ret == F_RET_COMMS_MQTT_GENERIC)
+    {
+        if (ret == X_RET_OK)
+        {
+            LOG_D(LOG_STD, "MQTT publish success");
+        }
+        else
+        {
+            LOG_E(LOG_STD, "MQTT publish error %d", ret);
+        }
+
+        if (ret == X_RET_OK || ret == F_RET_COMMS_MQTT_GENERIC)
+        {
+            fs_file_delete (ptr_filename);
+        }
+    }
+    else
+    {
+        if (ret == F_RET_COMMS_MQTT_BROK_NOT_CONNECTED)
+        {
+            LOG_W(LOG_STD, "Broker not connected");
+        }
+        else
+        {
+            LOG_E(LOG_STD, "Error %d", ret);
+        }
+    }*/
+
+    return ret;
+}
+
+
+return_t mqtt_publish_process_send_result(char *ptr_filename,char **buffer,return_t res)
+{
+    return_t ret = X_RET_OK;
+
+    if (res == X_RET_OK || res == F_RET_COMMS_MQTT_TIMEOUT || res == F_RET_COMMS_MQTT_GENERIC)
+    {
+        if (res == X_RET_OK)
+        {
+            LOG_I(LOG_STD, "MQTT publish '%s' success",ptr_filename);
+        }
+        else
+        {
+            LOG_E(LOG_STD, "MQTT publish '%s' error [%d]",ptr_filename, res);
+        }
+
+        if (res == X_RET_OK || res == F_RET_COMMS_MQTT_GENERIC)
+        {
+            tx_mutex_get(&g_flash_memory_mutex,TX_WAIT_FOREVER);
+            ret = fs_open();
+            if(ret != X_RET_OK)
+                goto end;
+
+            ret = fs_set_directory(dir_data);
+            if(ret != X_RET_OK)
+            {
+                fs_close();
+                goto end;
+            }
+
+            fs_file_delete (ptr_filename);
+            fs_close();
+            tx_mutex_put(&g_flash_memory_mutex);
+        }
+    }
+    else
+    {
+        if (res == F_RET_COMMS_MQTT_BROK_NOT_CONNECTED)
+        {
+            LOG_W(LOG_STD, "Broker not connected when sending '%s'",ptr_filename);
+        }
+        else
+        {
+            LOG_E(LOG_STD, "Error %d when sending '%s'", ptr_filename);
+        }
+    }
+
+    end:
+    FREE((void**)buffer);
+
+    return ret;
+}
 
 return_t mqtt_pusblish_process_json(void)
 {
@@ -173,6 +463,7 @@ return_t mqtt_pusblish_process_json(void)
                {
                    fs_file_close(&file);
 
+
                    bool_t json_valid = FALSE;
                    cJSON *ptr_json = cJSON_Parse(ptr_read);
                    if(ptr_json == NULL)
@@ -220,6 +511,8 @@ return_t mqtt_pusblish_process_json(void)
                        LOG_E(LOG_STD,"Error parsing, delete %s",oldest_filename);
                        fs_file_delete(oldest_filename);
                    }
+
+                   fs_flush ();
                }
                FREE((void**)&ptr_read);
            }
@@ -228,7 +521,7 @@ return_t mqtt_pusblish_process_json(void)
       // fs_file_delete(oldest_filename);
    }
 
-   fs_flush ();
+
    fs_close();
 
 
@@ -246,14 +539,14 @@ return_t mqtt_publish_send(char *buffer)
     //
     //tx_queue_flush(msg_queue);
 
-    volatile char *ptr_test = strstr(buffer,"ScrollingSettingId");
-    if(ptr_test != 0x00)
-    {
-        volatile uint8_t ffff=0;
-        ffff = 1;
-    }
+
+    /*c_timespan_t ts;
+    h_time_update(&ts);*/
 
     ret = modem_process_send(msg_queue,"mqtt_publish",buffer,&msg_rx,1,40000);
+    /*c_timespan_t ts_elasped;
+    h_time_get_elapsed(&ts, &ts_elasped);
+    LOG_D(LOG_STD,"publish elasped %llu",ts_elasped.ms);*/
     if(ret != X_RET_OK)
     {
         if(ret == F_RET_COMMS_OUT_TIMEOUT)
@@ -311,7 +604,44 @@ void mqtt_publish_thread_entry(void)
 
 
 
+
+
+
     delay_ms(1000);
+
+    char *ptr=0x0;
+    uint32_t size;
+    char filename[64];
+
+
+    while(1)
+    {
+#ifdef MQTT_PUBLISH
+        ret = mqtt_publish_get_oldest_file(filename,&size,&ptr);
+        if(ret == X_RET_OK)
+        {
+            return_t send_ret = mqtt_publish_process_send(ptr);
+
+
+            ret = mqtt_publish_process_send_result(filename,&ptr,send_ret);
+            if(send_ret == X_RET_OK || send_ret == F_RET_FS_NO_MORE_ENTRIES)
+            {
+                delay_ms(2000);
+            }
+            else
+            {
+                delay_ms(10000);
+            }
+        }
+        else
+        {
+            delay_ms(2000);
+        }
+#else
+        tx_thread_sleep (1);
+#endif
+    }
+
     /* TODO: add your own code here */
     while (1)
     {

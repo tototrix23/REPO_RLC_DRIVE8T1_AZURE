@@ -433,7 +433,7 @@ void mqtt_subscribe_thread_entry(void)
 
     while (1)
     {
-
+#ifdef MQTT_SUBSCRIBE
         while(mqtt_subscribe_done == FALSE)
         {
             delay_ms(2000);
@@ -449,6 +449,7 @@ void mqtt_subscribe_thread_entry(void)
         }
 
         mqtt_subscribe_process();
+#endif
         tx_thread_sleep (10);
     }
 }

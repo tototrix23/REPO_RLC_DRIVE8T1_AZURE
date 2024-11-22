@@ -48,12 +48,17 @@ st_rtc_t rtc_get(void)
         ts_wd += (t->tm_min*60);
         ts_wd += (t->tm_hour*3600);
         ts_wd = ts_wd * 1000;
-        ret.time_ms_without_date = ts_wd;
+        ret.time_ms_hour_min_sec_ms = ts_wd;
 
+        ret.minute = t->tm_min;
+        ret.second = t->tm_sec;
+        uint16_t ms = (uint16_t)(ret.time_ms % 1000);
+        ret.time_ms_min_sec_ms = (uint64_t)((t->tm_min*60000) + (t->tm_sec*1000) + ms);
     }
     else
     {
-        ret.time_ms_without_date = 0;
+        ret.time_ms_hour_min_sec_ms = 0;
+        ret.time_ms_min_sec_ms = 0;
     }
 
 

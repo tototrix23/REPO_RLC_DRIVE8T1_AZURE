@@ -104,14 +104,29 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
                             break;
 
                         case MOTOR_120_DEGREE_CTRL_STATUS_RUN:
+
+                           /* motors_instance.motors[i]->motor_ctrl_instance->p_api->stop(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
+                            motor_wait_stop(motors_instance.motors[i]);
+                            if (c_math_float_equality(phase->params_motors[i].regulated.rpm,0.0f) == FALSE)
+                            {
+                                motors_instance.motors[i]->motor_ctrl_instance->p_api->run(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
+                            }*/
+
+
                             if(motors_instance.motors[i]->current_drive_mode != phase->params_motors[i].mode)
                             {
-                                motors_instance.motors[i]->motor_ctrl_instance->p_api->stop(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
-                                motor_wait_stop(motors_instance.motors[i]);
+
+                                //if(motors_instance.motors[i]->current_drive_mode != MOTOR_NON_REGULATED_MODE)
+                                //{
+                                    motors_instance.motors[i]->motor_ctrl_instance->p_api->stop(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
+                                    motor_wait_stop(motors_instance.motors[i]);
+                                //}
+
                                 if (c_math_float_equality(phase->params_motors[i].regulated.rpm,0.0f) == FALSE)
                                 {
                                     motors_instance.motors[i]->motor_ctrl_instance->p_api->run(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
                                 }
+
                             }
                             else
                             {

@@ -18,6 +18,8 @@
 #include <adc/adc.h>
 #include <exchanged_data/exchanged_data.h>
 #include <settings/settings.h>
+#include <synchro/synchro.h>
+#include <motor/config_spi/config_spi.h>
 #include <return_codes.h>
 
 #undef  LOG_LEVEL
@@ -305,6 +307,8 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
    sequence_result_t sequence_result;
    c_timespan_t ts;
    c_timespan_t ts2;
+   c_timespan_t ts3;
+
    bool_t ts_elasped;
    bool_t end = FALSE;
    uint32_t ovc_counter=0;
@@ -316,12 +320,17 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
    int32_t pulsesL2;
    bool_t init_speed_finished;
    bool_t decelerate_flag = FALSE;
+
+    h_time_update(&ts3);
    poster_change_start:
    //LOG_D(LOG_STD,"poster_change_start");
    h_time_update(&ts_error);
 
    init_speed_finished = FALSE;
    h_time_update(&ts);
+
+
+   //LOG_D(LOG_STD,"change pos");
 
    motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH_start);
    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL1);
@@ -386,7 +395,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
               pos = pos_final-200;//150;
               if(abs(pulsesH) >= pos)
               {
-                  LOG_D(LOG_STD,"pos%d ENRH %d / %d",index,pos,pos_final);
+                  //LOG_D(LOG_STD,"pos%d ENRH %d / %d",index,pos,pos_final);
                   motor_drive_sequence(&ptr->sequences.automatic.poster_enrh_decelerate,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
                   decelerate_flag = TRUE;
               }
@@ -397,9 +406,11 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
               pos = pos_final+200;//150;
               if(abs(pulsesH) <= pos)
               {
-                  LOG_D(LOG_STD,"pos%d ENRL %d / %d",index,pos,pos_final);
+
+                  //LOG_D(LOG_STD,"pos%d ENRL %d / %d",index,pos,pos_final);
                   motor_drive_sequence(&ptr->sequences.automatic.poster_enrl_decelerate,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
                   decelerate_flag = TRUE;
+
               }
           }
        }
@@ -412,8 +423,11 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
            pos = ptr->panels.positions[index]+ptr->panels.positions_compH[index];
            if(abs(pulsesH) >= pos)
            {
+              c_timespan_t ts_scrolltime;
+              h_time_get_elapsed(&ts3, &ts_scrolltime);
               scroll_stop(direction);
               end = TRUE;
+              LOG_D(LOG_STD,"ENRH %d stime %llu",index,ts_scrolltime.ms);
            }
        }
        else
@@ -421,8 +435,11 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
            pos = ptr->panels.positions[index]+ptr->panels.positions_compL[index];
            if(abs(pulsesH) <= pos)
            {
+               c_timespan_t ts_scrolltime;
+               h_time_get_elapsed(&ts3, &ts_scrolltime);
                scroll_stop(direction);
                end = TRUE;
+               LOG_D(LOG_STD,"ENRL %d stime %llu",index,ts_scrolltime.ms);
            }
        }
 
@@ -544,6 +561,9 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
    {
        LOG_I(LOG_STD,"%dms panel %d ENRL",(uint32_t)final_ts.ms,(uint32_t)local_index);
    }*/
+
+
+
    tx_thread_sleep(1);
 
    return_motor_cplx_update(&ret,X_RET_OK);
@@ -582,6 +602,10 @@ return_t auto_mode_process(void)
     // Flag global permettant à la fonction 'poster_change_to_position' de piloter le moteur haut de manière différente
     // lors du comptage d'affiches
     init_phase = TRUE;
+
+
+
+
 
     do
     {
@@ -623,7 +647,7 @@ return_t auto_mode_process(void)
             bool_t ts_elasped = FALSE;
             do
             {
-                h_time_is_elapsed_ms(&ts, ptr->poster_showtime, &ts_elasped);
+                h_time_is_elapsed_ms(&ts, ptr->poster_showtime_ms, &ts_elasped);
                 CHECK_STOP_REQUEST();
                 tx_thread_sleep(1);
             }while(ts_elasped == FALSE);
@@ -664,9 +688,11 @@ return_t auto_mode_process(void)
     direction = AUTO_ENRL;
     positions_process();
     delay_ms(500);
+    synchro_set_params(ptr->panels.count, ptr->sync_settings.short_time_ms, ptr->sync_settings.long_time_ms);
 
     while(1)
     {
+        synchro_process();
         CHECK_STOP_REQUEST();
         if(ptr->panels.count > 1)
         {
@@ -767,22 +793,49 @@ return_t auto_mode_process(void)
 
 
 
-            h_time_update(&ts);
-            delay = ptr->poster_showtime;
-            if(ptr->panels.count > 2)
+
+
+            if(synchro_is_active() == TRUE)
             {
-                if((ptr->panels.index == 0) || (ptr->panels.index == ptr->panels.count-1))
-                    delay = delay*2;
+
+                bool_t flag_detected = FALSE;
+                do{
+                    CHECK_STOP_REQUEST();
+                    synchro_process();
+                    if( (ptr->panels.index == 0 && synchro_is_long_signal() == TRUE) ||
+                        (ptr->panels.index != 0 && synchro_is_short_signal() == TRUE))
+                    {
+                        flag_detected = TRUE;
+                    }
+                    else
+                    {
+                        tx_thread_sleep(1);
+                    }
+                    if(synchro_is_active() == FALSE)
+                    {
+                       flag_detected = TRUE;
+                    }
+                }while(flag_detected == FALSE);
             }
-
-            bool_t ts_elasped = FALSE;
-            do
+            else
             {
-                h_time_is_elapsed_ms(&ts, delay, &ts_elasped);
-                CHECK_STOP_REQUEST();
-                tx_thread_sleep(1);
-            }while(ts_elasped == FALSE);
 
+                h_time_update(&ts);
+                delay = ptr->poster_showtime_ms;
+                if(ptr->panels.count > 2)
+                {
+                    if((ptr->panels.index == 0) || (ptr->panels.index == ptr->panels.count-1))
+                        delay = delay*2;
+                }
+
+                bool_t ts_elasped = FALSE;
+                do
+                {
+                    h_time_is_elapsed_ms(&ts, delay, &ts_elasped);
+                    CHECK_STOP_REQUEST();
+                    tx_thread_sleep(1);
+                }while(ts_elasped == FALSE);
+            }
 
 
 

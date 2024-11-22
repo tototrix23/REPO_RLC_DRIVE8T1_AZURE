@@ -54,9 +54,9 @@ void motors_thread_entry(void)
 
 
     // Initialisation des drivers moteurs
-    ret = motor_config_spi_init();
+    /*ret = motor_config_spi_init();
     ret = motor_config_spi(&drv_mot1);
-    ret = motor_config_spi(&drv_mot2);
+    ret = motor_config_spi(&drv_mot2);*/
 
 
 
@@ -98,10 +98,13 @@ void motors_thread_entry(void)
 
 
 
+
+
     // Demarrage de la boucle de traitement
     while (1)
     {
         drive_process();
+
         tx_thread_sleep (1);
     }
 }

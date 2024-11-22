@@ -80,8 +80,7 @@ return_t modem_order_get_datetime(void)
 
     char *msg_rx = 0x00;
 
-    //tx_queue_flush(msg_queue);
-    ret = modem_process_send(msg_queue,"get_datetime",tx_array,&msg_rx,1,15000);//  modem_process_outgoing("get_datetime",tx_array,2,1000);
+    ret = modem_process_send(msg_queue,"get_datetime",tx_array,&msg_rx,1,10000);//  modem_process_outgoing("get_datetime",tx_array,2,1000);
     if(ret != X_RET_OK)
     {
         if(ret == F_RET_COMMS_OUT_TIMEOUT)
@@ -188,12 +187,13 @@ void modem_thread_entry(void)
 
     c_timespan_t ts_dt;
     h_time_update(&ts_dt);
+    uint32_t dt_wait_ms = 5000;
 
     /* TODO: add your own code here */
     while (1)
     {
         bool_t elasped = FALSE;
-        h_time_is_elapsed_ms(&ts_dt, 60000, &elasped);
+        h_time_is_elapsed_ms(&ts_dt, dt_wait_ms, &elasped);
         if(elasped == TRUE)
         {
             h_time_update(&ts_dt);
@@ -203,7 +203,12 @@ void modem_thread_entry(void)
             if(ret == X_RET_OK)
             {
                 r = rtc_get();
-                LOG_D(LOG_STD,"%llu",r.time_ms);
+                LOG_I(LOG_STD,"%llu",r.time_ms);
+                dt_wait_ms = 60000;
+            }
+            else
+            {
+                dt_wait_ms = 5000;
             }
         }
         tx_thread_sleep(10);

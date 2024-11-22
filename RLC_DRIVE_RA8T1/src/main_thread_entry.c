@@ -166,9 +166,10 @@ void main_thread_entry(void)
 
     synchro_init();
 
+
     // Demarrage du Thread dédié aux LOGs
     tx_thread_resume(&log_thread);
-    delay_ms(1000);
+    delay_ms(200);
     tx_thread_resume(&modem_thread);
 
     // Initialisation de la partie moteurs (partie logicielle)
@@ -217,7 +218,8 @@ void main_thread_entry(void)
     h_time_update(&ts_relay);
 
 
-
+    c_timespan_t ts_drv;
+     h_time_update(&ts_drv);
     /* TODO: add your own code here */
     while (1)
     {
@@ -326,6 +328,18 @@ void main_thread_entry(void)
                   h_drv8323s_clear_fault(&drv_mot2);
                   motor_emergency_init();
               }
+
+        }*/
+
+
+        /*h_time_is_elapsed_ms(&ts_drv, 1000, &elasped);
+        if(elasped)
+        {
+           h_time_update(&ts_drv);
+           h_drv8323s_read_all_registers(&drv_mot1);
+           h_drv8323s_read_all_registers(&drv_mot2);
+           LOG_D(LOG_STD,"MOT1 drv %02X",drv_mot1.registers.drv_control.value);
+           LOG_D(LOG_STD,"MOT2 drv %02X",drv_mot2.registers.drv_control.value);
 
         }*/
         tx_thread_sleep (1);

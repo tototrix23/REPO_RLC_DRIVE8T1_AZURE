@@ -334,7 +334,6 @@ return_t adc_get_snapshot(st_adc_t *res)
 
 return_t adc_get_snapshot_raw(st_adc_raw_t *res)
 {
-    st_adc_raw_t obj;
     c_protected_get_object(&adc_raw_inst, res, sizeof(st_adc_raw_t));
     return X_RET_OK;
 }
@@ -426,7 +425,7 @@ void adc_mot_callback(adc_callback_args_t *p_args)
 {
     motor_120_driver_instance_t      * p_instance      = (motor_120_driver_instance_t *) p_args->p_context;
     motor_120_driver_instance_ctrl_t * p_instance_ctrl = (motor_120_driver_instance_ctrl_t *) p_instance->p_ctrl;
-    motor_120_driver_callback_args_t   temp_args_t;
+    //motor_120_driver_callback_args_t   temp_args_t;
 
     uint16_t data[5];
 
@@ -544,7 +543,7 @@ void adc_mot_callback(adc_callback_args_t *p_args)
             //(void) R_GPT_Start(&g_timer_ballast_ctrl);
             R_IOPORT_PinWrite(&g_ioport_ctrl, IO_VM_BALLAST_CMD,BSP_IO_LEVEL_HIGH);
         }
-        else if(adc_ballast_activated == TRUE && diff_vin_vm < 1000.0f)
+        else if(adc_ballast_activated == TRUE && diff_vin_vm < 2000.0f)
         {
             //LOG_D(LOG_STD,"0 -> %d",(uint32_t)diff_vin_vm);
             adc_ballast_activated = FALSE;

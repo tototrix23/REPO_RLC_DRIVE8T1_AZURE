@@ -99,6 +99,19 @@ return_t motor_check(st_system_motor_status_t *sys_mot)
     if(ret != X_RET_OK)
         sys_mot->error_lvl1.bits.config_driver_l = TRUE;
 
+   /* R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT1_ENABLE,BSP_IO_LEVEL_LOW );
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT2_ENABLE,BSP_IO_LEVEL_LOW );
+    delay_ms(100);
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT1_ENABLE,BSP_IO_LEVEL_HIGH );
+    R_IOPORT_PinWrite(&g_ioport_ctrl, IO_MOT2_ENABLE,BSP_IO_LEVEL_HIGH );
+    delay_ms(100);
+    ret = h_drv8323s_read_all_registers(&drv_mot1);
+    ret = h_drv8323s_read_all_registers(&drv_mot2);*/
+
+
+
+
+
     // Si à ce stade nous avons déjà relevé une défaillance alors
     // on coupe les drivers et on retourne une erreur
     if(sys_mot->error_lvl1.value != 0x00)

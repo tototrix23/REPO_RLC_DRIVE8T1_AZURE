@@ -21,7 +21,6 @@ void log_thread_entry(void)
     log_t *ptr = 0x00;
     while (1)
     {
-        tx_thread_sleep (1);
         volatile uint32_t status = tx_queue_receive(&g_queue_log, &ptr, TX_NO_WAIT);
         if(status == TX_SUCCESS)
         {
@@ -31,6 +30,7 @@ void log_thread_entry(void)
         else
         {
 
+#ifdef FILE_STORAGE
             // Récupération de la RTC pour vérifier si un timestamp correcte est disponible dans le système.
             st_rtc_t r = rtc_get();
             // Récupération du numéro de série pour vérifier si ce dernier a bien été récupéré dans le modem.
@@ -42,7 +42,12 @@ void log_thread_entry(void)
                 status = tx_queue_receive(&g_queue_json, &ptr_json, TX_NO_WAIT);
                 if(status == TX_SUCCESS)
                 {
-                    tx_mutex_get(&g_flash_memory_mutex,TX_WAIT_FOREVER);
+                    fsp_err_t err_mutex;
+                    do
+                    {
+                        err_mutex = tx_mutex_get(&g_flash_memory_mutex,10);
+                    }while(err_mutex != FSP_SUCCESS);
+
                     return_t ret = fs_open();
                     if(ret == X_RET_OK)
                     {
@@ -72,7 +77,7 @@ void log_thread_entry(void)
                                 ret = fs_file_create_and_write(filename,ptr_write,size);
                                 if(ret == X_RET_OK)
                                 {
-                                    LOG_D(LOG_STD,"Success creating %s file [%s]",filename,ptr_json->topic);
+                                    LOG_I(LOG_STD,"Success creating %s file [%s]",filename,ptr_json->topic);
                                 }
                                 else
                                 {
@@ -94,6 +99,9 @@ void log_thread_entry(void)
                     tx_thread_sleep (1);
                 }
             }
+            #endif
         }
+
+        tx_thread_sleep (1);
     }
 }
