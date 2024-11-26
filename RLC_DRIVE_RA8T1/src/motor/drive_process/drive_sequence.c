@@ -16,13 +16,18 @@
 #undef  LOG_MODULE
 #define LOG_MODULE    "DRIVE"
 
-return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_result_t *result)
+return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_result_t *result,...)
 {
     return_t ret = X_RET_OK;
 #if FW_CHECK_PARAM_ENABLE == 1
     ASSERT(list  != NULL)
     ASSERT(result  != NULL)
 #endif
+    float override_speed_coeff = 0.0f;
+    va_list param;
+    va_start(param, result);
+    override_speed_coeff = (float)(va_arg(param, double));
+    va_end(param);
 
     memset(result,0x00,sizeof(sequence_result_t));
 
@@ -104,13 +109,15 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
                             break;
 
                         case MOTOR_120_DEGREE_CTRL_STATUS_RUN:
-
+                        {
                            /* motors_instance.motors[i]->motor_ctrl_instance->p_api->stop(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
                             motor_wait_stop(motors_instance.motors[i]);
                             if (c_math_float_equality(phase->params_motors[i].regulated.rpm,0.0f) == FALSE)
                             {
                                 motors_instance.motors[i]->motor_ctrl_instance->p_api->run(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
                             }*/
+
+
 
 
                             if(motors_instance.motors[i]->current_drive_mode != phase->params_motors[i].mode)
@@ -135,7 +142,9 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
                                     motors_instance.motors[i]->motor_ctrl_instance->p_api->stop(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
                                     motor_wait_stop(motors_instance.motors[i]);
                                 }
+
                             }
+                        }
                             break;
 
                         case MOTOR_120_DEGREE_CTRL_STATUS_BRAKE:
@@ -184,11 +193,15 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
                             }
                             else
                             {
-                                if(phase->params_motors[i].non_regulated.settings.percent == 0)
-                                {
+                                //if(phase->params_motors[i].non_regulated.settings.percent == 0)
+                                //{
                                     motors_instance.motors[i]->motor_ctrl_instance->p_api->stop(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
                                     motor_wait_stop(motors_instance.motors[i]);
-                                }
+                                    if(phase->params_motors[i].non_regulated.settings.percent != 0)
+                                    {
+                                        motors_instance.motors[i]->motor_ctrl_instance->p_api->run(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
+                                    }
+                                //}
                             }
                             break;
 
@@ -253,9 +266,22 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
             {
                 case MOTOR_REGULATED_MODE:
                     if (c_math_float_equality(phase->params_motors[i].regulated.rpm,0.0f) == FALSE)
+                    {
+
+                        float speed_rpm = phase->params_motors[i].regulated.rpm;
+                        if(c_math_float_equality(speed_rpm,0.0f) == FALSE)
+                        {
+                            if(c_math_float_equality(override_speed_coeff,0.0f) == FALSE)
+                            {
+                                speed_rpm = speed_rpm * override_speed_coeff;
+                            }
+                        }
+
+
                         motors_instance.motors[i]->motor_ctrl_instance->p_api->speedSet(
                                 motors_instance.motors[i]->motor_ctrl_instance->p_ctrl,
-                                phase->params_motors[i].regulated.rpm);
+                                speed_rpm);
+                    }
                     break;
 
                 case MOTOR_NON_REGULATED_MODE:
@@ -284,7 +310,7 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
         h_time_update(&ts);
 
 
-        bool_t end = FALSE;
+        /*bool_t end = FALSE;
         do
         {
             result->errorH = motors_instance.motors[0]->error;
@@ -371,7 +397,7 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
                     break;
             }
             tx_thread_sleep(1);
-        }while(!end);
+        }while(!end);*/
 
         if(phase->post_tempo_ms != 0x00)
             delay_ms(phase->post_tempo_ms);

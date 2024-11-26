@@ -420,12 +420,12 @@
       <property id="module.middleware.motor_120_control.port_hall_sensor_w" value="BSP_IO_PORT_03_PIN_02"/>
       <property id="module.middleware.motor_120_control.u4_timeout_cnt" value="2000"/>
       <property id="module.middleware.motor_120_control.f4_max_drive_v" value="23.5"/>
-      <property id="module.middleware.motor_120_control.f4_min_drive_v" value="3.0"/>
+      <property id="module.middleware.motor_120_control.f4_min_drive_v" value="1.0"/>
       <property id="module.middleware.motor_120_control.u1_speed_pi_decimation" value="0"/>
       <property id="module.middleware.motor_120_control.u1_free_run_timer_freq" value="120"/>
       <property id="module.middleware.motor_120_control.f4_speed_lpf_k" value="1.0"/>
       <property id="module.middleware.motor_120_control.f4_limit_speed_change" value="1.0"/>
-      <property id="module.middleware.motor_120_control.f4_start_refv" value="10.0"/>
+      <property id="module.middleware.motor_120_control.f4_start_refv" value="8.0"/>
       <property id="module.middleware.motor_120_control.u4_hall_wait_cnt" value="12"/>
       <property id="module.middleware.motor_120_control.u4_stop_judge_time" value="1000"/>
       <property id="module.middleware.motor_120_control.u4_min_speed_rpm" value="150"/>
@@ -461,7 +461,7 @@
       <property id="module.middleware.motor_120_driver.port_wn" value="BSP_IO_PORT_06_PIN_09"/>
       <property id="module.middleware.motor_120_driver.pwm_timer_freq" value="120.0"/>
       <property id="module.middleware.motor_120_driver.pwm_carrier_freq" value="50.0"/>
-      <property id="module.middleware.motor_120_driver.dead_time" value="200"/>
+      <property id="module.middleware.motor_120_driver.dead_time" value="0"/>
       <property id="module.middleware.motor_120_driver.current_range" value="6.6"/>
       <property id="module.middleware.motor_120_driver.vdc_range" value="33.33"/>
       <property id="module.middleware.motor_120_driver.ad_resolution" value="0xFFF"/>
@@ -766,12 +766,12 @@
       <property id="module.middleware.motor_120_control.port_hall_sensor_w" value="BSP_IO_PORT_01_PIN_05"/>
       <property id="module.middleware.motor_120_control.u4_timeout_cnt" value="2000"/>
       <property id="module.middleware.motor_120_control.f4_max_drive_v" value="23.5"/>
-      <property id="module.middleware.motor_120_control.f4_min_drive_v" value="3.0"/>
+      <property id="module.middleware.motor_120_control.f4_min_drive_v" value="1.0"/>
       <property id="module.middleware.motor_120_control.u1_speed_pi_decimation" value="0"/>
       <property id="module.middleware.motor_120_control.u1_free_run_timer_freq" value="120"/>
       <property id="module.middleware.motor_120_control.f4_speed_lpf_k" value="1.0"/>
       <property id="module.middleware.motor_120_control.f4_limit_speed_change" value="1.0"/>
-      <property id="module.middleware.motor_120_control.f4_start_refv" value="10.0"/>
+      <property id="module.middleware.motor_120_control.f4_start_refv" value="8.0"/>
       <property id="module.middleware.motor_120_control.u4_hall_wait_cnt" value="12"/>
       <property id="module.middleware.motor_120_control.u4_stop_judge_time" value="1000"/>
       <property id="module.middleware.motor_120_control.u4_min_speed_rpm" value="150"/>
@@ -798,7 +798,7 @@
       <property id="module.middleware.motor_120_driver.port_wn" value="BSP_IO_PORT_06_PIN_02"/>
       <property id="module.middleware.motor_120_driver.pwm_timer_freq" value="120.0"/>
       <property id="module.middleware.motor_120_driver.pwm_carrier_freq" value="50.0"/>
-      <property id="module.middleware.motor_120_driver.dead_time" value="200"/>
+      <property id="module.middleware.motor_120_driver.dead_time" value="0"/>
       <property id="module.middleware.motor_120_driver.current_range" value="6.6"/>
       <property id="module.middleware.motor_120_driver.vdc_range" value="33.33"/>
       <property id="module.middleware.motor_120_driver.ad_resolution" value="0xFFF"/>

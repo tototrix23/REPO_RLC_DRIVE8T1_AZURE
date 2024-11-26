@@ -755,6 +755,16 @@ fsp_err_t RM_MOTOR_120_DEGREE_ExtBrakeStop(motor_ctrl_t * const p_ctrl)
 
     p_instance_ctrl->extSettings.active=0;
     p_instance_ctrl->brake.activated = 0;
+
+    motor_120_degree_extended_cfg_t *p_extended_cfg =
+                   (motor_120_degree_extended_cfg_t*) p_instance_ctrl->p_cfg->p_extend;
+
+    if (p_extended_cfg->p_motor_120_control_instance != NULL)
+   {
+       err = p_extended_cfg->p_motor_120_control_instance->p_api->stop (
+               p_extended_cfg->p_motor_120_control_instance->p_ctrl);
+   }
+
     return err;
 }
 

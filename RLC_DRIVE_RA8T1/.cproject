@@ -187,6 +187,12 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="com.renesas.cdt.managedbuild.gnuarm.config.elf.debug.477370690.352598948" name="drive_sequence.c" rcbsApplicability="disable" resourcePath="src/motor/drive_process/drive_sequence.c" toolsToInvoke="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.991992938.1500428046">
+						<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.991992938.1500428046" name="GNU Arm Cross C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.991992938">
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.otheroptimizations.1411162449" name="Other optimization flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.otheroptimizations" value="-O0" valueType="string"/>
+							<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.111745998" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
+						</tool>
+					</fileInfo>
 					<fileInfo id="com.renesas.cdt.managedbuild.gnuarm.config.elf.debug.477370690.1424556785" name="eeprom.c" rcbsApplicability="disable" resourcePath="src/i2c/eeprom.c" toolsToInvoke="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.991992938.1745161671">
 						<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.991992938.1745161671" name="GNU Arm Cross C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.991992938">
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.otheroptimizations.396575828" name="Other optimization flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.otheroptimizations" value="-O0" valueType="string"/>

@@ -170,7 +170,7 @@ void main_thread_entry(void)
     // Demarrage du Thread dédié aux LOGs
     tx_thread_resume(&log_thread);
     delay_ms(200);
-    tx_thread_resume(&modem_thread);
+    //tx_thread_resume(&modem_thread);
 
     // Initialisation de la partie moteurs (partie logicielle)
     motor_structures_init();

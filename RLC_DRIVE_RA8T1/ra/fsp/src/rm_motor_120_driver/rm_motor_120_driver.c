@@ -1680,17 +1680,19 @@ static void rm_motor_120_driver_ctrl_brake(motor_120_driver_instance_ctrl_t * p_
     {
 
 
-        uint32_t v = (value * 2900);
-        v = (v / 100);
+        uint32_t v = (value * 2700);
+        v = (v / 300);
 
-        if(v < 100) v = 100;
-        if(v> 2900) v = 2900;
+        if(v < 300) v = 300;
+        if(v> 2700) v = 2700;
 
         temp_duty.duty[0] = (uint32_t) v;
         temp_duty.duty[1] = temp_duty.duty[0];
         temp_duty.duty[2] = temp_duty.duty[0];
 
-        p_three_phase->p_api->dutyCycleSet(p_three_phase->p_ctrl, &temp_duty);
+        //p_three_phase->p_api->dutyCycleSet(p_three_phase->p_ctrl, &temp_duty);
+
+        rm_motor_120_driver_ctrl_stop(p_ctrl);
 
         /* PWM output disable */
         R_GPT_OutputDisable(p_u_phase_gpt->p_ctrl, GPT_IO_PIN_GTIOCA_AND_GTIOCB);
@@ -1708,6 +1710,8 @@ static void rm_motor_120_driver_ctrl_brake(motor_120_driver_instance_ctrl_t * p_
         rm_motor_120_driver_pin_cfg(p_extended_cfg->port_vn, p_ctrl->u4_gtiocb_periheral_low_cfg); /* Vn = "H" */
         rm_motor_120_driver_pin_cfg(p_extended_cfg->port_wp, p_ctrl->u4_gtioca_general_low_cfg);  /* Wp = "L" */
         rm_motor_120_driver_pin_cfg(p_extended_cfg->port_wn, p_ctrl->u4_gtiocb_periheral_low_cfg); /* Wn = "H" */
+
+        p_three_phase->p_api->dutyCycleSet(p_three_phase->p_ctrl, &temp_duty);
     }
 }
 

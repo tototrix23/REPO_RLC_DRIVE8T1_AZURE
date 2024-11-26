@@ -1699,23 +1699,27 @@ static void rm_motor_120_control_hall_voltage_ref_set (motor_120_control_hall_in
         {
             if (p_ctrl->extSettings->active == 1)
             {
+                float v = 0.0f;
+                //volatile uint8_t sl = p_ctrl->extSettings->settings.slope;
                 if(p_ctrl->extSettings->settings.slope == 1)
                 {
-                    p_ctrl->f4_v_ref = p_extended_cfg->f4_start_refv;//p_ctrl->extSettings->voltage;//p_extended_cfg->f4_start_refv;
+                    v = 1.0f;//p_ctrl->p_cfg->f4_min_drive_v;//p_extended_cfg->f4_start_refv;
+                    p_ctrl->f4_v_ref = v;
                     if (MOTOR_120_CONTROL_RUN_MODE_DRIVE == p_ctrl->run_mode)
                     {
                         /* Set PI control parameter for start */
-                        p_ctrl->f4_pi_ctrl_refi  = p_extended_cfg->f4_start_refv;//p_ctrl->extSettings->voltage;//p_ctrl->f4_v_ref;
+                        p_ctrl->f4_pi_ctrl_refi  = v;
                         p_ctrl->flag_voltage_ref = MOTOR_120_CONTROL_VOLTAGE_REF_PI_OUTPUT;
                     }
                 }
                 else
                 {
-                    p_ctrl->f4_v_ref = p_ctrl->extSettings->voltage;//p_ctrl->extSettings->voltage;//p_extended_cfg->f4_start_refv;
+                    v = p_ctrl->extSettings->voltage;
+                    p_ctrl->f4_v_ref = v;
                     if (MOTOR_120_CONTROL_RUN_MODE_DRIVE == p_ctrl->run_mode)
                     {
                         /* Set PI control parameter for start */
-                        p_ctrl->f4_pi_ctrl_refi  = p_ctrl->extSettings->voltage;//p_ctrl->extSettings->voltage;//p_ctrl->f4_v_ref;
+                        p_ctrl->f4_pi_ctrl_refi  = v;
                         p_ctrl->flag_voltage_ref = MOTOR_120_CONTROL_VOLTAGE_REF_PI_OUTPUT;
                     }
                 }
@@ -1725,7 +1729,6 @@ static void rm_motor_120_control_hall_voltage_ref_set (motor_120_control_hall_in
             {
                 /* Set start reference voltage(constant) */
                 p_ctrl->f4_v_ref = p_extended_cfg->f4_start_refv;
-
 
                 if (MOTOR_120_CONTROL_RUN_MODE_DRIVE == p_ctrl->run_mode)
                 {
@@ -1769,7 +1772,7 @@ static void rm_motor_120_control_hall_voltage_ref_set (motor_120_control_hall_in
 
                 f4_temp = p_ctrl->f4_v_ref;
                 p_ctrl->f4_v_ref = rm_motor_120_control_hall_limitf (f4_temp, p_ctrl->p_cfg->f4_max_drive_v,
-                                                                     0);
+                                                                     p_ctrl->p_cfg->f4_min_drive_v);
 
                 p_ctrl->u4_cnt_speed_pi++;
                 if (p_ctrl->p_cfg->u4_speed_pi_decimation < p_ctrl->u4_cnt_speed_pi)

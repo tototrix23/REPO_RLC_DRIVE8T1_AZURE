@@ -399,7 +399,6 @@ return_t motor_wait_stop(st_motor_t *mot)
 	c_timespan_t ts;
     h_time_update(&ts);
 	motor_120_control_wait_stop_flag_t flg_wait_stop = MOTOR_120_CONTROL_WAIT_STOP_FLAG_SET;
-
     while (MOTOR_120_CONTROL_WAIT_STOP_FLAG_SET == flg_wait_stop)
 	{
     	mot->motor_ctrl_instance->p_api->waitStopFlagGet(mot->motor_ctrl_instance->p_ctrl, &flg_wait_stop);
@@ -411,7 +410,9 @@ return_t motor_wait_stop(st_motor_t *mot)
     	    ERROR_LOG_AND_RETURN(F_RET_MOTOR_STOP_FLAG_TIMEOUT);
     	}
     	h_time_update(&ts);
+    	//tx_thread_sleep(1);
 	}
+    //tx_thread_sleep(1);
 	return ret;
 }
 

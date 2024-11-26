@@ -321,6 +321,24 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
    bool_t init_speed_finished;
    bool_t decelerate_flag = FALSE;
 
+   float rpm_coeff = 1.0f;
+   float delta_coeff;
+   int coeff_index = 0;
+   if(direction == AUTO_ENRH)
+   {
+      coeff_index = index-1;
+      delta_coeff = ((float)coeff_index * 0.0455f);
+      rpm_coeff = 1.0f - delta_coeff;
+   }
+   else
+   {
+      coeff_index = ptr->panels.count-2 - index;
+      delta_coeff = ((float)coeff_index * 0.0455f);
+      rpm_coeff = 1.0f - delta_coeff;
+   }
+
+   LOG_D(LOG_STD,"coeff %0.3f",rpm_coeff);
+
     h_time_update(&ts3);
    poster_change_start:
    //LOG_D(LOG_STD,"poster_change_start");
@@ -330,7 +348,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
    h_time_update(&ts);
 
 
-   //LOG_D(LOG_STD,"change pos");
+   LOG_D(LOG_STD,"change pos");
 
    motors_instance.motorH->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,&pulsesH_start);
    motors_instance.motorL->motor_ctrl_instance->p_api->pulsesGet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,&pulsesL1);
@@ -340,11 +358,11 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
        if(init_phase)
            motor_drive_sequence(&ptr->sequences.automatic.poster_init_enrh_slow,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
        else
-           motor_drive_sequence(&ptr->sequences.automatic.poster_enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+           motor_drive_sequence(&ptr->sequences.automatic.poster_enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result,rpm_coeff);
    }
    else if(direction  == AUTO_ENRL)
    {
-       motor_drive_sequence(&ptr->sequences.automatic.poster_enrl,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+       motor_drive_sequence(&ptr->sequences.automatic.poster_enrl,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result,rpm_coeff);
    }
 
    h_time_update(&ts2);
@@ -379,7 +397,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
        {
            if(abs(pulsesH) >= (pulsesH_start + ptr->sizes.prime_band_lower_size*2))
            {
-               motor_drive_sequence(&ptr->sequences.automatic.poster_enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+               motor_drive_sequence(&ptr->sequences.automatic.poster_enrh,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result,rpm_coeff);
                init_speed_finished = TRUE;
            }
        }
@@ -396,7 +414,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
               if(abs(pulsesH) >= pos)
               {
                   //LOG_D(LOG_STD,"pos%d ENRH %d / %d",index,pos,pos_final);
-                  motor_drive_sequence(&ptr->sequences.automatic.poster_enrh_decelerate,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                  motor_drive_sequence(&ptr->sequences.automatic.poster_enrh_decelerate,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result,rpm_coeff);
                   decelerate_flag = TRUE;
               }
           }
@@ -408,7 +426,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
               {
 
                   //LOG_D(LOG_STD,"pos%d ENRL %d / %d",index,pos,pos_final);
-                  motor_drive_sequence(&ptr->sequences.automatic.poster_enrl_decelerate,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                  motor_drive_sequence(&ptr->sequences.automatic.poster_enrl_decelerate,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result,rpm_coeff);
                   decelerate_flag = TRUE;
 
               }
@@ -521,9 +539,9 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
        // Cela permet de detecter un train en butée.
        bool_t ts2_elasped;
        if(init_phase == TRUE && init_speed_finished == FALSE)
-           h_time_is_elapsed_ms(&ts2, 400, &ts2_elasped);
+           h_time_is_elapsed_ms(&ts2, 1000, &ts2_elasped);
        else
-           h_time_is_elapsed_ms(&ts2, 400, &ts2_elasped);
+           h_time_is_elapsed_ms(&ts2, 300, &ts2_elasped);
 
        if(ts2_elasped == TRUE /*&& init_phase == TRUE*/)
        {

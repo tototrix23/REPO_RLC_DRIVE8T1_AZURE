@@ -38,7 +38,7 @@ typedef struct st_sequence_result
 
 
 
-return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_result_t *result);
+return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_result_t *result,...);
 
 
 #endif /* APPLICATION_MOTOR_DRIVE_PROCESS_DRIVE_SEQUENCE_H_ */
