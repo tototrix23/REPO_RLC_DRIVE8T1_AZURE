@@ -1680,11 +1680,11 @@ static void rm_motor_120_driver_ctrl_brake(motor_120_driver_instance_ctrl_t * p_
     {
 
 
-        uint32_t v = (value * 2700);
-        v = (v / 300);
+        uint32_t v = (value * 2900);
+        v = (v / 100);
 
         if(v < 300) v = 300;
-        if(v> 2700) v = 2700;
+        if(v> 2700) v = 2900;
 
         temp_duty.duty[0] = (uint32_t) v;
         temp_duty.duty[1] = temp_duty.duty[0];

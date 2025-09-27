@@ -696,6 +696,17 @@ fsp_err_t RM_MOTOR_120_CONTROL_HALL_ExtFreeSettingsSet(motor_120_control_ctrl_t 
     motor_120_control_hall_extended_cfg_t * p_extended_cfg =
                 (motor_120_control_hall_extended_cfg_t *) p_instance_ctrl->p_cfg->p_extend;
 
+
+    if(p_instance_ctrl->extSettings->voltage > p_extended_cfg->f4_start_refv)
+    {
+        p_instance_ctrl->extSettings->settings.slope = 1;
+    }
+    else
+    {
+        p_instance_ctrl->extSettings->settings.slope = 0;
+    }
+
+
     if (p_extended_cfg->p_motor_120_driver_instance != NULL)
     {
         p_extended_cfg->p_motor_120_driver_instance->p_api->settingsSet(
@@ -967,6 +978,17 @@ void rm_motor_120_control_hall_speed_cyclic (timer_callback_args_t * p_args)
 
     if (MOTOR_120_CONTROL_STATUS_ACTIVE == p_instance_ctrl->active)
     {
+
+        if (p_instance_ctrl->extSettings->active == 0)
+        {
+            if(p_instance_ctrl->u4_cnt_timeout > 1200)
+            {
+                volatile uint8_t xxx = 0;
+                xxx=1;
+            }
+        }
+
+
         /* RUN mode state management */
         switch (p_instance_ctrl->run_mode)
         {
@@ -1045,8 +1067,14 @@ void rm_motor_120_control_hall_speed_cyclic (timer_callback_args_t * p_args)
         /* check run mode */
         if (MOTOR_120_CONTROL_RUN_MODE_INIT != p_instance_ctrl->run_mode)
         {
-            if((p_instance_ctrl->extSettings->active == 1 && p_instance_ctrl->extSettings->settings.timeout_hall_ms != 0) ||
-               (p_instance_ctrl->extSettings->active == 0))
+            if((p_instance_ctrl->extSettings->active == 1 && p_instance_ctrl->extSettings->settings.timeout_hall_ms != 0))
+            {
+                if (p_instance_ctrl->u4_cnt_timeout <= p_instance->p_cfg->u4_timeout_cnt)
+                {
+                    p_instance_ctrl->u4_cnt_timeout++;
+                }
+            }
+            else if(p_instance_ctrl->extSettings->active == 0)
             {
                 if (p_instance_ctrl->u4_cnt_timeout <= p_instance->p_cfg->u4_timeout_cnt)
                 {
@@ -1148,6 +1176,9 @@ static void rm_motor_120_control_hall_reset (motor_120_control_hall_instance_ctr
     motor_120_control_hall_extended_cfg_t * p_extended_cfg =
         (motor_120_control_hall_extended_cfg_t *) p_ctrl->p_cfg->p_extend;
     uint8_t u8_loop_cnt;
+
+
+
 
     p_ctrl->active             = MOTOR_120_CONTROL_STATUS_INACTIVE;
     p_ctrl->run_mode           = MOTOR_120_CONTROL_RUN_MODE_INIT;
@@ -1703,7 +1734,7 @@ static void rm_motor_120_control_hall_voltage_ref_set (motor_120_control_hall_in
                 //volatile uint8_t sl = p_ctrl->extSettings->settings.slope;
                 if(p_ctrl->extSettings->settings.slope == 1)
                 {
-                    v = 1.0f;//p_ctrl->p_cfg->f4_min_drive_v;//p_extended_cfg->f4_start_refv;
+                    v = p_extended_cfg->f4_start_refv;
                     p_ctrl->f4_v_ref = v;
                     if (MOTOR_120_CONTROL_RUN_MODE_DRIVE == p_ctrl->run_mode)
                     {
@@ -1749,21 +1780,19 @@ static void rm_motor_120_control_hall_voltage_ref_set (motor_120_control_hall_in
                     float delta = 0.0f;
                     if (p_ctrl->f4_v_ref > p_ctrl->extSettings->voltage)
                     {
-                        delta = ((p_ctrl->f4_v_ref - p_ctrl->extSettings->voltage)>= 0.01f)?0.01f:0.01f;
+                        delta = ((p_ctrl->f4_v_ref - p_ctrl->extSettings->voltage)>= 0.025f)?0.025f:0.025f;
 
                         p_ctrl->f4_v_ref = p_ctrl->f4_v_ref - (float)delta;
                     }
                     else if (p_ctrl->f4_v_ref < p_ctrl->extSettings->voltage)
                     {
-                        delta = ((p_ctrl->extSettings->voltage - p_ctrl->f4_v_ref)>= 0.01f)?0.01f:0.01f;
+                        delta = ((p_ctrl->extSettings->voltage - p_ctrl->f4_v_ref)>= 0.025f)?0.025f:0.025f;
 
                         p_ctrl->f4_v_ref = p_ctrl->f4_v_ref + (float) delta;
                     }
                 }
                 else
                 {
-                    volatile float *ptr = &p_ctrl->f4_v_ref;
-                    *ptr = 0.0f;
                     p_ctrl->f4_v_ref = p_ctrl->extSettings->voltage;
                 }
 

@@ -338,8 +338,10 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
    }
 
    LOG_D(LOG_STD,"coeff %0.3f",rpm_coeff);
+   h_time_update(&ts3);
 
-    h_time_update(&ts3);
+
+
    poster_change_start:
    //LOG_D(LOG_STD,"poster_change_start");
    h_time_update(&ts_error);
@@ -410,7 +412,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
           if(direction == AUTO_ENRH)
           {
               pos_final = ptr->panels.positions[index]+ptr->panels.positions_compH[index];
-              pos = pos_final-200;//150;
+              pos = pos_final-ptr->pulse_decel_h;
               if(abs(pulsesH) >= pos)
               {
                   //LOG_D(LOG_STD,"pos%d ENRH %d / %d",index,pos,pos_final);
@@ -421,7 +423,7 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
           else if(direction == AUTO_ENRL)
           {
               pos_final = ptr->panels.positions[index]+ptr->panels.positions_compL[index];
-              pos = pos_final+200;//150;
+              pos = pos_final+ptr->pulse_decel_l;
               if(abs(pulsesH) <= pos)
               {
 
@@ -537,11 +539,11 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
 
        // Gestion de l'évolution du codeur haut.
        // Cela permet de detecter un train en butée.
-       bool_t ts2_elasped;
+       bool_t ts2_elasped = FALSE;
        if(init_phase == TRUE && init_speed_finished == FALSE)
            h_time_is_elapsed_ms(&ts2, 1000, &ts2_elasped);
        else
-           h_time_is_elapsed_ms(&ts2, 300, &ts2_elasped);
+           h_time_is_elapsed_ms(&ts2, 1500, &ts2_elasped);
 
        if(ts2_elasped == TRUE /*&& init_phase == TRUE*/)
        {
@@ -551,6 +553,14 @@ static return_motor_cplx_t poster_change_to_position(uint8_t direction,uint8_t i
 
            if( (abs(pulsesH2 - pulsesH1) <= 3) || (abs(pulsesL2 - pulsesL1) <= 3))
            {
+
+               if(init_phase== FALSE)
+               {
+                   volatile uint8_t xxx=0;
+                   xxx=1;
+                   goto poster_change_start;
+               }
+
                scroll_stop(direction);
                LOG_W(LOG_STD,"no pulses");
                return_motor_cplx_update(&ret,F_RET_MOTOR_AUTO_TIMEOUT_PULSES);

@@ -106,6 +106,11 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
                             {
                                 motors_instance.motors[i]->motor_ctrl_instance->p_api->run(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
                             }
+                            else
+                            {
+                                motors_instance.motors[i]->motor_ctrl_instance->p_api->stop(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
+                                motor_wait_stop(motors_instance.motors[i]);
+                            }
                             break;
 
                         case MOTOR_120_DEGREE_CTRL_STATUS_RUN:
@@ -179,11 +184,22 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
                             {
                                 motors_instance.motors[i]->motor_ctrl_instance->p_api->run(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
                             }
+                            else
+                            {
+                                motors_instance.motors[i]->motor_ctrl_instance->p_api->stop(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
+                                motor_wait_stop(motors_instance.motors[i]);
+                            }
                             break;
 
                         case MOTOR_120_DEGREE_CTRL_STATUS_RUN:
                             if(motors_instance.motors[i]->current_drive_mode != phase->params_motors[i].mode)
                             {
+                                volatile motor_120_control_hall_instance_ctrl_t ptr_test;
+                                memcpy(&ptr_test,&g_motor_120_control_hall1_ctrl,sizeof(motor_120_control_hall_instance_ctrl_t));
+
+                                volatile motor_120_driver_instance_ctrl_t ptr_drv;
+                                memcpy(&ptr_drv,&g_motor_120_driver1_ctrl,sizeof(motor_120_driver_instance_ctrl_t));
+
                                 motors_instance.motors[i]->motor_ctrl_instance->p_api->stop(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
                                 motor_wait_stop(motors_instance.motors[i]);
                                 if(phase->params_motors[i].non_regulated.settings.percent != 0)
@@ -282,12 +298,26 @@ return_t motor_drive_sequence(c_linked_list_t *list,uint16_t behaviour,sequence_
                                 motors_instance.motors[i]->motor_ctrl_instance->p_ctrl,
                                 speed_rpm);
                     }
+                    else
+                    {
+                        motors_instance.motors[i]->motor_ctrl_instance->p_api->stop(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
+                        motor_wait_stop(motors_instance.motors[i]);
+                    }
                     break;
 
                 case MOTOR_NON_REGULATED_MODE:
-                    if(phase->params_motors[i].non_regulated.settings.percent != 0)
-                    motors_instance.motors[i]->motor_ctrl_instance->p_api->settingsSet(motors_instance.motors[i]->motor_ctrl_instance->p_ctrl,
-                            phase->params_motors[i].non_regulated.settings);
+                    if (phase->params_motors[i].non_regulated.settings.percent != 0)
+                    {
+                        motors_instance.motors[i]->motor_ctrl_instance->p_api->settingsSet (
+                                motors_instance.motors[i]->motor_ctrl_instance->p_ctrl,
+                                phase->params_motors[i].non_regulated.settings);
+                    }
+                    else
+                    {
+                        motors_instance.motors[i]->motor_ctrl_instance->p_api->stop (
+                                motors_instance.motors[i]->motor_ctrl_instance->p_ctrl);
+                        motor_wait_stop (motors_instance.motors[i]);
+                    }
                     break;
 
                 case MOTOR_BRAKE_MODE:

@@ -135,12 +135,10 @@ void main_thread_entry(void)
 
     heap_init();
 
-    /*flash_open();
+    flash_open();
     flash_erase_chip();
-    flash_close();*/
+    flash_close();
 
-    volatile UINT fx_ret_val = FX_SUCCESS;
-        /* Initialize LevelX system */
 
     // Configuration de l'interface de gestion du temps
     i_time_init(&i_time_interface_t,impl_time_init, impl_time_update);
@@ -170,7 +168,7 @@ void main_thread_entry(void)
     // Demarrage du Thread dédié aux LOGs
     tx_thread_resume(&log_thread);
     delay_ms(200);
-    //tx_thread_resume(&modem_thread);
+    tx_thread_resume(&modem_thread);
 
     // Initialisation de la partie moteurs (partie logicielle)
     motor_structures_init();

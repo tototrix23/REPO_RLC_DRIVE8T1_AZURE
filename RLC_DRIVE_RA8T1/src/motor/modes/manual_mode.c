@@ -75,6 +75,31 @@ void manual_mode_process(void) {
     motors_instance.motorH->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorH->motor_ctrl_instance->p_ctrl,0);
     motors_instance.motorL->motor_ctrl_instance->p_api->pulsesSet(motors_instance.motorL->motor_ctrl_instance->p_ctrl,0);
 
+
+    /*volatile uint8_t test=0;
+
+    do
+    {
+        if(drive_stop_request() == TRUE) return;
+        h_time_is_elapsed_ms(&ts, 1000, &ts_elasped);
+        if(ts_elasped == TRUE)
+        {
+            h_time_update(&ts);
+            if(test == 0)
+            {
+                test = 1;
+                motor_drive_sequence(&ptr->sequences.manual.enrh_stop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+            }
+            else
+            {
+                test = 0;
+                motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+            }
+        }
+
+    }while(!end);*/
+
+
     do
     {
 
@@ -120,13 +145,17 @@ void manual_mode_process(void) {
             {
                 LOG_D(LOG_STD,"enrh_stop");
                 motor_drive_sequence(&ptr->sequences.manual.enrh_stop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                current_list = 0x00;
             }
             else if(current_list == &ptr->sequences.manual.enrl)
             {
                 LOG_D(LOG_STD,"enrl_stop");
                 motor_drive_sequence(&ptr->sequences.manual.enrl_stop,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
+                current_list = 0x00;
             }
 
+            else
+            {
             // Traitement de la nouvelle consigne
             if(m12_enrh == REMOTECTRL_ACTIVE_LEVEL &&
                                    m12_enrl == !REMOTECTRL_ACTIVE_LEVEL &&
@@ -157,6 +186,7 @@ void manual_mode_process(void) {
                 LOG_D(LOG_STD,"off");
                 motor_drive_sequence(&ptr->sequences.off,MOTOR_SEQUENCE_CHECK_NONE,&sequence_result);
                 current_list = &ptr->sequences.off;
+            }
             }
         }
 

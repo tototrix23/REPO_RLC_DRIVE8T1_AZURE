@@ -261,7 +261,7 @@ FSP Configuration
       P804 137 GPIO IO_VM_SWITCH_CMD L None "Output mode (Initial High)" - - "GPT13: GTIOC13A; GPT_POEGD: GTETRGD; IRQ14: IRQ14; SCI2: CTS_RTS2; SCI2: DE2" - IO - - 
       P805 173 ADC1_AN117 - - - "Analog mode" - - "ADC0: AN017; ADC1: AN117" - I - - 
       P806 172 ADC1_AN118 - - - "Analog mode" - - "ADC0: AN018; ADC1: AN118; IRQ0: IRQ0" - I - - 
-      P808 138 GPIO IO_VM_BALLAST_CMD M None "Output mode (Initial Low)" - - "GPT13: GTIOC13B; IRQ15: IRQ15" - IO - - 
+      P808 138 GPIO IO_VM_BALLAST_CMD H None "Output mode (Initial Low)" - - "GPT13: GTIOC13B; IRQ15: IRQ15" - IO - - 
       P809 139 GPIO IO_MOT_SIG3 - - "Input mode" - - - - IO - - 
       P810 142 - - - - Disabled - - "SDHI1: SD1CLK; ULPT0: ULPTOA0" - None - - 
       P811 143 - - - - Disabled - - "SDHI1: SD1CMD; ULPT0: ULPTOB0; USB FS: USB_ID" - None - - 
@@ -734,7 +734,7 @@ FSP Configuration
         Hall sensor port W: BSP_IO_PORT_03_PIN_02
         General: Timeout counts (msec): 2000
         General: Maximum voltage (V): 23.5
-        General: Minimum voltage (V): 1.0
+        General: Minimum voltage (V): 3.0
         General: Speed PI decimation: 0
         General: Freerun timer frequency (MHz): 120
         General: Speed LPF: 1.0
@@ -1108,13 +1108,13 @@ FSP Configuration
       
       Instance "120-degree conduction control with Hall sensors (rm_motor_120_control_hall)"
         General: Name: g_motor_120_control_hall1
-        General: Conduction type: Complementary First 60 degree PWM
+        General: Conduction type: First 60 degree PWM
         Hall sensor port U: BSP_IO_PORT_08_PIN_00
         Hall sensor port V: BSP_IO_PORT_01_PIN_04
         Hall sensor port W: BSP_IO_PORT_01_PIN_05
         General: Timeout counts (msec): 2000
         General: Maximum voltage (V): 23.5
-        General: Minimum voltage (V): 1.0
+        General: Minimum voltage (V): 3.0
         General: Speed PI decimation: 0
         General: Freerun timer frequency (MHz): 120
         General: Speed LPF: 1.0

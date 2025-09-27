@@ -543,7 +543,7 @@ void adc_mot_callback(adc_callback_args_t *p_args)
             //(void) R_GPT_Start(&g_timer_ballast_ctrl);
             R_IOPORT_PinWrite(&g_ioport_ctrl, IO_VM_BALLAST_CMD,BSP_IO_LEVEL_HIGH);
         }
-        else if(adc_ballast_activated == TRUE && diff_vin_vm < 2000.0f)
+        else if(adc_ballast_activated == TRUE && diff_vin_vm < 1000.0f)
         {
             //LOG_D(LOG_STD,"0 -> %d",(uint32_t)diff_vin_vm);
             adc_ballast_activated = FALSE;

@@ -341,9 +341,9 @@ static return_t init_enrl(void)
 
         bool_t ts2_elasped;
         if(start_finished == FALSE)
-            h_time_is_elapsed_ms(&ts2, 300, &ts2_elasped);
+            h_time_is_elapsed_ms(&ts2, 1000, &ts2_elasped);
         else
-            h_time_is_elapsed_ms(&ts2, 100, &ts2_elasped);
+            h_time_is_elapsed_ms(&ts2, 300, &ts2_elasped);
 
         if(ts2_elasped == TRUE)
         {

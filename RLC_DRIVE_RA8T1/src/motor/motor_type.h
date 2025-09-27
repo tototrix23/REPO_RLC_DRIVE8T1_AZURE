@@ -105,6 +105,9 @@ typedef struct st_motor_profil_t
     motor_ext_cfg_t cfg_motorL; ///< Configuration du comportement du moteur bas
     uint32_t poster_showtime_ms;
     uint32_t current_stop;
+    uint32_t pulse_decel_h;
+    uint32_t pulse_decel_l;
+
 
     struct
     {
